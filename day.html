@@ -321,7 +321,8 @@
 <body>
 <div class="container">
   <div class="header-bar">
-    <a href="index.html" class="nav-btn">← 5월 달력</a>
+    <a href="index.html" class="nav-btn" style="background:#43a047;">🏠 연간 계획</a>
+    <a id="monthBtn" href="#" class="nav-btn">📅 월 달력</a>
     <a id="prevDayBtn" href="#" class="nav-btn">◀ 이전날</a>
     <a id="nextDayBtn" href="#" class="nav-btn">다음날 ▶</a>
   </div>
@@ -434,6 +435,8 @@
   }
   document.getElementById('prevDayBtn').href = `day.html?date=${shiftDate(-1)}`;
   document.getElementById('nextDayBtn').href = `day.html?date=${shiftDate(1)}`;
+  document.getElementById('monthBtn').href = `month.html?year=${dateParts[0]}&month=${dateParts[1]}`;
+  document.getElementById('monthBtn').textContent = `📅 ${dateParts[1]}월 달력`;
 
   // 기본 스케줄 (평일/주말)
   const weekdaySchedule = [
