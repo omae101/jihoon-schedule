@@ -42,6 +42,44 @@
     font-size: 36px;
     font-weight: 700;
     letter-spacing: -0.5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .name-input {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-main);
+    background: transparent;
+    border: none;
+    border-bottom: 2px dashed var(--line-strong);
+    text-align: center;
+    font-family: inherit;
+    padding: 0 8px;
+    outline: none;
+    min-width: 80px;
+    max-width: 280px;
+    transition: all 0.15s;
+  }
+  .name-input:focus {
+    border-bottom-color: var(--accent);
+    border-bottom-style: solid;
+  }
+  .name-input::placeholder {
+    color: var(--text-mute);
+    font-style: italic;
+    font-size: 28px;
+  }
+  .name-input-wrap {
+    position: relative;
+    display: inline-block;
+  }
+  .name-suffix {
+    font-size: 36px;
+    color: var(--text-main);
+    font-weight: 700;
   }
   .subtitle {
     text-align: center;
@@ -200,7 +238,10 @@
 </head>
 <body>
 <div class="container">
-  <h1>2026년 계획표</h1>
+  <h1>
+    <input type="text" id="ownerName" class="name-input" placeholder="이름" maxlength="10">
+    <span class="name-suffix">의 2026년 계획표</span>
+  </h1>
   <p class="subtitle">5월부터 12월까지 · 각 달을 클릭하면 자세한 달력을 볼 수 있어요</p>
 
   <div class="help-box">
@@ -235,6 +276,15 @@
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
+
+  // 이름 저장/불러오기
+  const NAME_KEY = 'jihoon-owner-name';
+  const nameInput = document.getElementById('ownerName');
+  nameInput.value = localStorage.getItem(NAME_KEY) || '';
+  nameInput.addEventListener('input', () => {
+    localStorage.setItem(NAME_KEY, nameInput.value);
+    showSaved();
+  });
 
   const grid = document.getElementById('monthsGrid');
   let saveTimer;

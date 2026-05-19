@@ -305,7 +305,9 @@
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
-  document.getElementById('monthTitle').textContent = `${YEAR}년 ${MONTH}월`;
+  const ownerName = localStorage.getItem('jihoon-owner-name') || '';
+  const namePrefix = ownerName ? `${ownerName}의 ` : '';
+  document.getElementById('monthTitle').textContent = `${namePrefix}${YEAR}년 ${MONTH}월`;
   document.getElementById('monthPlanTitle').textContent = `${MONTH}월 목표`;
   document.title = `지훈이 ${YEAR}년 ${MONTH}월 스케줄표`;
 

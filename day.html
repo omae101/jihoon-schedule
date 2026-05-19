@@ -449,8 +449,10 @@
   const dayOfWeek = dateObj.getDay();
   const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
 
+  const ownerName = localStorage.getItem('jihoon-owner-name') || '';
+  const namePrefix = ownerName ? `${ownerName}의 ` : '';
   document.getElementById('dateTitle').textContent =
-    `${dateParts[0]}년 ${dateParts[1]}월 ${dateParts[2]}일 (${DAY_NAMES[dayOfWeek]})`;
+    `${namePrefix}${dateParts[0]}년 ${dateParts[1]}월 ${dateParts[2]}일 (${DAY_NAMES[dayOfWeek]})`;
   document.getElementById('dateSubtitle').textContent =
     isWeekend ? '주말 스케줄' : '평일 스케줄';
 
