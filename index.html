@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>지훈이 5월 스케줄표</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    background: linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%);
+    margin: 0;
+    padding: 20px;
+    color: #333;
+  }
+  .container {
+    max-width: 1600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    padding: 30px;
+  }
+  h1 {
+    text-align: center;
+    color: #1976d2;
+    margin-bottom: 6px;
+    font-size: 40px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #777;
+    margin-bottom: 20px;
+    font-size: 15px;
+  }
+  .help-box {
+    background: #e3f2fd;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #0d47a1;
+    text-align: center;
+  }
+  .toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .btn-print { background: #1976d2; color: white; }
+  .btn-reset { background: #e57373; color: white; }
+
+  table.calendar {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  table.calendar th {
+    background: #1976d2;
+    color: white;
+    padding: 14px;
+    font-size: 18px;
+    border: 1px solid #1565c0;
+  }
+  table.calendar th.sat { background: #1565c0; }
+  table.calendar th.sun { background: #d32f2f; }
+
+  table.calendar td {
+    border: 1px solid #e0e0e0;
+    padding: 0;
+    height: 130px;
+    vertical-align: top;
+    position: relative;
+    background: white;
+  }
+  table.calendar td.empty-day {
+    background: #fafafa;
+  }
+  .day-cell {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+  }
+  .day-number {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    align-self: flex-start;
+  }
+  .day-number:hover {
+    background: #1976d2;
+    color: white;
+  }
+  .day-number.today {
+    background: #ff9800;
+    color: white;
+    box-shadow: 0 2px 6px rgba(255,152,0,0.5);
+  }
+  .day-number.sat { color: #1976d2; }
+  .day-number.sun { color: #d32f2f; }
+  .day-number.today.sat, .day-number.today.sun { color: white; }
+
+  .assessment-input {
+    flex: 1;
+    width: 100%;
+    margin-top: 4px;
+    padding: 4px 6px;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    background: #fffde7;
+    font-family: inherit;
+    font-size: 12px;
+    resize: none;
+    color: #5d4037;
+    outline: none;
+  }
+  .assessment-input:focus {
+    border: 2px solid #ff9800;
+    background: #fff8e1;
+  }
+  .assessment-input::placeholder {
+    color: #bbb;
+    font-style: italic;
+  }
+
+  .saved-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #43a047;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1000;
+  }
+  .saved-indicator.show { opacity: 1; }
+
+  .legend-info {
+    margin-top: 25px;
+    padding: 15px 20px;
+    background: #fff3e0;
+    border-left: 5px solid #ff9800;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #5d4037;
+    line-height: 1.7;
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .container { box-shadow: none; }
+    .toolbar, .help-box, .saved-indicator { display: none !important; }
+    .assessment-input { border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📅 지훈이 5월 스케줄표</h1>
+  <p class="subtitle">2026년 5월 · 수행평가 일정을 입력하고, 날짜를 클릭하면 그 날의 스케줄을 볼 수 있어요!</p>
+
+  <div class="help-box">
+    📝 <strong>사용법:</strong> 각 날짜 아래 노란 칸에 <strong>수행평가</strong>를 입력하세요. 입력하면 자동 저장돼요. <strong>날짜 숫자를 클릭</strong>하면 그 날의 일별 스케줄 페이지로 이동해요.
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-print" onclick="window.print()">🖨️ 인쇄하기</button>
+    <button class="btn btn-reset" onclick="resetCalendar()">🔄 수행평가 모두 초기화</button>
+  </div>
+
+  <table class="calendar">
+    <thead>
+      <tr>
+        <th>월</th>
+        <th>화</th>
+        <th>수</th>
+        <th>목</th>
+        <th>금</th>
+        <th class="sat">토</th>
+        <th class="sun">일</th>
+      </tr>
+    </thead>
+    <tbody id="calendarBody">
+      <!-- JS로 생성 -->
+    </tbody>
+  </table>
+
+  <div class="legend-info">
+    <strong>💡 활용 팁</strong><br>
+    · 수행평가, 시험, 학원 발표 등 중요한 일정을 미리 적어두면 한눈에 볼 수 있어요.<br>
+    · 날짜를 클릭하면 평일/주말에 맞는 일별 스케줄이 나오고, 거기서 자세한 일정을 짤 수 있어요.<br>
+    · 오늘 날짜는 <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:4px;">주황색</span>으로 표시돼요.
+  </div>
+</div>
+
+<div id="savedIndicator" class="saved-indicator">✓ 저장됨</div>
+
+<script>
+  const YEAR = 2026;
+  const MONTH = 5; // 5월
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+
+  // 5월 1일의 요일 (0=일, 1=월, ..., 6=토)
+  const firstDay = new Date(YEAR, MONTH-1, 1);
+  let firstDayOfWeek = firstDay.getDay(); // 0=일
+  // 월요일 시작으로 조정: 월=0, 화=1, ..., 일=6
+  firstDayOfWeek = (firstDayOfWeek + 6) % 7;
+
+  // 5월의 마지막 날
+  const lastDate = new Date(YEAR, MONTH, 0).getDate(); // 31
+
+  const tbody = document.getElementById('calendarBody');
+  let day = 1;
+  let weekIdx = 0;
+
+  while (day <= lastDate) {
+    const tr = document.createElement('tr');
+    for (let col = 0; col < 7; col++) {
+      const td = document.createElement('td');
+      if (weekIdx === 0 && col < firstDayOfWeek) {
+        // 앞쪽 빈 칸
+        td.classList.add('empty-day');
+      } else if (day > lastDate) {
+        td.classList.add('empty-day');
+      } else {
+        const currentDay = day;
+        const dateStr = `${YEAR}-${String(MONTH).padStart(2,'0')}-${String(currentDay).padStart(2,'0')}`;
+        const isToday = (dateStr === todayStr);
+        const isSat = (col === 5);
+        const isSun = (col === 6);
+
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+
+        const link = document.createElement('a');
+        link.className = 'day-number';
+        if (isSat) link.classList.add('sat');
+        if (isSun) link.classList.add('sun');
+        if (isToday) link.classList.add('today');
+        link.href = `day.html?date=${dateStr}`;
+        link.textContent = currentDay;
+        link.title = `${MONTH}월 ${currentDay}일 스케줄 보기`;
+        cell.appendChild(link);
+
+        const textarea = document.createElement('textarea');
+        textarea.className = 'assessment-input';
+        textarea.placeholder = '수행평가 입력...';
+        textarea.dataset.date = dateStr;
+        const saved = localStorage.getItem(`jihoon-assessment-${dateStr}`);
+        if (saved) textarea.value = saved;
+        textarea.addEventListener('input', () => {
+          localStorage.setItem(`jihoon-assessment-${dateStr}`, textarea.value);
+          showSaved();
+        });
+        cell.appendChild(textarea);
+
+        td.appendChild(cell);
+        day++;
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+    weekIdx++;
+  }
+
+  let saveTimer;
+  function showSaved() {
+    const ind = document.getElementById('savedIndicator');
+    ind.classList.add('show');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => ind.classList.remove('show'), 1500);
+  }
+
+  function resetCalendar() {
+    if (confirm('5월의 모든 수행평가 입력 내용을 지울까요?')) {
+      document.querySelectorAll('.assessment-input').forEach(ta => {
+        localStorage.removeItem(`jihoon-assessment-${ta.dataset.date}`);
+        ta.value = '';
+      });
+    }
+  }
+</script>
+</body>
+</html>
