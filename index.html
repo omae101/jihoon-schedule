@@ -4,51 +4,66 @@
 <meta charset="UTF-8">
 <title>지훈이 2026년 계획표</title>
 <style>
+  :root {
+    --bg: #FAF6EE;
+    --surface: #FFFFFF;
+    --surface-soft: #F5EDE0;
+    --text-main: #3E2723;
+    --text-sub: #6D4C41;
+    --text-mute: #A1887F;
+    --line: #E8DCC8;
+    --line-strong: #D7CCC8;
+    --accent: #00897B;
+    --accent-soft: #B2DFDB;
+    --accent-dark: #00695C;
+  }
   * { box-sizing: border-box; }
   body {
     font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
-    background: linear-gradient(135deg, #ffecb3 0%, #e1bee7 50%, #b3e5fc 100%);
+    background: var(--bg);
     margin: 0;
-    padding: 20px;
-    color: #333;
+    padding: 30px 20px;
+    color: var(--text-main);
     min-height: 100vh;
   }
   .container {
-    max-width: 1400px;
+    max-width: 1300px;
     margin: 0 auto;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(62,39,35,0.06);
     padding: 40px;
+    border: 1px solid var(--line);
   }
   h1 {
     text-align: center;
-    color: #1976d2;
-    margin: 0 0 8px 0;
-    font-size: 44px;
-    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 6px 0;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
   }
   .subtitle {
     text-align: center;
-    color: #666;
-    margin-bottom: 30px;
-    font-size: 16px;
-  }
-  .help-box {
-    background: linear-gradient(90deg, #fff3e0, #fce4ec);
-    padding: 16px 24px;
-    border-radius: 12px;
+    color: var(--text-sub);
     margin-bottom: 28px;
     font-size: 15px;
-    color: #5d4037;
+  }
+  .help-box {
+    background: var(--surface-soft);
+    padding: 14px 20px;
+    border-radius: 8px;
+    margin-bottom: 28px;
+    font-size: 14px;
+    color: var(--text-sub);
     text-align: center;
-    border: 2px solid #ffe0b2;
+    border: 1px solid var(--line);
   }
 
   .months-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    gap: 16px;
   }
   @media (max-width: 1100px) {
     .months-grid { grid-template-columns: repeat(2, 1fr); }
@@ -58,140 +73,123 @@
   }
 
   .month-card {
-    background: white;
-    border-radius: 16px;
+    background: var(--surface);
+    border-radius: 12px;
     padding: 20px;
-    border: 3px solid #e0e0e0;
+    border: 1px solid var(--line);
     transition: all 0.2s;
     display: flex;
     flex-direction: column;
-    min-height: 280px;
+    min-height: 260px;
   }
   .month-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-color: var(--line-strong);
+    box-shadow: 0 4px 16px rgba(62,39,35,0.08);
   }
   .month-card.current {
-    border-color: #ff9800;
-    box-shadow: 0 4px 16px rgba(255,152,0,0.3);
-    background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%);
+    border: 2px solid var(--accent);
+    background: linear-gradient(135deg, #FFFFFF, #F0F9F8);
   }
 
   .month-header {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
-    margin-bottom: 12px;
-  }
-  .month-emoji {
-    font-size: 36px;
+    margin-bottom: 10px;
   }
   .month-link {
     text-decoration: none;
-    color: #1976d2;
-    font-size: 32px;
-    font-weight: 800;
-    padding: 6px 16px;
-    border-radius: 10px;
+    color: var(--text-main);
+    font-size: 28px;
+    font-weight: 700;
     transition: all 0.15s;
-    background: #e3f2fd;
   }
   .month-link:hover {
-    background: #1976d2;
-    color: white;
-    transform: scale(1.05);
+    color: var(--accent);
   }
   .month-card.current .month-link {
-    background: #ff9800;
-    color: white;
-  }
-  .month-card.current .month-link:hover {
-    background: #f57c00;
+    color: var(--accent);
   }
   .month-year {
-    font-size: 13px;
-    color: #999;
-    font-weight: bold;
+    font-size: 12px;
+    color: var(--text-mute);
+    font-weight: 500;
   }
 
   .month-status {
-    font-size: 12px;
-    padding: 3px 10px;
-    border-radius: 20px;
-    background: #f5f5f5;
-    color: #666;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 4px;
+    background: var(--surface-soft);
+    color: var(--text-sub);
     align-self: flex-start;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    border: 1px solid var(--line);
   }
-  .month-status.current {
-    background: #ff9800;
+  .month-card.current .month-status {
+    background: var(--accent);
     color: white;
-  }
-  .month-status.past {
-    background: #e0e0e0;
-    color: #888;
-  }
-  .month-status.future {
-    background: #c8e6c9;
-    color: #1b5e20;
+    border-color: var(--accent);
   }
 
   .plan-label {
-    font-size: 13px;
-    color: #7b1fa2;
-    font-weight: bold;
+    font-size: 12px;
+    color: var(--text-mute);
+    font-weight: 600;
     margin-bottom: 6px;
+    letter-spacing: 0.5px;
   }
   .plan-textarea {
     flex: 1;
     width: 100%;
     padding: 10px;
-    border: 2px dashed #ce93d8;
-    border-radius: 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
     font-family: inherit;
     font-size: 13px;
     resize: none;
-    background: #fce4ec;
+    background: var(--bg);
     outline: none;
-    color: #4a148c;
-    min-height: 100px;
+    color: var(--text-main);
+    min-height: 90px;
+    line-height: 1.5;
   }
   .plan-textarea:focus {
-    border: 2px solid #7b1fa2;
-    background: #f8bbd0;
+    border: 1px solid var(--accent);
+    background: var(--surface);
   }
   .plan-textarea::placeholder {
-    color: #ad8db5;
-    font-style: italic;
+    color: var(--text-mute);
   }
 
   .saved-indicator {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #43a047;
+    background: var(--accent);
     color: white;
-    padding: 12px 22px;
-    border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    padding: 10px 18px;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0,137,123,0.3);
     opacity: 0;
     transition: opacity 0.3s;
     z-index: 1000;
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 500;
   }
   .saved-indicator.show { opacity: 1; }
 
   .footer-info {
-    margin-top: 30px;
-    padding: 18px 24px;
-    background: #e8f5e9;
-    border-left: 5px solid #43a047;
-    border-radius: 10px;
-    font-size: 14px;
-    color: #1b5e20;
+    margin-top: 28px;
+    padding: 16px 22px;
+    background: var(--surface-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-sub);
     line-height: 1.8;
   }
-  .footer-info strong { color: #2e7d32; }
+  .footer-info strong { color: var(--text-main); }
 
   @media print {
     body { background: white; padding: 0; }
@@ -202,36 +200,36 @@
 </head>
 <body>
 <div class="container">
-  <h1>🎯 지훈이 2026년 계획표</h1>
-  <p class="subtitle">5월부터 12월까지 · 각 달을 클릭하면 자세한 달력을 볼 수 있어요!</p>
+  <h1>2026년 계획표</h1>
+  <p class="subtitle">5월부터 12월까지 · 각 달을 클릭하면 자세한 달력을 볼 수 있어요</p>
 
   <div class="help-box">
-    💜 <strong>사용법:</strong> 각 달의 보라색 칸에 <strong>월간 계획·목표</strong>를 입력하세요. <strong>"5월", "6월" 같은 숫자를 클릭</strong>하면 해당 월의 자세한 달력으로 이동해요.
+    각 달의 입력칸에 <strong>월간 목표</strong>를 적어두세요. 큰 글씨의 <strong>월 이름을 클릭</strong>하면 해당 월의 달력이 열립니다.
   </div>
 
   <div class="months-grid" id="monthsGrid"></div>
 
   <div class="footer-info">
-    <strong>📚 계획표 구조</strong><br>
-    1단계 · <strong>연간 계획 (이 페이지)</strong> — 매 달의 큰 목표 설정<br>
-    2단계 · <strong>월간 달력</strong> — 수행평가, 시험 등 날짜별 일정 입력<br>
-    3단계 · <strong>일별 스케줄</strong> — 시간표 + To-Do 리스트로 하루 계획
+    <strong>계획표 구조</strong><br>
+    1단계 · 연간 계획 (이 페이지) — 매 달의 큰 목표 설정<br>
+    2단계 · 월간 달력 — 수행평가, 시험 등 날짜별 일정 입력<br>
+    3단계 · 일별 스케줄 — 시간표 + To-Do 리스트로 하루 계획
   </div>
 </div>
 
-<div id="savedIndicator" class="saved-indicator">✓ 저장됨</div>
+<div id="savedIndicator" class="saved-indicator">저장됨</div>
 
 <script>
   const YEAR = 2026;
   const MONTHS = [
-    { num: 5,  name: '5월',  emoji: '🌸', desc: '봄의 끝' },
-    { num: 6,  name: '6월',  emoji: '🌳', desc: '초여름' },
-    { num: 7,  name: '7월',  emoji: '🌞', desc: '여름방학' },
-    { num: 8,  name: '8월',  emoji: '🏖️', desc: '한여름' },
-    { num: 9,  name: '9월',  emoji: '🍂', desc: '가을 시작' },
-    { num: 10, name: '10월', emoji: '🍁', desc: '중간고사' },
-    { num: 11, name: '11월', emoji: '🍃', desc: '깊어진 가을' },
-    { num: 12, name: '12월', emoji: '⛄', desc: '연말' }
+    { num: 5,  name: '5월',  desc: '봄의 끝' },
+    { num: 6,  name: '6월',  desc: '초여름' },
+    { num: 7,  name: '7월',  desc: '여름방학' },
+    { num: 8,  name: '8월',  desc: '한여름' },
+    { num: 9,  name: '9월',  desc: '가을 시작' },
+    { num: 10, name: '10월', desc: '중간고사' },
+    { num: 11, name: '11월', desc: '깊어진 가을' },
+    { num: 12, name: '12월', desc: '연말' }
   ];
 
   const today = new Date();
@@ -252,29 +250,22 @@
     const card = document.createElement('div');
     card.className = 'month-card';
 
-    let statusText = '';
-    let statusClass = '';
+    let statusText = m.desc;
     if (currentYear === YEAR && currentMonth === m.num) {
       card.classList.add('current');
       statusText = '이번 달';
-      statusClass = 'current';
     } else if (currentYear > YEAR || (currentYear === YEAR && currentMonth > m.num)) {
       statusText = '지난 달';
-      statusClass = 'past';
-    } else {
-      statusText = m.desc;
-      statusClass = 'future';
     }
 
     card.innerHTML = `
       <div class="month-header">
-        <span class="month-emoji">${m.emoji}</span>
         <a class="month-link" href="month.html?year=${YEAR}&month=${m.num}" title="${m.name} 달력 보기">${m.name}</a>
+        <span class="month-year">${YEAR}</span>
       </div>
-      <div class="month-year">${YEAR}년</div>
-      <div class="month-status ${statusClass}">${statusText}</div>
-      <div class="plan-label">💜 ${m.name} 계획·목표</div>
-      <textarea class="plan-textarea" data-month="${m.num}" placeholder="이 달에 이루고 싶은 것, 큰 일정을 적어보세요..."></textarea>
+      <div class="month-status">${statusText}</div>
+      <div class="plan-label">월간 목표</div>
+      <textarea class="plan-textarea" data-month="${m.num}" placeholder="이 달의 큰 목표나 일정을 적어보세요..."></textarea>
     `;
     grid.appendChild(card);
 

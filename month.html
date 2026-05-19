@@ -4,83 +4,140 @@
 <meta charset="UTF-8">
 <title>지훈이 월간 스케줄표</title>
 <style>
+  :root {
+    --bg: #FAF6EE;
+    --surface: #FFFFFF;
+    --surface-soft: #F5EDE0;
+    --text-main: #3E2723;
+    --text-sub: #6D4C41;
+    --text-mute: #A1887F;
+    --line: #E8DCC8;
+    --line-strong: #D7CCC8;
+    --accent: #00897B;
+    --accent-soft: #B2DFDB;
+    --accent-dark: #00695C;
+    --weekend: #C62828;
+  }
   * { box-sizing: border-box; }
   body {
     font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
-    background: linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%);
+    background: var(--bg);
     margin: 0;
-    padding: 20px;
-    color: #333;
+    padding: 30px 20px;
+    color: var(--text-main);
   }
   .container {
-    max-width: 1600px;
+    max-width: 1500px;
     margin: 0 auto;
-    background: white;
+    background: var(--surface);
     border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-    padding: 30px;
+    box-shadow: 0 4px 20px rgba(62,39,35,0.06);
+    padding: 36px;
+    border: 1px solid var(--line);
   }
   .header-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
   }
   .nav-btn {
-    background: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
+    background: var(--surface);
+    color: var(--text-main);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 8px 16px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 500;
     text-decoration: none;
     display: inline-block;
+    transition: all 0.15s;
   }
-  .nav-btn:hover { background: #1565c0; }
-  .nav-btn.home { background: #43a047; }
-  .nav-btn.home:hover { background: #388e3c; }
+  .nav-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .nav-btn.home {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .nav-btn.home:hover {
+    background: var(--accent-dark);
+    color: white;
+  }
   h1 {
     text-align: center;
-    color: #1976d2;
+    color: var(--text-main);
     margin: 0 0 6px 0;
-    font-size: 40px;
+    font-size: 34px;
+    font-weight: 700;
   }
   .subtitle {
     text-align: center;
-    color: #777;
-    margin-bottom: 20px;
-    font-size: 15px;
-  }
-  .help-box {
-    background: #e3f2fd;
-    padding: 12px 20px;
-    border-radius: 8px;
+    color: var(--text-sub);
     margin-bottom: 20px;
     font-size: 14px;
-    color: #0d47a1;
+  }
+
+  .monthly-plan-box {
+    margin-bottom: 20px;
+    padding: 14px 20px;
+    background: var(--surface-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+  }
+  .monthly-plan-box h3 {
+    margin: 0 0 8px 0;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .monthly-plan-area {
+    width: 100%;
+    min-height: 50px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    background: var(--surface);
+    color: var(--text-main);
+  }
+  .monthly-plan-area:focus { outline: none; border-color: var(--accent); }
+
+  .help-box {
+    background: var(--surface-soft);
+    padding: 10px 18px;
+    border-radius: 6px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: var(--text-sub);
     text-align: center;
+    border: 1px solid var(--line);
   }
   .toolbar {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 18px;
     flex-wrap: wrap;
   }
   .btn {
-    padding: 8px 18px;
-    border: none;
-    border-radius: 8px;
+    padding: 7px 16px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--text-main);
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 13px;
+    font-weight: 500;
   }
-  .btn-print { background: #1976d2; color: white; }
-  .btn-reset { background: #e57373; color: white; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
 
   table.calendar {
     width: 100%;
@@ -88,24 +145,23 @@
     table-layout: fixed;
   }
   table.calendar th {
-    background: #1976d2;
-    color: white;
-    padding: 14px;
-    font-size: 18px;
-    border: 1px solid #1565c0;
+    background: var(--surface-soft);
+    color: var(--text-main);
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--line);
   }
-  table.calendar th.sat { background: #1565c0; }
-  table.calendar th.sun { background: #d32f2f; }
+  table.calendar th.sun { color: var(--weekend); }
 
   table.calendar td {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--line);
     padding: 0;
-    height: 130px;
+    height: 120px;
     vertical-align: top;
-    position: relative;
-    background: white;
+    background: var(--surface);
   }
-  table.calendar td.empty-day { background: #fafafa; }
+  table.calendar td.empty-day { background: var(--bg); }
   .day-cell {
     height: 100%;
     display: flex;
@@ -113,99 +169,74 @@
     padding: 6px;
   }
   .day-number {
-    font-size: 22px;
-    font-weight: bold;
-    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-main);
     text-decoration: none;
     display: inline-block;
     padding: 2px 8px;
-    border-radius: 6px;
+    border-radius: 4px;
     transition: all 0.15s;
     align-self: flex-start;
   }
   .day-number:hover {
-    background: #1976d2;
+    background: var(--accent);
     color: white;
   }
   .day-number.today {
-    background: #ff9800;
+    background: var(--accent);
     color: white;
-    box-shadow: 0 2px 6px rgba(255,152,0,0.5);
   }
-  .day-number.sat { color: #1976d2; }
-  .day-number.sun { color: #d32f2f; }
-  .day-number.today.sat, .day-number.today.sun { color: white; }
+  .day-number.sun { color: var(--weekend); }
+  .day-number.today.sun { color: white; }
 
   .assessment-input {
     flex: 1;
     width: 100%;
     margin-top: 4px;
     padding: 4px 6px;
-    border: 1px dashed #ccc;
-    border-radius: 4px;
-    background: #fffde7;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    background: var(--bg);
     font-family: inherit;
     font-size: 12px;
     resize: none;
-    color: #5d4037;
+    color: var(--text-main);
     outline: none;
+    line-height: 1.4;
   }
   .assessment-input:focus {
-    border: 2px solid #ff9800;
-    background: #fff8e1;
+    border-color: var(--accent);
+    background: var(--surface);
   }
   .assessment-input::placeholder {
-    color: #bbb;
-    font-style: italic;
+    color: var(--text-mute);
   }
 
   .saved-indicator {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #43a047;
+    background: var(--accent);
     color: white;
-    padding: 10px 20px;
+    padding: 10px 18px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 14px rgba(0,137,123,0.3);
     opacity: 0;
     transition: opacity 0.3s;
     z-index: 1000;
+    font-size: 13px;
   }
   .saved-indicator.show { opacity: 1; }
 
-  .monthly-plan-box {
-    margin-bottom: 20px;
-    padding: 15px 20px;
-    background: #f3e5f5;
-    border-left: 5px solid #7b1fa2;
-    border-radius: 8px;
-  }
-  .monthly-plan-box h3 {
-    margin: 0 0 10px 0;
-    color: #6a1b9a;
-    font-size: 16px;
-  }
-  .monthly-plan-area {
-    width: 100%;
-    min-height: 60px;
-    padding: 10px;
-    border: 1px solid #ce93d8;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 14px;
-    resize: vertical;
-    background: white;
-  }
-
   .legend-info {
-    margin-top: 25px;
-    padding: 15px 20px;
-    background: #fff3e0;
-    border-left: 5px solid #ff9800;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #5d4037;
+    margin-top: 24px;
+    padding: 14px 20px;
+    background: var(--surface-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-sub);
     line-height: 1.7;
   }
 
@@ -213,33 +244,32 @@
     body { background: white; padding: 0; }
     .container { box-shadow: none; }
     .toolbar, .help-box, .saved-indicator, .nav-btn { display: none !important; }
-    .assessment-input { border: 1px solid #ccc; }
   }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header-bar">
-    <a href="index.html" class="nav-btn home">🏠 연간 계획</a>
+    <a href="index.html" class="nav-btn home">연간 계획</a>
     <a id="prevMonthBtn" href="#" class="nav-btn">◀ 이전달</a>
     <a id="nextMonthBtn" href="#" class="nav-btn">다음달 ▶</a>
   </div>
 
-  <h1 id="monthTitle">📅 월간 스케줄표</h1>
-  <p class="subtitle">날짜를 클릭하면 그 날의 자세한 스케줄을 볼 수 있어요!</p>
+  <h1 id="monthTitle">월간 스케줄표</h1>
+  <p class="subtitle">날짜를 클릭하면 그 날의 자세한 스케줄을 볼 수 있어요</p>
 
   <div class="monthly-plan-box">
-    <h3 id="monthPlanTitle">💜 이번 달 계획 · 목표</h3>
-    <textarea class="monthly-plan-area" id="monthlyPlan" placeholder="이번 달에 이루고 싶은 것, 중요한 행사를 적어보세요!"></textarea>
+    <h3 id="monthPlanTitle">이번 달 목표</h3>
+    <textarea class="monthly-plan-area" id="monthlyPlan" placeholder="이번 달에 이루고 싶은 것, 중요한 행사를 적어보세요"></textarea>
   </div>
 
   <div class="help-box">
-    📝 <strong>사용법:</strong> 각 날짜 아래 노란 칸에 <strong>수행평가</strong>를 입력하세요. <strong>날짜 숫자를 클릭</strong>하면 그 날의 일별 스케줄 페이지로 이동해요.
+    각 날짜 칸에 <strong>수행평가</strong>를 입력하세요. <strong>날짜를 클릭</strong>하면 그 날의 일별 스케줄로 이동합니다.
   </div>
 
   <div class="toolbar">
-    <button class="btn btn-print" onclick="window.print()">🖨️ 인쇄하기</button>
-    <button class="btn btn-reset" onclick="resetCalendar()">🔄 이번 달 수행평가 초기화</button>
+    <button class="btn" onclick="window.print()">인쇄</button>
+    <button class="btn" onclick="resetCalendar()">수행평가 초기화</button>
   </div>
 
   <table class="calendar">
@@ -250,7 +280,7 @@
         <th>수</th>
         <th>목</th>
         <th>금</th>
-        <th class="sat">토</th>
+        <th>토</th>
         <th class="sun">일</th>
       </tr>
     </thead>
@@ -258,34 +288,27 @@
   </table>
 
   <div class="legend-info">
-    <strong>💡 활용 팁</strong><br>
-    · 수행평가, 시험, 학원 발표 등 중요한 일정을 미리 적어두면 한눈에 볼 수 있어요.<br>
-    · 날짜를 클릭하면 평일/주말에 맞는 일별 스케줄이 나오고, 거기서 자세한 일정을 짤 수 있어요.<br>
-    · 오늘 날짜는 <span style="background:#ff9800;color:white;padding:2px 8px;border-radius:4px;">주황색</span>으로 표시돼요.
+    수행평가, 시험, 학원 발표 등 중요한 일정을 적어두면 한눈에 볼 수 있어요. 오늘 날짜는 진한 색으로 표시됩니다.
   </div>
 </div>
 
-<div id="savedIndicator" class="saved-indicator">✓ 저장됨</div>
+<div id="savedIndicator" class="saved-indicator">저장됨</div>
 
 <script>
-  // URL 파라미터에서 연/월 가져오기
   const params = new URLSearchParams(location.search);
   const YEAR = parseInt(params.get('year')) || 2026;
   const MONTH = parseInt(params.get('month')) || 5;
 
-  // 유효 범위: 2026년 5월 ~ 2026년 12월
   const MIN_YEAR = 2026, MIN_MONTH = 5;
   const MAX_YEAR = 2026, MAX_MONTH = 12;
 
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
-  // 제목 설정
-  document.getElementById('monthTitle').textContent = `📅 ${YEAR}년 ${MONTH}월 스케줄표`;
-  document.getElementById('monthPlanTitle').textContent = `💜 ${MONTH}월 계획 · 목표`;
+  document.getElementById('monthTitle').textContent = `${YEAR}년 ${MONTH}월`;
+  document.getElementById('monthPlanTitle').textContent = `${MONTH}월 목표`;
   document.title = `지훈이 ${YEAR}년 ${MONTH}월 스케줄표`;
 
-  // 이전/다음 달 버튼
   function shiftMonth(delta) {
     let y = YEAR, m = MONTH + delta;
     while (m < 1) { m += 12; y -= 1; }
@@ -300,19 +323,16 @@
   if (prev.y < MIN_YEAR || (prev.y === MIN_YEAR && prev.m < MIN_MONTH)) {
     prevBtn.style.opacity = '0.4';
     prevBtn.style.pointerEvents = 'none';
-    prevBtn.textContent = '◀ 처음달';
   } else {
     prevBtn.href = `month.html?year=${prev.y}&month=${prev.m}`;
   }
   if (next.y > MAX_YEAR || (next.y === MAX_YEAR && next.m > MAX_MONTH)) {
     nextBtn.style.opacity = '0.4';
     nextBtn.style.pointerEvents = 'none';
-    nextBtn.textContent = '마지막달 ▶';
   } else {
     nextBtn.href = `month.html?year=${next.y}&month=${next.m}`;
   }
 
-  // 월간 계획 저장/불러오기
   const MONTHLY_PLAN_KEY = `jihoon-monthly-plan-${YEAR}-${MONTH}`;
   const planArea = document.getElementById('monthlyPlan');
   planArea.value = localStorage.getItem(MONTHLY_PLAN_KEY) || '';
@@ -322,9 +342,8 @@
     showSaved();
   });
 
-  // 달력 생성
   const firstDay = new Date(YEAR, MONTH - 1, 1);
-  let firstDayOfWeek = (firstDay.getDay() + 6) % 7; // 월=0
+  let firstDayOfWeek = (firstDay.getDay() + 6) % 7;
   const lastDate = new Date(YEAR, MONTH, 0).getDate();
 
   const tbody = document.getElementById('calendarBody');
@@ -342,7 +361,6 @@
         const currentDay = day;
         const dateStr = `${YEAR}-${String(MONTH).padStart(2,'0')}-${String(currentDay).padStart(2,'0')}`;
         const isToday = (dateStr === todayStr);
-        const isSat = (col === 5);
         const isSun = (col === 6);
 
         const cell = document.createElement('div');
@@ -350,17 +368,16 @@
 
         const link = document.createElement('a');
         link.className = 'day-number';
-        if (isSat) link.classList.add('sat');
         if (isSun) link.classList.add('sun');
         if (isToday) link.classList.add('today');
         link.href = `day.html?date=${dateStr}`;
         link.textContent = currentDay;
-        link.title = `${MONTH}월 ${currentDay}일 스케줄 보기`;
+        link.title = `${MONTH}월 ${currentDay}일 스케줄`;
         cell.appendChild(link);
 
         const textarea = document.createElement('textarea');
         textarea.className = 'assessment-input';
-        textarea.placeholder = '수행평가 입력...';
+        textarea.placeholder = '수행평가...';
         textarea.dataset.date = dateStr;
         const saved = localStorage.getItem(`jihoon-assessment-${dateStr}`);
         if (saved) textarea.value = saved;
