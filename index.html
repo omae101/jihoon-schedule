@@ -217,7 +217,7 @@
   const YEAR = 2026;
   const MONTH = 5; // 5월
   const today = new Date();
-  const todayStr = today.toISOString().slice(0,10);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
   // 5월 1일의 요일 (0=일, 1=월, ..., 6=토)
   const firstDay = new Date(YEAR, MONTH-1, 1);
