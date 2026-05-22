@@ -240,10 +240,119 @@
     line-height: 1.7;
   }
 
+  /* 시간표 모달 */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(62,39,35,0.5);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 720px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+  }
+  .modal-close {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-sub);
+    padding: 0 6px;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--text-main); }
+
+  table.timetable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  table.timetable th {
+    background: var(--surface-soft);
+    color: var(--text-main);
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+  }
+  table.timetable th.period-col { width: 70px; }
+  table.timetable td {
+    border: 1px solid var(--line);
+    padding: 0;
+    height: 44px;
+    background: var(--surface);
+  }
+  table.timetable td.period-label {
+    background: var(--surface-soft);
+    color: var(--text-sub);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+  }
+  .subject-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-main);
+    outline: none;
+    padding: 4px 6px;
+  }
+  .subject-input:focus {
+    background: #FFFBE6;
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .subject-input::placeholder {
+    color: var(--text-mute);
+    font-size: 12px;
+  }
+  .timetable-hint {
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-top: 12px;
+    text-align: center;
+  }
+  .timetable-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
   @media print {
     body { background: white; padding: 0; }
     .container { box-shadow: none; }
     .toolbar, .help-box, .saved-indicator, .nav-btn { display: none !important; }
+    .modal-overlay { display: none !important; }
   }
 </style>
 </head>
@@ -251,6 +360,7 @@
 <div class="container">
   <div class="header-bar">
     <a href="index.html" class="nav-btn home">연간 계획</a>
+    <button id="timetableBtn" class="nav-btn" title="학교 시간표 보기"><span style="font-size:16px;">🏫</span> 학교 시간표</button>
     <a id="prevMonthBtn" href="#" class="nav-btn">◀ 이전달</a>
     <a id="nextMonthBtn" href="#" class="nav-btn">다음달 ▶</a>
   </div>
@@ -289,6 +399,36 @@
 
   <div class="legend-info">
     수행평가, 시험, 학원 발표 등 중요한 일정을 적어두면 한눈에 볼 수 있어요. 오늘 날짜는 진한 색으로 표시됩니다.
+  </div>
+</div>
+
+<div id="timetableModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">🏫 학교 시간표</h2>
+      <button class="modal-close" id="timetableClose" title="닫기">×</button>
+    </div>
+
+    <table class="timetable">
+      <thead>
+        <tr>
+          <th class="period-col">교시</th>
+          <th>월</th>
+          <th>화</th>
+          <th>수</th>
+          <th>목</th>
+          <th>금</th>
+        </tr>
+      </thead>
+      <tbody id="timetableBody"></tbody>
+    </table>
+
+    <p class="timetable-hint">각 칸을 클릭해서 과목을 입력하세요. 자동 저장됩니다.</p>
+
+    <div class="timetable-actions">
+      <button class="btn" id="timetableReset">초기화</button>
+      <button class="btn" id="timetableDone" style="background:var(--accent);color:white;border-color:var(--accent);">완료</button>
+    </div>
   </div>
 </div>
 
@@ -413,6 +553,80 @@
       });
     }
   }
+
+  // ===== 학교 시간표 모달 =====
+  const TIMETABLE_KEY = 'jihoon-school-timetable';
+  const PERIODS = 7;
+  const DAYS = ['월','화','수','목','금'];
+  const timetableModal = document.getElementById('timetableModal');
+  const timetableBody = document.getElementById('timetableBody');
+
+  // 저장된 시간표 불러오기 (없으면 빈 배열)
+  let timetableData;
+  try {
+    timetableData = JSON.parse(localStorage.getItem(TIMETABLE_KEY) || 'null');
+  } catch(e) { timetableData = null; }
+  if (!timetableData || !Array.isArray(timetableData)) {
+    timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
+  }
+
+  // 시간표 그리기
+  function renderTimetable() {
+    timetableBody.innerHTML = '';
+    for (let p = 0; p < PERIODS; p++) {
+      const tr = document.createElement('tr');
+      const labelTd = document.createElement('td');
+      labelTd.className = 'period-label';
+      labelTd.textContent = (p + 1) + '교시';
+      tr.appendChild(labelTd);
+
+      for (let d = 0; d < DAYS.length; d++) {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'subject-input';
+        input.placeholder = '과목';
+        input.value = (timetableData[p] && timetableData[p][d]) || '';
+        input.addEventListener('input', () => {
+          if (!timetableData[p]) timetableData[p] = ['','','','','',];
+          timetableData[p][d] = input.value;
+          localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
+          showSaved();
+        });
+        td.appendChild(input);
+        tr.appendChild(td);
+      }
+      timetableBody.appendChild(tr);
+    }
+  }
+  renderTimetable();
+
+  document.getElementById('timetableBtn').addEventListener('click', () => {
+    timetableModal.classList.add('show');
+  });
+  document.getElementById('timetableClose').addEventListener('click', () => {
+    timetableModal.classList.remove('show');
+  });
+  document.getElementById('timetableDone').addEventListener('click', () => {
+    timetableModal.classList.remove('show');
+  });
+  document.getElementById('timetableReset').addEventListener('click', () => {
+    if (confirm('학교 시간표를 모두 비울까요?')) {
+      timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
+      localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
+      renderTimetable();
+    }
+  });
+  // 배경 클릭 시 닫기
+  timetableModal.addEventListener('click', (e) => {
+    if (e.target === timetableModal) timetableModal.classList.remove('show');
+  });
+  // ESC 키로 닫기
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && timetableModal.classList.contains('show')) {
+      timetableModal.classList.remove('show');
+    }
+  });
 </script>
 </body>
 </html>
