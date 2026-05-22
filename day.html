@@ -102,14 +102,26 @@
     border-bottom: 2px solid var(--accent);
   }
 
-  .assessment-box {
-    background: var(--surface-soft);
-    border-left: 3px solid var(--accent);
-    padding: 12px 18px;
-    border-radius: 6px;
+  .top-info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
     margin-bottom: 18px;
   }
-  .assessment-box h3 {
+  @media (max-width: 900px) {
+    .top-info-row {
+      grid-template-columns: 1fr;
+    }
+  }
+  .info-card {
+    background: var(--surface-soft);
+    padding: 14px 18px;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+    display: flex;
+    flex-direction: column;
+  }
+  .info-card h3 {
     margin: 0 0 8px 0;
     color: var(--text-main);
     font-size: 14px;
@@ -120,6 +132,49 @@
     font-size: 13px;
     white-space: pre-wrap;
     min-height: 18px;
+  }
+  .school-box {
+    border-left-color: #2196F3;
+  }
+  .school-text {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-sub);
+  }
+  .period-tag {
+    background: #E3F2FD;
+    color: #1E88E5;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    border: 1px solid #BBDEFB;
+  }
+  .period-tag strong {
+    color: #1565C0;
+  }
+  .academy-box {
+    border-left-color: #9C27B0;
+  }
+  .academy-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .academy-item {
+    font-size: 13px;
+    color: var(--text-sub);
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .academy-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .academy-time {
+    font-size: 11px;
+    color: var(--text-mute);
   }
 
   .help-box {
@@ -191,6 +246,16 @@
     outline: 2px solid var(--accent);
     outline-offset: -2px;
   }
+  /* 카테고리별 셀 배경 및 테두리 색상 */
+  td.editable.morning-study { background: #FFF9E6; border-left: 4px solid #FFB74D; }
+  td.editable.school { background: #E3F2FD; border-left: 4px solid #64B5F6; }
+  td.editable.academy { background: #F3E5F5; border-left: 4px solid #BA68C8; }
+  td.editable.homework { background: #FCE4EC; border-left: 4px solid #F06292; }
+  td.editable.self-study { background: #E0F2F1; border-left: 4px solid #4DB6AC; }
+  td.editable.exercise { background: #E8F5E9; border-left: 4px solid #81C784; }
+  td.editable.rest { background: #F5F5F5; border-left: 4px solid #BDBDBD; }
+  td.editable.meal { background: #EFEBE9; border-left: 4px solid #A1887F; }
+  td.editable.sleep { background: #ECEFF1; border-left: 4px solid #90A4AE; }
   .cell-content {
     display: flex;
     align-items: center;
@@ -362,9 +427,21 @@
   <h1 id="dateTitle">일별 스케줄</h1>
   <p class="subtitle" id="dateSubtitle"></p>
 
-  <div class="assessment-box">
-    <h3>오늘의 수행평가</h3>
-    <div class="assessment-text" id="assessmentText"></div>
+  <div class="top-info-row">
+    <div class="info-card assessment-box">
+      <h3>오늘의 수행평가</h3>
+      <div class="assessment-text" id="assessmentText"></div>
+    </div>
+
+    <div class="info-card school-box">
+      <h3>오늘의 학교 시간표</h3>
+      <div class="school-text" id="schoolText"></div>
+    </div>
+
+    <div class="info-card academy-box">
+      <h3>오늘의 학원 시간표</h3>
+      <div class="academy-text" id="academyText"></div>
+    </div>
   </div>
 
   <div class="help-box">
@@ -374,6 +451,7 @@
   <div class="toolbar">
     <button class="btn" onclick="window.print()">인쇄</button>
     <button class="btn" onclick="resetDay()">이 날짜 초기화</button>
+    <button class="btn" id="openPickerBtn" onclick="document.getElementById('catPicker').classList.add('show');">메뉴 열기</button>
   </div>
 
   <div class="main-layout">
@@ -415,6 +493,9 @@
   <div class="cat-option" data-class="meal"><span class="cat-icon">🍱</span>식사</div>
   <div class="cat-option" data-class="sleep"><span class="cat-icon">💤</span>수면</div>
   <div class="cat-option" data-class="empty"><span class="cat-icon">·</span>없음</div>
+  <div style="border-top: 1px solid var(--line); margin: 4px 0;"></div>
+  <div class="cat-option" id="menuSplitRow" style="font-weight: 600;"><span class="cat-icon">✂️</span>10분 단위 분할 (3칸)</div>
+  <div class="cat-option" id="menuMergeRow" style="font-weight: 600;"><span class="cat-icon">🔗</span>30분 단위로 합치기</div>
 </div>
 
 <div id="savedIndicator" class="saved-indicator">저장됨</div>
@@ -467,22 +548,39 @@
   document.getElementById('monthBtn').textContent = `${dateParts[1]}월 달력`;
 
   const weekdaySchedule = [
-    { time: '07:00-07:30', text: '기상 · 아침식사', cls: 'meal' },
-    { time: '07:30-08:30', text: '아침공부', cls: 'morning-study' },
-    { time: '08:30-09:00', text: '등교', cls: 'school' },
-    { time: '09:00-12:00', text: '학교 수업', cls: 'school' },
-    { time: '12:00-13:00', text: '점심식사', cls: 'meal' },
-    { time: '13:00-15:00', text: '학교 수업', cls: 'school' },
-    { time: '15:00-15:30', text: '하교 · 이동', cls: 'school' },
-    { time: '15:30-16:00', text: '집 도착 · 간식', cls: 'rest' },
-    { time: '16:00-18:00', text: '학원', cls: 'academy' },
-    { time: '18:00-19:00', text: '운동시간', cls: 'exercise' },
-    { time: '19:00-20:00', text: '저녁식사', cls: 'meal' },
-    { time: '20:00-21:00', text: '과제', cls: 'homework' },
-    { time: '21:00-21:30', text: '개인공부', cls: 'self-study' },
-    { time: '21:30-22:00', text: '휴식 · 씻기', cls: 'rest' },
-    { time: '22:00-07:00', text: '수면', cls: 'sleep' }
-  ];
+  { time: '06:00-06:30', text: '공부', cls: 'self-study' },
+  { time: '06:30-07:00', text: '공부', cls: 'self-study' },
+  { time: '07:00-07:30', text: '준비', cls: 'rest' },
+  { time: '07:30-08:00', text: '이동', cls: 'rest' },
+  { time: '08:00-08:30', text: '학교', cls: 'school' },
+  { time: '08:30-09:00', text: '학교 수업', cls: 'school' },
+  { time: '09:00-09:30', text: '학교 수업', cls: 'school' },
+  { time: '09:30-10:00', text: '학교 수업', cls: 'school' },
+  { time: '10:00-10:30', text: '학교 수업', cls: 'school' },
+  { time: '10:30-11:00', text: '학교 수업', cls: 'school' },
+  { time: '11:00-11:30', text: '학교 수업', cls: 'school' },
+  { time: '11:30-12:00', text: '학교 수업', cls: 'school' },
+  { time: '12:00-12:30', text: '점심', cls: 'meal' },
+  { time: '12:30-13:00', text: '점심', cls: 'meal' },
+  { time: '13:00-13:30', text: '학교 수업', cls: 'school' },
+  { time: '13:30-14:00', text: '학교 수업', cls: 'school' },
+  { time: '14:00-14:30', text: '학교 수업', cls: 'school' },
+  { time: '14:30-15:00', text: '학교 수업', cls: 'school' },
+  { time: '15:00-15:30', text: '학교 수업', cls: 'school' },
+  { time: '15:30-16:00', text: '집 도착·간식', cls: 'rest' },
+  { time: '16:00-16:30', text: '휴식', cls: 'rest' },
+  { time: '16:30-17:00', text: '휴식', cls: 'rest' },
+  { time: '17:00-17:30', text: '운동', cls: 'exercise' },
+  { time: '17:30-18:00', text: '운동', cls: 'exercise' },
+  { time: '18:00-18:30', text: '저녁식사', cls: 'meal' },
+  { time: '18:30-19:00', text: '저녁식사', cls: 'meal' },
+  { time: '19:00-19:30', text: '과제', cls: 'homework' },
+  { time: '19:30-20:00', text: '과제', cls: 'homework' },
+  { time: '20:00-20:30', text: '자기계발', cls: 'self-study' },
+  { time: '20:30-21:00', text: '자기계발', cls: 'self-study' },
+  { time: '21:00-21:30', text: '휴식·씻기', cls: 'rest' },
+  { time: '21:30-22:00', text: '수면 준비', cls: 'rest' }
+];
   const weekendSchedule = [
     { time: '07:30-08:30', text: '기상 · 아침식사', cls: 'meal' },
     { time: '08:30-09:00', text: '자유시간', cls: 'rest' },
@@ -514,6 +612,62 @@
     assessmentEl.style.color = 'var(--text-mute)';
   }
 
+  // 학교 시간표 연동
+  const schoolTextEl = document.getElementById('schoolText');
+  if (!isWeekend) {
+    let schoolData = [];
+    try {
+      schoolData = JSON.parse(localStorage.getItem('jihoon-school-timetable')) || [];
+    } catch(e) {}
+    
+    const colIdx = dayOfWeek - 1; // 0: 월, 1: 화, ...
+    let schoolHtml = '';
+    let hasClass = false;
+    
+    for (let p = 0; p < 7; p++) {
+      const subject = (schoolData[p] && schoolData[p][colIdx]) || '';
+      if (subject.trim()) {
+        schoolHtml += `<span class="period-tag"><strong>${p + 1}교시</strong> ${subject}</span>`;
+        hasClass = true;
+      }
+    }
+    
+    if (hasClass) {
+      schoolTextEl.innerHTML = schoolHtml;
+    } else {
+      schoolTextEl.innerHTML = '<span style="color: var(--text-mute); font-style: italic; font-size: 13px;">오늘 등록된 학교 수업이 없어요.</span>';
+    }
+  } else {
+    schoolTextEl.innerHTML = '<span style="color: var(--text-mute); font-style: italic; font-size: 13px;">주말에는 학교 수업이 없어요.</span>';
+  }
+
+  // 학원 시간표 연동
+  const academyTextEl = document.getElementById('academyText');
+  let academyData = [];
+  try {
+    academyData = JSON.parse(localStorage.getItem('jihoon-academy-schedule')) || [];
+  } catch(e) {}
+
+  const todayDayName = DAY_NAMES[dayOfWeek];
+  const todayAcademies = academyData.filter(item => {
+    return item.name && item.time && item.time.includes(todayDayName);
+  });
+
+  if (todayAcademies.length > 0) {
+    let academyHtml = '';
+    todayAcademies.forEach(item => {
+      academyHtml += `
+        <div class="academy-item">
+          <span class="academy-time">🕒 ${item.time}</span><br>
+          <strong>${item.name}</strong> <span style="font-size:12px; color:var(--text-mute);">(${item.subject})</span>
+        </div>
+      `;
+    });
+    academyTextEl.innerHTML = academyHtml;
+  } else {
+    academyTextEl.innerHTML = '<span style="color: var(--text-mute); font-style: italic; font-size: 13px;">오늘 예정된 학원 수업이 없어요.</span>';
+  }
+
   const scheduleBody = document.getElementById('scheduleBody');
   const baseSchedule = isWeekend ? weekendSchedule : weekdaySchedule;
   let schedule = baseSchedule;
@@ -525,13 +679,282 @@
     return `<div class="cell-content"><span class="cell-icon">${icon}</span><span class="cell-text">${text}</span></div>`;
   }
 
+  // 시간 및 셀 관련 헬퍼 함수들 (10분 단위 분할/병합 및 시간 수정)
+  function parseTimeRange(timeStr) {
+    try {
+      const parts = timeStr.split('-');
+      if (parts.length !== 2) return null;
+      const startParts = parts[0].split(':').map(Number);
+      const endParts = parts[1].split(':').map(Number);
+      
+      let startMin = startParts[0] * 60 + startParts[1];
+      let endMin = endParts[0] * 60 + endParts[1];
+      
+      if (endMin < startMin) {
+        endMin += 24 * 60; // 자정을 넘기는 시간 처리
+      }
+      return { startMin, endMin };
+    } catch(e) {
+      return null;
+    }
+  }
+
+  function formatMinutes(totalMins) {
+    const h = Math.floor(totalMins / 60) % 24;
+    const m = totalMins % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  function bindRowEvents(tr) {
+    const timeCell = tr.querySelector('.time');
+    const editCell = tr.querySelector('.editable');
+    if (timeCell && editCell) {
+      // 시간 편집 리스너
+      timeCell.addEventListener('input', saveSchedule);
+      // 엔터키로 블러 처리 및 포맷 검증
+      timeCell.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          timeCell.blur();
+        }
+      });
+      timeCell.addEventListener('blur', () => {
+        const txt = timeCell.textContent.trim();
+        if (!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(txt)) {
+          alert('시간 형식은 HH:MM-HH:MM 이어야 합니다. 예: 07:00-07:30');
+          // revert to previous valid value if stored
+          if (timeCell.dataset.original) {
+            timeCell.textContent = timeCell.dataset.original;
+          }
+        } else {
+          timeCell.dataset.original = txt;
+          saveSchedule();
+        }
+      });
+      
+      // 내용 편집 리스너 및 우클릭 메뉴
+      editCell.addEventListener('input', saveSchedule);
+      editCell.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          editCell.blur();
+        }
+      });
+      editCell.addEventListener('blur', saveSchedule);
+      editCell.addEventListener('contextmenu', (e) => {
+        e.preventDe0; // 자정을 넘기는 시간 처리
+      }
+      return { startMin, endMin };
+    } catch(e) {
+      return null;
+    }
+  }
+
+  // 시간 및 셀 관련 헬퍼 함수들 (10분 단위 분할/병합 및 시간 수정)
+  function parseTimeRange(timeStr) {
+    try {
+      const parts = timeStr.split('-');
+      if (parts.length !== 2) return null;
+      const startParts = parts[0].split(':').map(Number);
+      const endParts = parts[1].split(':').map(Number);
+      
+      let startMin = startParts[0] * 60 + startParts[1];
+      let endMin = endParts[0] * 60 + endParts[1];
+      
+      if (endMin < startMin) {
+        endMin += 24 * 60; // 자정을 넘기는 시간 처리
+      }
+      return { startMin, endMin };
+    } catch(e) {
+      return null;
+    }
+  }
+
+  function formatMinutes(totalMins) {
+    const h = Math.floor(totalMins / 60) % 24;
+    const m = totalMins % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  function bindRowEvents(tr) {
+    const timeCell = tr.querySelector('.time');
+    const editCell = tr.querySelector('.editable');
+    if (timeCell && editCell) {
+      // 시간 편집 리스너
+      timeCell.addEventListener('input', saveSchedule);
+      // 엔터키로 블러 처리 및 포맷 검증
+      timeCell.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          timeCell.blur();
+        }
+      });
+      timeCell.addEventListener('blur', () => {
+        const txt = timeCell.textContent.trim();
+        if (!/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(txt)) {
+          alert('시간 형식은 HH:MM-HH:MM 이어야 합니다. 예: 07:00-07:30');
+          // revert to previous valid value if stored
+          if (timeCell.dataset.original) {
+            timeCell.textContent = timeCell.dataset.original;
+          }
+        } else {
+          timeCell.dataset.original = txt;
+          saveSchedule();
+        }
+      });
+      
+      // 내용 편집 리스너 및 우클릭 메뉴
+      editCell.addEventListener('input', saveSchedule);
+      editCell.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          editCell.blur();
+        }
+      });
+      editCell.addEventListener('blur', saveSchedule);
+      editCell.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        currentCell = editCell;
+        const rect = editCell.getBoundingClientRect();
+        picker.style.left = (rect.left + window.scrollX) + 'px';
+        picker.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        picker.classList.add('show');
+      });
+    }
+  }
+
+  function createScheduleRow(startMin, endMin, text, cls) {
+  const tr = document.createElement('tr');
+  const timeStr = `${formatMinutes(startMin)}-${formatMinutes(endMin)}`;
+  const tdClass = cls && cls !== 'empty' ? `editable ${cls}` : 'editable';
+  
+  tr.innerHTML = `
+    <td class="time" contenteditable="true">${timeStr}</td>
+    <td class="${tdClass}" contenteditable="true" data-cls="${cls || ''}">${renderCell(text, cls)}</td>
+  `;
+  // store original time string for validation/revert
+  const timeCell = tr.querySelector('.time');
+  timeCell.dataset.original = timeStr;
+  bindRowEvents(tr);
+  return tr;
+}
+    const tr = document.createElement('tr');
+    const timeStr = `${formatMinutes(startMin)}-${formatMinutes(endMin)}`;
+    const tdClass = cls && cls !== 'empty' ? `editable ${cls}` : 'editable';
+    
+    tr.innerHTML = `
+      <td class="time" contenteditable="true">${timeStr}</td>
+      <td class="${tdClass}" contenteditable="true" data-cls="${cls || ''}">${renderCell(text, cls)}</td>
+    `;
+    bindRowEvents(tr);
+    return tr;
+  }
+
+  function splitRow(tr) {
+    const timeCell = tr.querySelector('.time');
+    const editCell = tr.querySelector('.editable');
+    const timeStr = timeCell.textContent.trim();
+    
+    const timeInfo = parseTimeRange(timeStr);
+    if (!timeInfo) {
+      alert('시간 형식이 올바르지 않습니다. (예: 07:00-07:30)');
+      return;
+    }
+    
+    const { startMin, endMin } = timeInfo;
+    const duration = endMin - startMin;
+    
+    if (duration !== 30) {
+      alert('30분 단위의 칸만 10분 단위로 분할할 수 있습니다. (현재 기간: ' + duration + '분)');
+      return;
+    }
+    
+    const cls = editCell.dataset.cls || '';
+    const textEl = editCell.querySelector('.cell-text');
+    const text = textEl ? textEl.textContent : editCell.textContent;
+    
+    const parent = tr.parentNode;
+    
+    // 10분씩 3칸으로 쪼갠 3개의 신규 로우 생성
+    const row1 = createScheduleRow(startMin, startMin + 10, text, cls);
+    const row2 = createScheduleRow(startMin + 10, startMin + 20, '', '');
+    const row3 = createScheduleRow(startMin + 20, endMin, '', '');
+    
+    parent.insertBefore(row1, tr);
+    parent.insertBefore(row2, tr);
+    parent.insertBefore(row3, tr);
+    parent.removeChild(tr);
+    
+    reindexAndSaveSchedule();
+  }
+
+  function mergeRows(tr) {
+    const parent = tr.parentNode;
+    const rows = Array.from(parent.querySelectorAll('tr'));
+    const startIdx = rows.indexOf(tr);
+    
+    if (startIdx === -1 || startIdx > rows.length - 3) {
+      alert('합칠 수 있는 아래 2개 칸이 더 필요합니다. (최소 3개 칸이 연속되어 있어야 30분으로 합칠 수 있습니다.)');
+      return;
+    }
+    
+    const tr1 = rows[startIdx];
+    const tr2 = rows[startIdx + 1];
+    const tr3 = rows[startIdx + 2];
+    
+    const t1 = parseTimeRange(tr1.querySelector('.time').textContent);
+    const t2 = parseTimeRange(tr2.querySelector('.time').textContent);
+    const t3 = parseTimeRange(tr3.querySelector('.time').textContent);
+    
+    if (!t1 || !t2 || !t3) return;
+    
+    const d1 = t1.endMin - t1.startMin;
+    const d2 = t2.endMin - t2.startMin;
+    const d3 = t3.endMin - t3.startMin;
+    
+    if (d1 !== 10 || d2 !== 10 || d3 !== 10) {
+      alert('10분 단위의 칸 3개가 연속해 있어야 30분 단위로 합칠 수 있습니다.');
+      return;
+    }
+    
+    const txt1 = tr1.querySelector('.editable').querySelector('.cell-text') ? tr1.querySelector('.editable').querySelector('.cell-text').textContent : tr1.querySelector('.editable').textContent;
+    const txt2 = tr2.querySelector('.editable').querySelector('.cell-text') ? tr2.querySelector('.editable').querySelector('.cell-text').textContent : tr2.querySelector('.editable').textContent;
+    const txt3 = tr3.querySelector('.editable').querySelector('.cell-text') ? tr3.querySelector('.editable').querySelector('.cell-text').textContent : tr3.querySelector('.editable').textContent;
+    
+    const mergedText = [txt1, txt2, txt3].filter(t => t.trim() !== '').join(' · ');
+    const mergedCls = tr1.querySelector('.editable').dataset.cls || '';
+    
+    const mergedRow = createScheduleRow(t1.startMin, t3.endMin, mergedText, mergedCls);
+    
+    parent.insertBefore(mergedRow, tr1);
+    parent.removeChild(tr1);
+    parent.removeChild(tr2);
+    parent.removeChild(tr3);
+    
+    reindexAndSaveSchedule();
+  }
+
+  function reindexAndSaveSchedule() {
+    const rows = scheduleBody.querySelectorAll('tr');
+    rows.forEach((tr, i) => {
+      const editCell = tr.querySelector('.editable');
+      if (editCell) editCell.dataset.idx = i;
+    });
+    saveSchedule();
+  }
+
   schedule.forEach((row, i) => {
     const tr = document.createElement('tr');
+    const tdClass = row.cls && row.cls !== 'empty' ? `editable ${row.cls}` : 'editable';
     tr.innerHTML = `
-      <td class="time">${row.time}</td>
-      <td class="editable" contenteditable="true" data-idx="${i}" data-cls="${row.cls || ''}">${renderCell(row.text, row.cls)}</td>
+      <td class="time" contenteditable="true">${row.time}</td>
+      <td class="${tdClass}" contenteditable="true" data-idx="${i}" data-cls="${row.cls || ''}">${renderCell(row.text, row.cls)}</td>
     `;
+    // Store original time string for validation/revert
+    const timeCell = tr.querySelector('.time');
+    timeCell.dataset.original = row.time;
     scheduleBody.appendChild(tr);
+    bindRowEvents(tr);
   });
 
   let saveTimer;
@@ -559,23 +982,34 @@
 
   const picker = document.getElementById('catPicker');
   let currentCell = null;
-  document.querySelectorAll('td.editable').forEach(cell => {
-    cell.addEventListener('input', saveSchedule);
-    cell.addEventListener('blur', saveSchedule);
-    cell.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      currentCell = cell;
-      const rect = cell.getBoundingClientRect();
-      picker.style.left = (rect.left + window.scrollX) + 'px';
-      picker.style.top = (rect.bottom + window.scrollY + 4) + 'px';
-      picker.classList.add('show');
-    });
-  });
+  // (이전의 모든 td.editable에 직접 걸어주던 개별 contextmenu/input 리스너는 bindRowEvents(tr) 방식으로 통합 및 이관되었습니다.)
+
   document.querySelectorAll('.cat-option').forEach(opt => {
     opt.addEventListener('click', () => {
       if (currentCell) {
+        const id = opt.getAttribute('id');
+        if (id === 'menuSplitRow') {
+          splitRow(currentCell.parentNode);
+          picker.classList.remove('show');
+          return;
+        }
+        if (id === 'menuMergeRow') {
+          mergeRows(currentCell.parentNode);
+          picker.classList.remove('show');
+          return;
+        }
+
+        // 기존 카테고리 클래스 제거
+        CATEGORIES.forEach(c => currentCell.classList.remove(c));
+        
         const newCls = opt.getAttribute('data-class');
         currentCell.dataset.cls = (newCls === 'empty') ? '' : newCls;
+        
+        // 새 카테고리 클래스 추가
+        if (newCls && newCls !== 'empty') {
+          currentCell.classList.add(newCls);
+        }
+        
         const textEl = currentCell.querySelector('.cell-text');
         const text = textEl ? textEl.textContent : currentCell.textContent;
         currentCell.innerHTML = renderCell(text, currentCell.dataset.cls);
