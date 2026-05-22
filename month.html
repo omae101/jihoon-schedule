@@ -360,7 +360,6 @@
 <div class="container">
   <div class="header-bar">
     <a href="index.html" class="nav-btn home">연간 계획</a>
-    <button id="timetableBtn" class="nav-btn" title="학교 시간표 보기"><span style="font-size:16px;">🏫</span> 학교 시간표</button>
     <a id="prevMonthBtn" href="#" class="nav-btn">◀ 이전달</a>
     <a id="nextMonthBtn" href="#" class="nav-btn">다음달 ▶</a>
   </div>
@@ -399,36 +398,6 @@
 
   <div class="legend-info">
     수행평가, 시험, 학원 발표 등 중요한 일정을 적어두면 한눈에 볼 수 있어요. 오늘 날짜는 진한 색으로 표시됩니다.
-  </div>
-</div>
-
-<div id="timetableModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2 class="modal-title">🏫 학교 시간표</h2>
-      <button class="modal-close" id="timetableClose" title="닫기">×</button>
-    </div>
-
-    <table class="timetable">
-      <thead>
-        <tr>
-          <th class="period-col">교시</th>
-          <th>월</th>
-          <th>화</th>
-          <th>수</th>
-          <th>목</th>
-          <th>금</th>
-        </tr>
-      </thead>
-      <tbody id="timetableBody"></tbody>
-    </table>
-
-    <p class="timetable-hint">각 칸을 클릭해서 과목을 입력하세요. 자동 저장됩니다.</p>
-
-    <div class="timetable-actions">
-      <button class="btn" id="timetableReset">초기화</button>
-      <button class="btn" id="timetableDone" style="background:var(--accent);color:white;border-color:var(--accent);">완료</button>
-    </div>
   </div>
 </div>
 
@@ -554,79 +523,6 @@
     }
   }
 
-  // ===== 학교 시간표 모달 =====
-  const TIMETABLE_KEY = 'jihoon-school-timetable';
-  const PERIODS = 7;
-  const DAYS = ['월','화','수','목','금'];
-  const timetableModal = document.getElementById('timetableModal');
-  const timetableBody = document.getElementById('timetableBody');
-
-  // 저장된 시간표 불러오기 (없으면 빈 배열)
-  let timetableData;
-  try {
-    timetableData = JSON.parse(localStorage.getItem(TIMETABLE_KEY) || 'null');
-  } catch(e) { timetableData = null; }
-  if (!timetableData || !Array.isArray(timetableData)) {
-    timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
-  }
-
-  // 시간표 그리기
-  function renderTimetable() {
-    timetableBody.innerHTML = '';
-    for (let p = 0; p < PERIODS; p++) {
-      const tr = document.createElement('tr');
-      const labelTd = document.createElement('td');
-      labelTd.className = 'period-label';
-      labelTd.textContent = (p + 1) + '교시';
-      tr.appendChild(labelTd);
-
-      for (let d = 0; d < DAYS.length; d++) {
-        const td = document.createElement('td');
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'subject-input';
-        input.placeholder = '과목';
-        input.value = (timetableData[p] && timetableData[p][d]) || '';
-        input.addEventListener('input', () => {
-          if (!timetableData[p]) timetableData[p] = ['','','','','',];
-          timetableData[p][d] = input.value;
-          localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
-          showSaved();
-        });
-        td.appendChild(input);
-        tr.appendChild(td);
-      }
-      timetableBody.appendChild(tr);
-    }
-  }
-  renderTimetable();
-
-  document.getElementById('timetableBtn').addEventListener('click', () => {
-    timetableModal.classList.add('show');
-  });
-  document.getElementById('timetableClose').addEventListener('click', () => {
-    timetableModal.classList.remove('show');
-  });
-  document.getElementById('timetableDone').addEventListener('click', () => {
-    timetableModal.classList.remove('show');
-  });
-  document.getElementById('timetableReset').addEventListener('click', () => {
-    if (confirm('학교 시간표를 모두 비울까요?')) {
-      timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
-      localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
-      renderTimetable();
-    }
-  });
-  // 배경 클릭 시 닫기
-  timetableModal.addEventListener('click', (e) => {
-    if (e.target === timetableModal) timetableModal.classList.remove('show');
-  });
-  // ESC 키로 닫기
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && timetableModal.classList.contains('show')) {
-      timetableModal.classList.remove('show');
-    }
-  });
 </script>
 </body>
 </html>

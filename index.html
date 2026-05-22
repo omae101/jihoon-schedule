@@ -81,6 +81,150 @@
     color: var(--text-main);
     font-weight: 700;
   }
+
+  .timetable-btn {
+    background: var(--surface);
+    color: var(--text-main);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    margin-left: 12px;
+  }
+  .timetable-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .timetable-btn .icon {
+    font-size: 18px;
+  }
+
+  /* 시간표 모달 */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(62,39,35,0.5);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 720px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+  }
+  .modal-close {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-sub);
+    padding: 0 6px;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--text-main); }
+
+  table.timetable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  table.timetable th {
+    background: var(--surface-soft);
+    color: var(--text-main);
+    padding: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+  }
+  table.timetable th.period-col { width: 70px; }
+  table.timetable td {
+    border: 1px solid var(--line);
+    padding: 0;
+    height: 44px;
+    background: var(--surface);
+  }
+  table.timetable td.period-label {
+    background: var(--surface-soft);
+    color: var(--text-sub);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+  }
+  .subject-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-main);
+    outline: none;
+    padding: 4px 6px;
+  }
+  .subject-input:focus {
+    background: #FFFBE6;
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .subject-input::placeholder {
+    color: var(--text-mute);
+    font-size: 12px;
+  }
+  .timetable-hint {
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-top: 12px;
+    text-align: center;
+  }
+  .timetable-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .modal-btn {
+    padding: 7px 16px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--text-main);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .modal-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .modal-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .modal-btn.primary:hover { background: var(--accent-dark); color: white; }
   .subtitle {
     text-align: center;
     color: var(--text-sub);
@@ -241,6 +385,9 @@
   <h1>
     <input type="text" id="ownerName" class="name-input" placeholder="이름" maxlength="10">
     <span class="name-suffix">의 2026년 계획표</span>
+    <button class="timetable-btn" id="timetableBtn" title="학교 시간표 보기">
+      <span class="icon">🏫</span> 학교 시간표
+    </button>
   </h1>
   <p class="subtitle">5월부터 12월까지 · 각 달을 클릭하면 자세한 달력을 볼 수 있어요</p>
 
@@ -255,6 +402,36 @@
     1단계 · 연간 계획 (이 페이지) — 매 달의 큰 목표 설정<br>
     2단계 · 월간 달력 — 수행평가, 시험 등 날짜별 일정 입력<br>
     3단계 · 일별 스케줄 — 시간표 + To-Do 리스트로 하루 계획
+  </div>
+</div>
+
+<div id="timetableModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">🏫 학교 시간표</h2>
+      <button class="modal-close" id="timetableClose" title="닫기">×</button>
+    </div>
+
+    <table class="timetable">
+      <thead>
+        <tr>
+          <th class="period-col">교시</th>
+          <th>월</th>
+          <th>화</th>
+          <th>수</th>
+          <th>목</th>
+          <th>금</th>
+        </tr>
+      </thead>
+      <tbody id="timetableBody"></tbody>
+    </table>
+
+    <p class="timetable-hint">각 칸을 클릭해서 과목을 입력하세요. 자동 저장됩니다.</p>
+
+    <div class="timetable-actions">
+      <button class="modal-btn" id="timetableReset">초기화</button>
+      <button class="modal-btn primary" id="timetableDone">완료</button>
+    </div>
   </div>
 </div>
 
@@ -295,6 +472,76 @@
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => ind.classList.remove('show'), 1500);
   }
+
+  // ===== 학교 시간표 모달 =====
+  const TIMETABLE_KEY = 'jihoon-school-timetable';
+  const PERIODS = 7;
+  const DAYS = ['월','화','수','목','금'];
+  const timetableModal = document.getElementById('timetableModal');
+  const timetableBody = document.getElementById('timetableBody');
+
+  let timetableData;
+  try {
+    timetableData = JSON.parse(localStorage.getItem(TIMETABLE_KEY) || 'null');
+  } catch(e) { timetableData = null; }
+  if (!timetableData || !Array.isArray(timetableData)) {
+    timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
+  }
+
+  function renderTimetable() {
+    timetableBody.innerHTML = '';
+    for (let p = 0; p < PERIODS; p++) {
+      const tr = document.createElement('tr');
+      const labelTd = document.createElement('td');
+      labelTd.className = 'period-label';
+      labelTd.textContent = (p + 1) + '교시';
+      tr.appendChild(labelTd);
+
+      for (let d = 0; d < DAYS.length; d++) {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'subject-input';
+        input.placeholder = '과목';
+        input.value = (timetableData[p] && timetableData[p][d]) || '';
+        input.addEventListener('input', () => {
+          if (!timetableData[p]) timetableData[p] = ['','','','',''];
+          timetableData[p][d] = input.value;
+          localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
+          showSaved();
+        });
+        td.appendChild(input);
+        tr.appendChild(td);
+      }
+      timetableBody.appendChild(tr);
+    }
+  }
+  renderTimetable();
+
+  document.getElementById('timetableBtn').addEventListener('click', () => {
+    timetableModal.classList.add('show');
+  });
+  document.getElementById('timetableClose').addEventListener('click', () => {
+    timetableModal.classList.remove('show');
+  });
+  document.getElementById('timetableDone').addEventListener('click', () => {
+    timetableModal.classList.remove('show');
+  });
+  document.getElementById('timetableReset').addEventListener('click', () => {
+    if (confirm('학교 시간표를 모두 비울까요?')) {
+      timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
+      localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
+      renderTimetable();
+    }
+  });
+  timetableModal.addEventListener('click', (e) => {
+    if (e.target === timetableModal) timetableModal.classList.remove('show');
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && timetableModal.classList.contains('show')) {
+      timetableModal.classList.remove('show');
+    }
+  });
 
   MONTHS.forEach(m => {
     const card = document.createElement('div');
