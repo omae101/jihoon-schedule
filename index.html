@@ -225,6 +225,74 @@
   .modal-btn:hover { border-color: var(--accent); color: var(--accent); }
   .modal-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
   .modal-btn.primary:hover { background: var(--accent-dark); color: white; }
+
+  /* 학원 시간표 */
+  table.academy-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  table.academy-table th {
+    background: var(--surface-soft);
+    color: var(--text-main);
+    padding: 10px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+  }
+  table.academy-table th.col-num { width: 50px; }
+  table.academy-table th.col-time { width: 140px; }
+  table.academy-table td {
+    border: 1px solid var(--line);
+    padding: 0;
+    background: var(--surface);
+    position: relative;
+  }
+  table.academy-table td.num-cell {
+    background: var(--surface-soft);
+    color: var(--text-sub);
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px;
+  }
+  .academy-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-main);
+    outline: none;
+    padding: 8px 10px;
+    box-sizing: border-box;
+  }
+  .academy-input:focus {
+    background: #FFFBE6;
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .academy-input::placeholder {
+    color: var(--text-mute);
+    font-size: 12px;
+  }
+  .row-delete {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 6px;
+    opacity: 0;
+    transition: all 0.15s;
+  }
+  table.academy-table tr:hover .row-delete { opacity: 1; }
+  .row-delete:hover { color: var(--weekend); }
   .subtitle {
     text-align: center;
     color: var(--text-sub);
@@ -388,6 +456,9 @@
     <button class="timetable-btn" id="timetableBtn" title="학교 시간표 보기">
       <span class="icon">🏫</span> 학교 시간표
     </button>
+    <button class="timetable-btn" id="academyBtn" title="학원 시간표 보기">
+      <span class="icon">🎒</span> 학원 시간표
+    </button>
   </h1>
   <p class="subtitle">5월부터 12월까지 · 각 달을 클릭하면 자세한 달력을 볼 수 있어요</p>
 
@@ -431,6 +502,35 @@
     <div class="timetable-actions">
       <button class="modal-btn" id="timetableReset">초기화</button>
       <button class="modal-btn primary" id="timetableDone">완료</button>
+    </div>
+  </div>
+</div>
+
+<div id="academyModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">🎒 학원 시간표</h2>
+      <button class="modal-close" id="academyClose" title="닫기">×</button>
+    </div>
+
+    <table class="academy-table">
+      <thead>
+        <tr>
+          <th class="col-num">번호</th>
+          <th class="col-time">시간</th>
+          <th>학원 이름</th>
+          <th>배우는 과목</th>
+        </tr>
+      </thead>
+      <tbody id="academyBody"></tbody>
+    </table>
+
+    <p class="timetable-hint">각 칸을 클릭해서 입력하세요. 자동 저장됩니다. 줄 위에 마우스 올리면 오른쪽에 삭제 버튼이 나타나요.</p>
+
+    <div class="timetable-actions">
+      <button class="modal-btn" id="academyAddRow">+ 줄 추가</button>
+      <button class="modal-btn" id="academyReset">초기화</button>
+      <button class="modal-btn primary" id="academyDone">완료</button>
     </div>
   </div>
 </div>
@@ -537,9 +637,89 @@
   timetableModal.addEventListener('click', (e) => {
     if (e.target === timetableModal) timetableModal.classList.remove('show');
   });
+
+  // ===== 학원 시간표 모달 =====
+  const ACADEMY_KEY = 'jihoon-academy-schedule';
+  const academyModal = document.getElementById('academyModal');
+  const academyBody = document.getElementById('academyBody');
+
+  let academyData;
+  try {
+    academyData = JSON.parse(localStorage.getItem(ACADEMY_KEY) || 'null');
+  } catch(e) { academyData = null; }
+  if (!academyData || !Array.isArray(academyData)) {
+    academyData = Array.from({ length: 5 }, () => ({ time: '', name: '', subject: '' }));
+  }
+
+  function saveAcademy() {
+    localStorage.setItem(ACADEMY_KEY, JSON.stringify(academyData));
+    showSaved();
+  }
+
+  function renderAcademy() {
+    academyBody.innerHTML = '';
+    academyData.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="num-cell">${idx + 1}</td>
+        <td><input type="text" class="academy-input" placeholder="예: 월,수,금 4~6시" value=""></td>
+        <td><input type="text" class="academy-input" placeholder="예: ○○수학학원" value=""></td>
+        <td style="position:relative;">
+          <input type="text" class="academy-input" placeholder="예: 수학" value="">
+          <button class="row-delete" title="이 줄 삭제">×</button>
+        </td>
+      `;
+      const inputs = tr.querySelectorAll('.academy-input');
+      inputs[0].value = row.time || '';
+      inputs[1].value = row.name || '';
+      inputs[2].value = row.subject || '';
+
+      inputs[0].addEventListener('input', () => { academyData[idx].time = inputs[0].value; saveAcademy(); });
+      inputs[1].addEventListener('input', () => { academyData[idx].name = inputs[1].value; saveAcademy(); });
+      inputs[2].addEventListener('input', () => { academyData[idx].subject = inputs[2].value; saveAcademy(); });
+
+      tr.querySelector('.row-delete').addEventListener('click', () => {
+        if (confirm(`${idx + 1}번 줄을 삭제할까요?`)) {
+          academyData.splice(idx, 1);
+          saveAcademy();
+          renderAcademy();
+        }
+      });
+
+      academyBody.appendChild(tr);
+    });
+  }
+  renderAcademy();
+
+  document.getElementById('academyBtn').addEventListener('click', () => {
+    academyModal.classList.add('show');
+  });
+  document.getElementById('academyClose').addEventListener('click', () => {
+    academyModal.classList.remove('show');
+  });
+  document.getElementById('academyDone').addEventListener('click', () => {
+    academyModal.classList.remove('show');
+  });
+  document.getElementById('academyAddRow').addEventListener('click', () => {
+    academyData.push({ time: '', name: '', subject: '' });
+    saveAcademy();
+    renderAcademy();
+  });
+  document.getElementById('academyReset').addEventListener('click', () => {
+    if (confirm('학원 시간표를 모두 비울까요?')) {
+      academyData = Array.from({ length: 5 }, () => ({ time: '', name: '', subject: '' }));
+      saveAcademy();
+      renderAcademy();
+    }
+  });
+  academyModal.addEventListener('click', (e) => {
+    if (e.target === academyModal) academyModal.classList.remove('show');
+  });
+
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && timetableModal.classList.contains('show')) {
-      timetableModal.classList.remove('show');
+    if (e.key === 'Escape') {
+      if (timetableModal.classList.contains('show')) timetableModal.classList.remove('show');
+      if (academyModal.classList.contains('show')) academyModal.classList.remove('show');
     }
   });
 
