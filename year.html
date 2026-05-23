@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>지훈이 년간 계획표</title>
+  <style>
+    :root { --bg:#FAF6EE; --surface:#FFFFFF; --surface-soft:#F5EDE0; --cell-bg:#F7F4ED; --text-main:#3E2723; --text-sub:#6D4C41; --line:#E8DCC8; --line-strong:#D7CCC8; --accent:#00897B; --accent-soft:#B2DFDB; --accent-dark:#00695C; --weekend:#C62828; }
+    *{box-sizing:border-box}
+    body{font-family:"Malgun Gothic","맑은 고딕",sans-serif;background:var(--bg);margin:0;padding:20px;color:var(--text-main)}
+    .container{max-width:1200px;margin:auto;background:var(--surface);border-radius:16px;box-shadow:0 4px 20px rgba(62,39,35,0.06);padding:36px;border:1px solid var(--line)}
+    .nav a{margin-right:8px;padding:7px 16px;border:1px solid var(--line-strong);background:var(--surface);color:var(--text-main);border-radius:6px;display:inline-block;cursor:pointer}
+    .year-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+    .month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .month-card{background:var(--surface-soft);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:transform 0.1s}
+    .month-card:hover{transform:scale(1.03);border-color:var(--accent)}
+    .month-card h3{margin:0;font-size:16px;color:var(--text-main)}
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="nav">
+    <a href="index.html">← 홈</a>
+    <a href="day.html">← 일간 보기</a>
+    <a href="month.html">← 월간 보기</a>
+  </div>
+  <div class="year-header">
+    <h1 id="yearTitle"></h1>
+    <div>
+      <button class="nav" id="prevYear">← 전년</button>
+      <button class="nav" id="nextYear">다음년 →</button>
+    </div>
+  </div>
+  <div class="month-grid" id="grid"></div>
+</div>
+<script>
+  const urlParams = new URLSearchParams(location.search);
+  let year = parseInt(urlParams.get('year')) || new Date().getFullYear();
+  const yearTitle = document.getElementById('yearTitle');
+  const grid = document.getElementById('grid');
+  function render(){
+    yearTitle.textContent = `${year}년`;
+    grid.innerHTML='';
+    for(let m=1;m<=12;m++){
+      const card=document.createElement('div');
+      card.className='month-card';
+      card.innerHTML=`<h3>${m}월</h3>`;
+      card.onclick=()=>{
+        location.href=`month.html?year=${year}&month=${m}`;
+      };
+      grid.appendChild(card);
+    }
+  }
+  document.getElementById('prevYear').onclick=()=>{year--;render();};
+  document.getElementById('nextYear').onclick=()=>{year++;render();};
+  render();
+</script>
+</body>
+</html>

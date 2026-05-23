@@ -42,6 +42,10 @@
     margin-bottom: 16px;
     flex-wrap: wrap;
     gap: 8px;
+    background: var(--accent-soft);
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
   .nav-btn {
     background: var(--surface);
@@ -136,8 +140,45 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
+    transition: background 0.2s, color 0.2s;
   }
   .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .subject-btn {
+    background: var(--accent-soft);
+    color: var(--text-main);
+    border: 1px solid var(--accent);
+  }
+  .subject-btn:hover {
+    background: var(--accent);
+    color: white;
+  }
+  .subject-panel {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--surface-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+  }
+  .subject-panel textarea {
+    width: 100%;
+    height: 80px;
+    resize: vertical;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text-main);
+  }
+  .hidden { display: none; }
+  .subject-toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
 
   table.calendar {
     width: 100%;
@@ -363,7 +404,36 @@
     <a id="prevMonthBtn" href="#" class="nav-btn">◀ 이전달</a>
     <a id="nextMonthBtn" href="#" class="nav-btn">다음달 ▶</a>
   </div>
-
+<div class="subject-toolbar">
+  <button class="btn subject-btn" id="koreanBtn">국어</button>
+  <button class="btn subject-btn" id="mathBtn">수학</button>
+  <button class="btn subject-btn" id="englishBtn">영어</button>
+  <button class="btn subject-btn" id="scienceBtn">과학</button>
+  <button class="btn subject-btn" id="socialBtn">사회</button>
+</div>
+<!-- Subject panels -->
+<div id="subjectInputs" class="subject-inputs">
+  <div id="koreanPanel" class="subject-panel hidden">
+    <h3>국어 교재</h3>
+    <textarea id="koreanArea" placeholder="국어 교재를 적어보세요"></textarea>
+  </div>
+  <div id="mathPanel" class="subject-panel hidden">
+    <h3>수학 교재</h3>
+    <textarea id="mathArea" placeholder="수학 교재를 적어보세요"></textarea>
+  </div>
+  <div id="englishPanel" class="subject-panel hidden">
+    <h3>영어 교재</h3>
+    <textarea id="englishArea" placeholder="영어 교재를 적어보세요"></textarea>
+  </div>
+  <div id="sciencePanel" class="subject-panel hidden">
+    <h3>과학 교재</h3>
+    <textarea id="scienceArea" placeholder="과학 교재를 적어보세요"></textarea>
+  </div>
+  <div id="socialPanel" class="subject-panel hidden">
+    <h3>사회 교재</h3>
+    <textarea id="socialArea" placeholder="사회 교재를 적어보세요"></textarea>
+  </div>
+</div>
   <h1 id="monthTitle">월간 스케줄표</h1>
   <p class="subtitle">날짜를 클릭하면 그 날의 자세한 스케줄을 볼 수 있어요</p>
 
@@ -499,6 +569,13 @@
         cell.appendChild(textarea);
 
         td.appendChild(cell);
+        // Make the whole cell clickable (except the link)
+        td.style.cursor = 'pointer';
+        td.addEventListener('click', (e) => {
+          if (e.target.tagName !== 'A') {
+            location.href = `day.html?date=${dateStr}`;
+          }
+        });
         day++;
       }
       tr.appendChild(td);
@@ -506,6 +583,23 @@
     tbody.appendChild(tr);
     weekIdx++;
   }
+
+  const subjects = ['korean', 'math', 'english', 'science', 'social'];
+  subjects.forEach(sub => {
+    const btn = document.getElementById(`${sub}Btn`);
+    const panel = document.getElementById(`${sub}Panel`);
+    const area = document.getElementById(`${sub}Area`);
+    const STORAGE_KEY = `jihoon-textbook-${sub}-${YEAR}-${MONTH}`;
+    area.value = localStorage.getItem(STORAGE_KEY) || '';
+    btn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+      btn.classList.toggle('active');
+    });
+    area.addEventListener('input', () => {
+      localStorage.setItem(STORAGE_KEY, area.value);
+      showSaved();
+    });
+  });
 
   function showSaved() {
     const ind = document.getElementById('savedIndicator');
@@ -519,6 +613,10 @@
       document.querySelectorAll('.assessment-input').forEach(ta => {
         localStorage.removeItem(`jihoon-assessment-${ta.dataset.date}`);
         ta.value = '';
+      });
+      subjects.forEach(sub => {
+        localStorage.removeItem(`jihoon-textbook-${sub}-${YEAR}-${MONTH}`);
+        document.getElementById(`${sub}Area`).value = '';
       });
     }
   }
