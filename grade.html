@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>성적 분석</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  :root {
+    --bg: #FAF6EE;
+    --surface: #FFFFFF;
+    --surface-soft: #F5EDE0;
+    --text-main: #3E2723;
+    --text-sub: #6D4C41;
+    --line: #E8DCC8;
+    --line-strong: #D7CCC8;
+    --accent: #00897B;
+    --accent-dark: #00695C;
+    --school: #E53935;
+    --mock: #1E88E5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Malgun Gothic", "맑은 고딕", sans-serif;
+    background: var(--bg);
+    margin: 0;
+    padding: 20px;
+    color: var(--text-main);
+  }
+  .container {
+    max-width: 960px;
+    margin: auto;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(62,39,35,0.06);
+    padding: 36px;
+    border: 1px solid var(--line);
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h1 { margin: 0; font-size: 24px; }
+  .nav-btn {
+    background: var(--accent); color: white; border: none; border-radius: 6px;
+    padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: 500; text-decoration: none;
+  }
+  .nav-btn:hover { background: var(--accent-dark); }
+
+  /* 입력 */
+  .input-section {
+    background: var(--surface-soft); border-radius: 12px; padding: 20px;
+    margin-bottom: 24px; border: 1px solid var(--line);
+  }
+  .input-section h3 { margin: 0 0 14px 0; font-size: 15px; color: var(--text-sub); }
+  .input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .input-group { display: flex; flex-direction: column; gap: 4px; }
+  .input-group label { font-size: 12px; color: var(--text-sub); font-weight: 600; }
+  .input-group input, .input-group select {
+    padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 6px; font-size: 14px;
+  }
+  .input-group input { width: 120px; }
+  .input-group input[type="date"] { width: 150px; }
+  .input-group input[type="text"] { width: 150px; }
+  .input-group select { width: 130px; }
+  .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--accent); }
+  .add-btn {
+    padding: 8px 20px; background: var(--accent); color: white; border: none;
+    border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; height: 36px;
+  }
+  .add-btn:hover { background: var(--accent-dark); }
+
+  /* 범례 */
+  .legend { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; font-size: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 14px; height: 14px; border-radius: 50%; }
+
+  /* 그래프 */
+  .charts-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+  .chart-box {
+    background: var(--surface); border-radius: 12px; padding: 16px;
+    border: 1px solid var(--line);
+  }
+  .chart-box h3 { margin: 0 0 10px 0; font-size: 15px; color: var(--text-sub); text-align: center; }
+  canvas { max-height: 280px; }
+
+  /* 통계 */
+  .stats { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-card {
+    flex: 1; min-width: 140px; background: var(--surface-soft); border-radius: 10px;
+    padding: 14px; text-align: center; border: 1px solid var(--line);
+  }
+  .stat-card .subject { font-size: 13px; color: var(--text-sub); margin-bottom: 4px; }
+  .stat-card .scores { display: flex; justify-content: center; gap: 16px; }
+  .stat-card .score-col { text-align: center; }
+  .stat-card .score-col .type { font-size: 10px; font-weight: 700; margin-bottom: 2px; }
+  .stat-card .score-col .avg { font-size: 22px; font-weight: 700; }
+  .stat-card .score-col .detail { font-size: 10px; color: var(--text-sub); }
+  .type-school { color: var(--school); }
+  .type-mock { color: var(--mock); }
+
+  /* 테이블 */
+  .table-section h3 { margin: 0 0 12px 0; font-size: 15px; color: var(--text-sub); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface-soft); padding: 9px 6px; text-align: center;
+    border-bottom: 2px solid var(--line-strong); font-weight: 600; font-size: 12px;
+  }
+  td { padding: 9px 6px; text-align: center; border-bottom: 1px solid var(--line); }
+  tr:hover { background: #FFF8E1; }
+  .tag-school { background: #FFEBEE; color: var(--school); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .tag-mock { background: #E3F2FD; color: var(--mock); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .action-btn {
+    background: none; border: 1px solid var(--line-strong); color: var(--text-sub);
+    border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 11px; margin: 0 2px;
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .action-btn.del:hover { border-color: #C62828; color: #C62828; }
+  .editing td input, .editing td select {
+    width: 100%; padding: 4px 6px; border: 1px solid var(--accent);
+    border-radius: 4px; font-size: 12px; text-align: center; box-sizing: border-box;
+  }
+  .empty-msg { text-align: center; color: var(--text-sub); padding: 30px; font-size: 14px; }
+
+  .saved-indicator {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: white; padding: 8px 20px;
+    border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; z-index: 999;
+  }
+  .saved-indicator.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📊 성적 분석</h1>
+    <a class="nav-btn" href="index.html">🏠 메인</a>
+  </div>
+
+  <div class="input-section">
+    <h3>성적 입력</h3>
+    <div class="input-row">
+      <div class="input-group">
+        <label>구분</label>
+        <select id="inputType">
+          <option value="school">🏫 학교 성적</option>
+          <option value="mock">📝 모의고사</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>날짜</label>
+        <input type="date" id="inputDate">
+      </div>
+      <div class="input-group">
+        <label>시험 이름</label>
+        <input type="text" id="inputExam" placeholder="예: 중간고사">
+      </div>
+      <div class="input-group">
+        <label>국어</label>
+        <input type="number" id="inputKorean" min="0" max="100" placeholder="점수">
+      </div>
+      <div class="input-group">
+        <label>영어</label>
+        <input type="number" id="inputEnglish" min="0" max="100" placeholder="점수">
+      </div>
+      <div class="input-group">
+        <label>수학</label>
+        <input type="number" id="inputMath" min="0" max="100" placeholder="점수">
+      </div>
+      <button class="add-btn" id="addBtn">추가</button>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#E53935"></div> 학교 성적</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1E88E5"></div> 모의고사</div>
+  </div>
+
+  <div class="stats" id="statsArea"></div>
+
+  <div class="charts-grid">
+    <div class="chart-box">
+      <h3>국어</h3>
+      <canvas id="koreanChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>영어</h3>
+      <canvas id="englishChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>수학</h3>
+      <canvas id="mathChart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-section">
+    <h3>기록 목록</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>구분</th>
+          <th>날짜</th>
+          <th>시험</th>
+          <th>국어</th>
+          <th>영어</th>
+          <th>수학</th>
+          <th>평균</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="gradeBody"></tbody>
+    </table>
+    <div class="empty-msg" id="emptyMsg">아직 입력된 성적이 없어요. 위에서 성적을 추가해보세요!</div>
+  </div>
+</div>
+
+<div id="savedIndicator" class="saved-indicator">저장됨</div>
+
+<script>
+  const STORAGE_KEY = 'grade-data';
+  let grades = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+  // migrate old data without type
+  grades.forEach(g => { if (!g.type) g.type = 'school'; });
+
+  const typeInput = document.getElementById('inputType');
+  const dateInput = document.getElementById('inputDate');
+  const examInput = document.getElementById('inputExam');
+  const koreanInput = document.getElementById('inputKorean');
+  const englishInput = document.getElementById('inputEnglish');
+  const mathInput = document.getElementById('inputMath');
+  const addBtn = document.getElementById('addBtn');
+  const gradeBody = document.getElementById('gradeBody');
+  const emptyMsg = document.getElementById('emptyMsg');
+  const statsArea = document.getElementById('statsArea');
+
+  dateInput.value = new Date().toISOString().split('T')[0];
+
+  let charts = {};
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(grades));
+    showSaved();
+  }
+
+  function showSaved() {
+    const ind = document.getElementById('savedIndicator');
+    ind.classList.add('show');
+    setTimeout(() => ind.classList.remove('show'), 1500);
+  }
+
+  addBtn.addEventListener('click', () => {
+    const type = typeInput.value;
+    const date = dateInput.value;
+    const exam = examInput.value.trim();
+    const korean = parseInt(koreanInput.value);
+    const english = parseInt(englishInput.value);
+    const math = parseInt(mathInput.value);
+
+    if (!date || !exam) { alert('날짜와 시험 이름을 입력하세요.'); return; }
+    if (isNaN(korean) && isNaN(english) && isNaN(math)) { alert('과목 점수를 하나 이상 입력하세요.'); return; }
+
+    grades.push({
+      type, date, exam,
+      korean: isNaN(korean) ? null : korean,
+      english: isNaN(english) ? null : english,
+      math: isNaN(math) ? null : math
+    });
+
+    grades.sort((a, b) => a.date.localeCompare(b.date));
+    save();
+    render();
+
+    examInput.value = '';
+    koreanInput.value = '';
+    englishInput.value = '';
+    mathInput.value = '';
+  });
+
+  function deleteGrade(idx) {
+    if (confirm('이 기록을 삭제할까요?')) {
+      grades.splice(idx, 1);
+      save();
+      render();
+    }
+  }
+
+  function editGrade(idx) {
+    const g = grades[idx];
+    const tr = gradeBody.children[idx];
+    tr.classList.add('editing');
+    tr.innerHTML = `
+      <td><select><option value="school" ${g.type==='school'?'selected':''}>학교</option><option value="mock" ${g.type==='mock'?'selected':''}>모의고사</option></select></td>
+      <td><input type="date" value="${g.date}"></td>
+      <td><input type="text" value="${g.exam}"></td>
+      <td><input type="number" min="0" max="100" value="${g.korean !== null ? g.korean : ''}"></td>
+      <td><input type="number" min="0" max="100" value="${g.english !== null ? g.english : ''}"></td>
+      <td><input type="number" min="0" max="100" value="${g.math !== null ? g.math : ''}"></td>
+      <td></td>
+      <td>
+        <button class="action-btn" onclick="saveEdit(${idx})">저장</button>
+        <button class="action-btn del" onclick="render()">취소</button>
+      </td>
+    `;
+  }
+
+  function saveEdit(idx) {
+    const tr = gradeBody.children[idx];
+    const sel = tr.querySelector('select');
+    const inputs = tr.querySelectorAll('input');
+    const type = sel.value;
+    const date = inputs[0].value;
+    const exam = inputs[1].value.trim();
+    const korean = parseInt(inputs[2].value);
+    const english = parseInt(inputs[3].value);
+    const math = parseInt(inputs[4].value);
+
+    if (!date || !exam) { alert('날짜와 시험 이름을 입력하세요.'); return; }
+
+    grades[idx] = {
+      type, date, exam,
+      korean: isNaN(korean) ? null : korean,
+      english: isNaN(english) ? null : english,
+      math: isNaN(math) ? null : math
+    };
+    grades.sort((a, b) => a.date.localeCompare(b.date));
+    save();
+    render();
+  }
+
+  function render() {
+    renderTable();
+    renderStats();
+    renderCharts();
+  }
+
+  function renderTable() {
+    gradeBody.innerHTML = '';
+    emptyMsg.style.display = grades.length === 0 ? 'block' : 'none';
+
+    grades.forEach((g, i) => {
+      const avg = calcAvg(g);
+      const tag = g.type === 'school'
+        ? '<span class="tag-school">학교</span>'
+        : '<span class="tag-mock">모의</span>';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${tag}</td>
+        <td>${g.date}</td>
+        <td>${g.exam}</td>
+        <td>${g.korean !== null ? g.korean : '-'}</td>
+        <td>${g.english !== null ? g.english : '-'}</td>
+        <td>${g.math !== null ? g.math : '-'}</td>
+        <td><strong>${avg !== null ? avg : '-'}</strong></td>
+        <td>
+          <button class="action-btn" onclick="editGrade(${i})">수정</button>
+          <button class="action-btn del" onclick="deleteGrade(${i})">삭제</button>
+        </td>
+      `;
+      gradeBody.appendChild(tr);
+    });
+  }
+
+  function calcAvg(g) {
+    const scores = [g.korean, g.english, g.math].filter(s => s !== null);
+    if (scores.length === 0) return null;
+    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 10) / 10;
+  }
+
+  function renderStats() {
+    if (grades.length === 0) { statsArea.innerHTML = ''; return; }
+
+    const subjects = [
+      { key: 'korean', name: '국어' },
+      { key: 'english', name: '영어' },
+      { key: 'math', name: '수학' }
+    ];
+
+    statsArea.innerHTML = subjects.map(sub => {
+      const schoolScores = grades.filter(g => g.type === 'school').map(g => g[sub.key]).filter(s => s !== null);
+      const mockScores = grades.filter(g => g.type === 'mock').map(g => g[sub.key]).filter(s => s !== null);
+
+      function statHtml(scores, cls, label) {
+        if (scores.length === 0) return `<div class="score-col"><div class="type ${cls}">${label}</div><div class="avg" style="font-size:14px;color:#999">-</div></div>`;
+        const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 10) / 10;
+        const max = Math.max(...scores);
+        const min = Math.min(...scores);
+        return `<div class="score-col"><div class="type ${cls}">${label}</div><div class="avg ${cls}">${avg}</div><div class="detail">최고${max} 최저${min}</div></div>`;
+      }
+
+      return `
+        <div class="stat-card">
+          <div class="subject">${sub.name}</div>
+          <div class="scores">
+            ${statHtml(schoolScores, 'type-school', '학교')}
+            ${statHtml(mockScores, 'type-mock', '모의')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderCharts() {
+    const subjectConfigs = [
+      { key: 'korean', canvasId: 'koreanChart' },
+      { key: 'english', canvasId: 'englishChart' },
+      { key: 'math', canvasId: 'mathChart' }
+    ];
+
+    subjectConfigs.forEach(sub => {
+      if (charts[sub.key]) charts[sub.key].destroy();
+
+      const schoolData = grades.filter(g => g.type === 'school' && g[sub.key] !== null);
+      const mockData = grades.filter(g => g.type === 'mock' && g[sub.key] !== null);
+
+      const allLabels = [...new Set([...schoolData, ...mockData].map(g => g.date))].sort();
+
+      const schoolPoints = allLabels.map(d => {
+        const found = schoolData.find(g => g.date === d);
+        return found ? found[sub.key] : null;
+      });
+      const mockPoints = allLabels.map(d => {
+        const found = mockData.find(g => g.date === d);
+        return found ? found[sub.key] : null;
+      });
+
+      const ctx = document.getElementById(sub.canvasId).getContext('2d');
+      charts[sub.key] = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: allLabels,
+          datasets: [
+            {
+              label: '학교',
+              data: schoolPoints,
+              borderColor: '#E53935',
+              backgroundColor: 'rgba(229,57,53,0.08)',
+              borderWidth: 2.5,
+              pointRadius: 5,
+              pointBackgroundColor: '#E53935',
+              tension: 0.3,
+              spanGaps: true
+            },
+            {
+              label: '모의고사',
+              data: mockPoints,
+              borderColor: '#1E88E5',
+              backgroundColor: 'rgba(30,136,229,0.08)',
+              borderWidth: 2.5,
+              pointRadius: 5,
+              pointBackgroundColor: '#1E88E5',
+              tension: 0.3,
+              spanGaps: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { min: 0, max: 100, ticks: { stepSize: 20 } },
+            x: { ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    });
+  }
+
+  render();
+</script>
+</body>
+</html>
