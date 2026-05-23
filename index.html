@@ -2,762 +2,257 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>2026년 계획표</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스케줄표 - 학생을 위한 올인원 계획표</title>
 <style>
   :root {
     --bg: #FAF6EE;
     --surface: #FFFFFF;
-    --surface-soft: #F5EDE0;
     --text-main: #3E2723;
     --text-sub: #6D4C41;
-    --text-mute: #A1887F;
-    --line: #E8DCC8;
-    --line-strong: #D7CCC8;
     --accent: #00897B;
-    --accent-soft: #B2DFDB;
     --accent-dark: #00695C;
+    --line: #E8DCC8;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    font-family: "Malgun Gothic", "맑은 고딕", sans-serif;
     background: var(--bg);
-    margin: 0;
-    padding: 30px 20px;
     color: var(--text-main);
-    min-height: 100vh;
   }
-  .container {
-    max-width: 1300px;
+
+  /* 히어로 */
+  .hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(135deg, #E0F2F1 0%, #FAF6EE 50%, #FFF8E1 100%);
+  }
+  .hero h1 {
+    font-size: 42px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    color: var(--text-main);
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    font-size: 18px;
+    color: var(--text-sub);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  .hero-btn {
+    display: inline-block;
+    padding: 16px 48px;
+    background: var(--accent);
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: background 0.2s;
+    box-shadow: 0 4px 16px rgba(0,137,123,0.3);
+  }
+  .hero-btn:hover { background: var(--accent-dark); }
+  .hero-sub {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-sub);
+  }
+
+  /* 기능 소개 */
+  .features {
+    max-width: 960px;
     margin: 0 auto;
+    padding: 60px 20px;
+  }
+  .features h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 40px;
+    color: var(--text-main);
+  }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 700px) { .feature-grid { grid-template-columns: 1fr; } }
+  .feature-card {
     background: var(--surface);
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(62,39,35,0.06);
-    padding: 40px;
+    padding: 32px;
     border: 1px solid var(--line);
+    box-shadow: 0 2px 12px rgba(62,39,35,0.04);
+    transition: transform 0.2s;
   }
-  h1 {
-    text-align: center;
-    color: var(--text-main);
-    margin: 0 0 6px 0;
-    font-size: 36px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .name-input {
-    font-size: 36px;
-    font-weight: 700;
-    color: var(--text-main);
-    background: transparent;
-    border: none;
-    border-bottom: 2px dashed var(--line-strong);
-    text-align: center;
-    font-family: inherit;
-    padding: 0 8px;
-    outline: none;
-    min-width: 80px;
-    max-width: 280px;
-    transition: all 0.15s;
-  }
-  .name-input:focus {
-    border-bottom-color: var(--accent);
-    border-bottom-style: solid;
-  }
-  .name-input::placeholder {
-    color: var(--text-mute);
-    font-style: italic;
-    font-size: 28px;
-  }
-  .name-input-wrap {
-    position: relative;
-    display: inline-block;
-  }
-  .name-suffix {
-    font-size: 36px;
-    color: var(--text-main);
-    font-weight: 700;
-  }
+  .feature-card:hover { transform: translateY(-4px); }
+  .feature-icon { font-size: 36px; margin-bottom: 12px; }
+  .feature-card h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-main); }
+  .feature-card p { font-size: 14px; color: var(--text-sub); line-height: 1.6; }
 
-  .timetable-btn {
+  /* 요금제 */
+  .pricing {
     background: var(--surface);
-    color: var(--text-main);
-    border: 1px solid var(--line-strong);
-    border-radius: 8px;
-    padding: 8px 14px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s;
-    margin-left: 12px;
-  }
-  .timetable-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-    transform: translateY(-1px);
-  }
-  .timetable-btn .icon {
-    font-size: 18px;
-  }
-
-  /* 시간표 모달 */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(62,39,35,0.5);
-    z-index: 999;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
-  .modal-overlay.show { display: flex; }
-  .modal-box {
-    background: var(--surface);
-    border-radius: 14px;
-    padding: 28px;
-    max-width: 720px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-  }
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
+    padding: 60px 20px;
+    border-top: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
-  .modal-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-main);
-    margin: 0;
+  .pricing h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 12px;
   }
-  .modal-close {
-    background: transparent;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
+  .pricing .subtitle {
+    text-align: center;
     color: var(--text-sub);
-    padding: 0 6px;
-    line-height: 1;
+    font-size: 15px;
+    margin-bottom: 40px;
   }
-  .modal-close:hover { color: var(--text-main); }
-
-  table.timetable {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 700px;
+    margin: 0 auto;
   }
-  table.timetable th {
-    background: var(--surface-soft);
-    color: var(--text-main);
-    padding: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 1px solid var(--line);
-  }
-  table.timetable th.period-col { width: 70px; }
-  table.timetable td {
-    border: 1px solid var(--line);
-    padding: 0;
-    height: 44px;
-    background: var(--surface);
-  }
-  table.timetable td.period-label {
-    background: var(--surface-soft);
-    color: var(--text-sub);
-    font-size: 12px;
-    font-weight: 500;
+  @media (max-width: 600px) { .pricing-grid { grid-template-columns: 1fr; } }
+  .plan-card {
+    border-radius: 16px;
+    padding: 32px;
     text-align: center;
-  }
-  .subject-input {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: transparent;
-    text-align: center;
-    font-family: inherit;
-    font-size: 13px;
-    color: var(--text-main);
-    outline: none;
-    padding: 4px 6px;
-  }
-  .subject-input:focus {
-    background: #FFFBE6;
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-  }
-  .subject-input::placeholder {
-    color: var(--text-mute);
-    font-size: 12px;
-  }
-  .timetable-hint {
-    font-size: 12px;
-    color: var(--text-mute);
-    margin-top: 12px;
-    text-align: center;
-  }
-  .timetable-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 14px;
-  }
-  .modal-btn {
-    padding: 7px 16px;
-    border: 1px solid var(--line-strong);
-    background: var(--surface);
-    color: var(--text-main);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .modal-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .modal-btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
-  .modal-btn.primary:hover { background: var(--accent-dark); color: white; }
-
-  /* 학원 시간표 */
-  table.academy-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-  }
-  table.academy-table th {
-    background: var(--surface-soft);
-    color: var(--text-main);
-    padding: 10px 8px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 1px solid var(--line);
-  }
-  table.academy-table th.col-num { width: 50px; }
-  table.academy-table th.col-time { width: 140px; }
-  table.academy-table td {
-    border: 1px solid var(--line);
-    padding: 0;
-    background: var(--surface);
+    border: 2px solid var(--line);
     position: relative;
   }
-  table.academy-table td.num-cell {
-    background: var(--surface-soft);
-    color: var(--text-sub);
-    text-align: center;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 6px;
+  .plan-card.popular {
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(0,137,123,0.15);
   }
-  .academy-input {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: transparent;
-    font-family: inherit;
-    font-size: 13px;
-    color: var(--text-main);
-    outline: none;
-    padding: 8px 10px;
-    box-sizing: border-box;
-  }
-  .academy-input:focus {
-    background: #FFFBE6;
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-  }
-  .academy-input::placeholder {
-    color: var(--text-mute);
-    font-size: 12px;
-  }
-  .row-delete {
+  .plan-badge {
     position: absolute;
-    right: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    color: var(--text-mute);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 2px 6px;
-    opacity: 0;
-    transition: all 0.15s;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: white;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
   }
-  table.academy-table tr:hover .row-delete { opacity: 1; }
-  .row-delete:hover { color: var(--weekend); }
-  .subtitle {
-    text-align: center;
-    color: var(--text-sub);
-    margin-bottom: 28px;
-    font-size: 15px;
-  }
-  .help-box {
-    background: var(--surface-soft);
-    padding: 14px 20px;
-    border-radius: 8px;
-    margin-bottom: 28px;
+  .plan-card h3 { font-size: 20px; margin-bottom: 8px; }
+  .plan-price { font-size: 36px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+  .plan-price span { font-size: 16px; font-weight: 400; color: var(--text-sub); }
+  .plan-period { font-size: 13px; color: var(--text-sub); margin-bottom: 20px; }
+  .plan-features { list-style: none; text-align: left; margin-bottom: 24px; }
+  .plan-features li {
+    padding: 8px 0;
     font-size: 14px;
     color: var(--text-sub);
-    text-align: center;
-    border: 1px solid var(--line);
+    border-bottom: 1px solid #f0ebe3;
   }
-
-  .months-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-  }
-  @media (max-width: 1100px) {
-    .months-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  @media (max-width: 600px) {
-    .months-grid { grid-template-columns: 1fr; }
-  }
-
-  .month-card {
-    background: var(--surface);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid var(--line);
-    transition: all 0.2s;
-    display: flex;
-    flex-direction: column;
-    min-height: 260px;
-  }
-  .month-card:hover {
-    border-color: var(--line-strong);
-    box-shadow: 0 4px 16px rgba(62,39,35,0.08);
-  }
-  .month-card.current {
-    border: 2px solid var(--accent);
-    background: linear-gradient(135deg, #FFFFFF, #F0F9F8);
-  }
-
-  .month-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .month-link {
-    text-decoration: none;
-    color: var(--text-main);
-    font-size: 28px;
-    font-weight: 700;
-    transition: all 0.15s;
-  }
-  .month-link:hover {
-    color: var(--accent);
-  }
-  .month-card.current .month-link {
-    color: var(--accent);
-  }
-  .month-year {
-    font-size: 12px;
-    color: var(--text-mute);
-    font-weight: 500;
-  }
-
-  .month-status {
-    font-size: 11px;
-    padding: 2px 10px;
-    border-radius: 4px;
-    background: var(--surface-soft);
-    color: var(--text-sub);
-    align-self: flex-start;
-    margin-bottom: 12px;
-    border: 1px solid var(--line);
-  }
-  .month-card.current .month-status {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-
-  .plan-label {
-    font-size: 12px;
-    color: var(--text-mute);
-    font-weight: 600;
-    margin-bottom: 6px;
-    letter-spacing: 0.5px;
-  }
-  .plan-textarea {
-    flex: 1;
+  .plan-features li::before { content: "✓ "; color: var(--accent); font-weight: 700; }
+  .plan-btn {
+    display: inline-block;
     width: 100%;
-    padding: 10px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 13px;
-    resize: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+  }
+  .plan-btn.free {
     background: var(--bg);
-    outline: none;
     color: var(--text-main);
-    min-height: 90px;
-    line-height: 1.5;
+    border: 1px solid var(--line);
   }
-  .plan-textarea:focus {
-    border: 1px solid var(--accent);
-    background: var(--surface);
-  }
-  .plan-textarea::placeholder {
-    color: var(--text-mute);
-  }
-
-  .saved-indicator {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
+  .plan-btn.free:hover { border-color: var(--accent); color: var(--accent); }
+  .plan-btn.paid {
     background: var(--accent);
     color: white;
-    padding: 10px 18px;
-    border-radius: 8px;
-    box-shadow: 0 4px 14px rgba(0,137,123,0.3);
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 1000;
-    font-size: 13px;
-    font-weight: 500;
   }
-  .saved-indicator.show { opacity: 1; }
+  .plan-btn.paid:hover { background: var(--accent-dark); }
 
-  .footer-info {
-    margin-top: 28px;
-    padding: 16px 22px;
-    background: var(--surface-soft);
-    border-left: 3px solid var(--accent);
-    border-radius: 6px;
-    font-size: 13px;
+  /* 푸터 */
+  .footer {
+    text-align: center;
+    padding: 40px 20px;
     color: var(--text-sub);
-    line-height: 1.8;
+    font-size: 13px;
   }
-  .footer-info strong { color: var(--text-main); }
+  .footer a { color: var(--accent); text-decoration: none; }
 
-  @media print {
-    body { background: white; padding: 0; }
-    .container { box-shadow: none; }
-    .saved-indicator { display: none !important; }
+  /* CTA */
+  .cta {
+    text-align: center;
+    padding: 60px 20px;
   }
+  .cta h2 { font-size: 26px; margin-bottom: 16px; }
+  .cta p { color: var(--text-sub); margin-bottom: 24px; font-size: 15px; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>
-    <input type="text" id="ownerName" class="name-input" placeholder="이름" maxlength="10">
-    <span class="name-suffix">의 2026년 계획표</span>
-    <button class="timetable-btn" id="timetableBtn" title="학교 시간표 보기">
-      <span class="icon">🏫</span> 학교 시간표
-    </button>
-    <button class="timetable-btn" id="academyBtn" title="학원 시간표 보기">
-      <span class="icon">🎒</span> 학원 시간표
-    </button>
-  </h1>
-  <p class="subtitle">5월부터 12월까지 · 각 달을 클릭하면 자세한 달력을 볼 수 있어요</p>
-  <div style="text-align:center;margin-bottom:16px;">
-    <a href="year.html" style="display:inline-block;padding:10px 24px;background:#00897B;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;">📅 년간 계획표</a>
-    <a href="grade.html" style="display:inline-block;padding:10px 24px;background:#E53935;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;margin-left:8px;">📊 성적 분석</a>
-  </div>
 
-  <div class="help-box">
-    각 달의 입력칸에 <strong>월간 목표</strong>를 적어두세요. 큰 글씨의 <strong>월 이름을 클릭</strong>하면 해당 월의 달력이 열립니다.
-  </div>
+<section class="hero">
+  <h1><span>스케줄표</span></h1>
+  <p>연간 목표부터 일별 시간표, 성적 분석까지<br>학생을 위한 올인원 계획표</p>
+  <a class="hero-btn" href="app.html">무료 체험하기</a>
+  <div class="hero-sub">가입 없이 바로 체험 가능</div>
+</section>
 
-  <div class="months-grid" id="monthsGrid"></div>
-
-  <div class="footer-info">
-    <strong>계획표 구조</strong><br>
-    1단계 · 연간 계획 (이 페이지) — 매 달의 큰 목표 설정<br>
-    2단계 · 월간 달력 — 수행평가, 시험 등 날짜별 일정 입력<br>
-    3단계 · 일별 스케줄 — 시간표 + To-Do 리스트로 하루 계획
-  </div>
-</div>
-
-<div id="timetableModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2 class="modal-title">🏫 학교 시간표</h2>
-      <button class="modal-close" id="timetableClose" title="닫기">×</button>
+<section class="features">
+  <h2>주요 기능</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <h3>연간 계획표</h3>
+      <p>5월부터 12월까지 월별 큰 목표를 설정하세요. 한눈에 1년 계획을 확인할 수 있습니다.</p>
     </div>
-
-    <table class="timetable">
-      <thead>
-        <tr>
-          <th class="period-col">교시</th>
-          <th>월</th>
-          <th>화</th>
-          <th>수</th>
-          <th>목</th>
-          <th>금</th>
-        </tr>
-      </thead>
-      <tbody id="timetableBody"></tbody>
-    </table>
-
-    <p class="timetable-hint">각 칸을 클릭해서 과목을 입력하세요. 자동 저장됩니다.</p>
-
-    <div class="timetable-actions">
-      <button class="modal-btn" id="timetableReset">초기화</button>
-      <button class="modal-btn primary" id="timetableDone">완료</button>
+    <div class="feature-card">
+      <div class="feature-icon">📅</div>
+      <h3>월간 달력</h3>
+      <p>수행평가, 시험 일정을 날짜별로 관리하세요. 과목별 교재 진도도 함께 기록합니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⏰</div>
+      <h3>일별 시간표</h3>
+      <p>시간 단위로 하루를 계획하세요. 학교/학원 시간표, 투두리스트, 메모까지 한 화면에.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>성적 분석</h3>
+      <p>학교 성적과 모의고사를 분리 기록하고, 과목별 추이 그래프로 성적 변화를 한눈에 파악합니다.</p>
     </div>
   </div>
-</div>
+</section>
 
-<div id="academyModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h2 class="modal-title">🎒 학원 시간표</h2>
-      <button class="modal-close" id="academyClose" title="닫기">×</button>
-    </div>
-
-    <table class="academy-table">
-      <thead>
-        <tr>
-          <th class="col-num">번호</th>
-          <th class="col-time">시간</th>
-          <th>학원 이름</th>
-          <th>배우는 과목</th>
-        </tr>
-      </thead>
-      <tbody id="academyBody"></tbody>
-    </table>
-
-    <p class="timetable-hint">각 칸을 클릭해서 입력하세요. 자동 저장됩니다. 줄 위에 마우스 올리면 오른쪽에 삭제 버튼이 나타나요.</p>
-
-    <div class="timetable-actions">
-      <button class="modal-btn" id="academyAddRow">+ 줄 추가</button>
-      <button class="modal-btn" id="academyReset">초기화</button>
-      <button class="modal-btn primary" id="academyDone">완료</button>
+<section class="pricing" id="pricing">
+  <h2>요금제</h2>
+  <p class="subtitle">지금 바로 무료로 체험해보세요</p>
+  <div class="pricing-grid" style="max-width:380px">
+    <div class="plan-card popular">
+      <div class="plan-badge">이용권</div>
+      <h3>스케줄표</h3>
+      <div class="plan-price">1,000원 <span>/월</span></div>
+      <div class="plan-period">모든 기능 이용 가능</div>
+      <ul class="plan-features">
+        <li>연간/월간/일별 계획표</li>
+        <li>성적 분석 (학교+모의고사)</li>
+        <li>학교/학원 시간표</li>
+        <li>여러 기기 데이터 동기화</li>
+        <li>성적 AI 분석 리포트</li>
+        <li>PDF 내보내기</li>
+      </ul>
+      <button class="plan-btn paid" onclick="alert('결제 서비스 준비 중입니다. 곧 만나요!')">결제하고 시작하기</button>
     </div>
   </div>
-</div>
+</section>
 
-<div id="savedIndicator" class="saved-indicator">저장됨</div>
+<footer class="footer">
+  <p>&copy; 2026 스케줄표. 문의: <a href="mailto:omae101@gmail.com">omae101@gmail.com</a></p>
+</footer>
 
-<script>
-  const YEAR = 2026;
-  const MONTHS = [
-    { num: 5,  name: '5월',  desc: '봄의 끝' },
-    { num: 6,  name: '6월',  desc: '초여름' },
-    { num: 7,  name: '7월',  desc: '여름방학' },
-    { num: 8,  name: '8월',  desc: '한여름' },
-    { num: 9,  name: '9월',  desc: '가을 시작' },
-    { num: 10, name: '10월', desc: '중간고사' },
-    { num: 11, name: '11월', desc: '깊어진 가을' },
-    { num: 12, name: '12월', desc: '연말' }
-  ];
-
-  const today = new Date();
-  const currentMonth = today.getMonth() + 1;
-  const currentYear = today.getFullYear();
-
-  // 이름 저장/불러오기
-  const NAME_KEY = 'jihoon-owner-name';
-  const nameInput = document.getElementById('ownerName');
-  nameInput.value = localStorage.getItem(NAME_KEY) || '';
-  nameInput.addEventListener('input', () => {
-    localStorage.setItem(NAME_KEY, nameInput.value);
-    showSaved();
-  });
-
-  const grid = document.getElementById('monthsGrid');
-  let saveTimer;
-
-  function showSaved() {
-    const ind = document.getElementById('savedIndicator');
-    ind.classList.add('show');
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => ind.classList.remove('show'), 1500);
-  }
-
-  // ===== 학교 시간표 모달 =====
-  const TIMETABLE_KEY = 'jihoon-school-timetable';
-  const PERIODS = 7;
-  const DAYS = ['월','화','수','목','금'];
-  const timetableModal = document.getElementById('timetableModal');
-  const timetableBody = document.getElementById('timetableBody');
-
-  let timetableData;
-  try {
-    timetableData = JSON.parse(localStorage.getItem(TIMETABLE_KEY) || 'null');
-  } catch(e) { timetableData = null; }
-  if (!timetableData || !Array.isArray(timetableData)) {
-    timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
-  }
-
-  function renderTimetable() {
-    timetableBody.innerHTML = '';
-    for (let p = 0; p < PERIODS; p++) {
-      const tr = document.createElement('tr');
-      const labelTd = document.createElement('td');
-      labelTd.className = 'period-label';
-      labelTd.textContent = (p + 1) + '교시';
-      tr.appendChild(labelTd);
-
-      for (let d = 0; d < DAYS.length; d++) {
-        const td = document.createElement('td');
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'subject-input';
-        input.placeholder = '과목';
-        input.value = (timetableData[p] && timetableData[p][d]) || '';
-        input.addEventListener('input', () => {
-          if (!timetableData[p]) timetableData[p] = ['','','','',''];
-          timetableData[p][d] = input.value;
-          localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
-          showSaved();
-        });
-        td.appendChild(input);
-        tr.appendChild(td);
-      }
-      timetableBody.appendChild(tr);
-    }
-  }
-  renderTimetable();
-
-  document.getElementById('timetableBtn').addEventListener('click', () => {
-    timetableModal.classList.add('show');
-  });
-  document.getElementById('timetableClose').addEventListener('click', () => {
-    timetableModal.classList.remove('show');
-  });
-  document.getElementById('timetableDone').addEventListener('click', () => {
-    timetableModal.classList.remove('show');
-  });
-  document.getElementById('timetableReset').addEventListener('click', () => {
-    if (confirm('학교 시간표를 모두 비울까요?')) {
-      timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
-      localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
-      renderTimetable();
-    }
-  });
-  timetableModal.addEventListener('click', (e) => {
-    if (e.target === timetableModal) timetableModal.classList.remove('show');
-  });
-
-  // ===== 학원 시간표 모달 =====
-  const ACADEMY_KEY = 'jihoon-academy-schedule';
-  const academyModal = document.getElementById('academyModal');
-  const academyBody = document.getElementById('academyBody');
-
-  let academyData;
-  try {
-    academyData = JSON.parse(localStorage.getItem(ACADEMY_KEY) || 'null');
-  } catch(e) { academyData = null; }
-  if (!academyData || !Array.isArray(academyData)) {
-    academyData = Array.from({ length: 5 }, () => ({ time: '', name: '', subject: '' }));
-  }
-
-  function saveAcademy() {
-    localStorage.setItem(ACADEMY_KEY, JSON.stringify(academyData));
-    showSaved();
-  }
-
-  function renderAcademy() {
-    academyBody.innerHTML = '';
-    academyData.forEach((row, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="num-cell">${idx + 1}</td>
-        <td><input type="text" class="academy-input" placeholder="예: 월,수,금 4~6시" value=""></td>
-        <td><input type="text" class="academy-input" placeholder="예: ○○수학학원" value=""></td>
-        <td style="position:relative;">
-          <input type="text" class="academy-input" placeholder="예: 수학" value="">
-          <button class="row-delete" title="이 줄 삭제">×</button>
-        </td>
-      `;
-      const inputs = tr.querySelectorAll('.academy-input');
-      inputs[0].value = row.time || '';
-      inputs[1].value = row.name || '';
-      inputs[2].value = row.subject || '';
-
-      inputs[0].addEventListener('input', () => { academyData[idx].time = inputs[0].value; saveAcademy(); });
-      inputs[1].addEventListener('input', () => { academyData[idx].name = inputs[1].value; saveAcademy(); });
-      inputs[2].addEventListener('input', () => { academyData[idx].subject = inputs[2].value; saveAcademy(); });
-
-      tr.querySelector('.row-delete').addEventListener('click', () => {
-        if (confirm(`${idx + 1}번 줄을 삭제할까요?`)) {
-          academyData.splice(idx, 1);
-          saveAcademy();
-          renderAcademy();
-        }
-      });
-
-      academyBody.appendChild(tr);
-    });
-  }
-  renderAcademy();
-
-  document.getElementById('academyBtn').addEventListener('click', () => {
-    academyModal.classList.add('show');
-  });
-  document.getElementById('academyClose').addEventListener('click', () => {
-    academyModal.classList.remove('show');
-  });
-  document.getElementById('academyDone').addEventListener('click', () => {
-    academyModal.classList.remove('show');
-  });
-  document.getElementById('academyAddRow').addEventListener('click', () => {
-    academyData.push({ time: '', name: '', subject: '' });
-    saveAcademy();
-    renderAcademy();
-  });
-  document.getElementById('academyReset').addEventListener('click', () => {
-    if (confirm('학원 시간표를 모두 비울까요?')) {
-      academyData = Array.from({ length: 5 }, () => ({ time: '', name: '', subject: '' }));
-      saveAcademy();
-      renderAcademy();
-    }
-  });
-  academyModal.addEventListener('click', (e) => {
-    if (e.target === academyModal) academyModal.classList.remove('show');
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      if (timetableModal.classList.contains('show')) timetableModal.classList.remove('show');
-      if (academyModal.classList.contains('show')) academyModal.classList.remove('show');
-    }
-  });
-
-  MONTHS.forEach(m => {
-    const card = document.createElement('div');
-    card.className = 'month-card';
-
-    let statusText = m.desc;
-    if (currentYear === YEAR && currentMonth === m.num) {
-      card.classList.add('current');
-      statusText = '이번 달';
-    } else if (currentYear > YEAR || (currentYear === YEAR && currentMonth > m.num)) {
-      statusText = '지난 달';
-    }
-
-    card.innerHTML = `
-      <div class="month-header">
-        <a class="month-link" href="month.html?year=${YEAR}&month=${m.num}" title="${m.name} 달력 보기">${m.name}</a>
-        <span class="month-year">${YEAR}</span>
-      </div>
-      <div class="month-status">${statusText}</div>
-      <div class="plan-label">월간 목표</div>
-      <textarea class="plan-textarea" data-month="${m.num}" placeholder="이 달의 큰 목표나 일정을 적어보세요..."></textarea>
-    `;
-    grid.appendChild(card);
-
-    const ta = card.querySelector('.plan-textarea');
-    const key = `jihoon-monthly-plan-${YEAR}-${m.num}`;
-    ta.value = localStorage.getItem(key) || '';
-    ta.addEventListener('input', () => {
-      localStorage.setItem(key, ta.value);
-      showSaved();
-    });
-  });
-</script>
 </body>
 </html>

@@ -400,7 +400,7 @@
 <body>
 <div class="container">
   <div class="header-bar">
-    <a href="index.html" class="nav-btn home">연간 계획</a>
+    <a href="app.html" class="nav-btn home">연간 계획</a>
     <a id="prevMonthBtn" href="#" class="nav-btn">◀ 이전달</a>
     <a id="nextMonthBtn" href="#" class="nav-btn">다음달 ▶</a>
   </div>
@@ -475,11 +475,11 @@
 
 <script>
   const params = new URLSearchParams(location.search);
-  const YEAR = parseInt(params.get('year')) || 2026;
-  const MONTH = parseInt(params.get('month')) || 5;
+  const YEAR = parseInt(params.get('year')) || new Date().getFullYear();
+  const MONTH = parseInt(params.get('month')) || (new Date().getMonth() + 1);
 
-  const MIN_YEAR = 2026, MIN_MONTH = 5;
-  const MAX_YEAR = 2026, MAX_MONTH = 12;
+  const MIN_YEAR = 2020, MIN_MONTH = 1;
+  const MAX_YEAR = 2030, MAX_MONTH = 12;
 
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
