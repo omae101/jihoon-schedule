@@ -577,9 +577,10 @@
   </h1>
   <p class="subtitle">1월부터 12월까지 · 각 달을 클릭하면 자세한 달력을 볼 수 있어요</p>
   <div style="text-align:center;margin-bottom:16px;">
-    <button id="prevYear" style="padding:8px 16px;background:#fff;border:1px solid #D7CCC8;border-radius:8px;font-size:15px;cursor:pointer;font-weight:600;">◀ 이전 년도</button>
-    <span id="yearLabel" style="display:inline-block;padding:8px 20px;font-size:18px;font-weight:700;color:#3E2723;"></span>
-    <button id="nextYear" style="padding:8px 16px;background:#fff;border:1px solid #D7CCC8;border-radius:8px;font-size:15px;cursor:pointer;font-weight:600;">다음 년도 ▶</button>
+    <button id="prevYear" style="padding:8px 16px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:15px;cursor:pointer;font-weight:600;">◀ 이전 년도</button>
+    <input id="yearInput" type="number" min="2000" max="2100" title="연도를 직접 입력하세요" style="width:96px;text-align:center;padding:8px 6px;font-size:18px;font-weight:700;color:#17181C;border:1px solid #C9CDD4;border-radius:8px;">
+    <span style="font-size:18px;font-weight:700;color:#17181C;">년</span>
+    <button id="nextYear" style="padding:8px 16px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:15px;cursor:pointer;font-weight:600;">다음 년도 ▶</button>
     <a href="grade.html" style="display:inline-block;padding:8px 20px;background:#E53935;color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-left:12px;">📊 성적 분석</a>
   </div>
 
@@ -868,7 +869,7 @@
 
   function renderYear() {
     document.getElementById('yearDisplay').textContent = YEAR;
-    document.getElementById('yearLabel').textContent = YEAR + '년';
+    document.getElementById('yearInput').value = YEAR;
     document.title = YEAR + '년 계획표';
 
     const goalKey = `year-goal-${YEAR}`;
@@ -913,6 +914,15 @@
       });
     }
   }
+
+  document.getElementById('yearInput').addEventListener('change', (e) => {
+    let y = parseInt(e.target.value);
+    if (!Number.isFinite(y)) { e.target.value = YEAR; return; }
+    y = Math.min(2100, Math.max(2000, y));
+    YEAR = y;
+    history.replaceState(null, '', `?year=${YEAR}`);
+    renderYear();
+  });
 
   document.getElementById('prevYear').addEventListener('click', () => {
     YEAR--;
