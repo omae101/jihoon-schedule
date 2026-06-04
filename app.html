@@ -2,20 +2,23 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2026년 계획표</title>
 <style>
   :root {
-    --bg: #FAF6EE;
+    --bg: #F2F3F5;
     --surface: #FFFFFF;
-    --surface-soft: #F5EDE0;
-    --text-main: #3E2723;
-    --text-sub: #6D4C41;
-    --text-mute: #A1887F;
-    --line: #E8DCC8;
-    --line-strong: #D7CCC8;
-    --accent: #00897B;
-    --accent-soft: #B2DFDB;
-    --accent-dark: #00695C;
+    --surface-soft: #EBEDF0;
+    --text-main: #17181C;
+    --text-sub: #4A4E57;
+    --text-mute: #9CA1AB;
+    --line: #E2E4E9;
+    --line-strong: #C9CDD4;
+    --accent: #0D9488;
+    --accent-soft: #CCFBF1;
+    --accent-dark: #0B7A70;
+    --ink: #1F2430;
+    --ink-dark: #11141B;
   }
   * { box-sizing: border-box; }
   body {
@@ -441,10 +444,122 @@
   }
   .footer-info strong { color: var(--text-main); }
 
+  /* 다가오는 수행평가 알림 */
+  .upcoming-box {
+    margin-bottom: 22px;
+    padding: 16px 20px;
+    background: #FFF8E1;
+    border: 1px solid #FFE082;
+    border-left: 4px solid #FB8C00;
+    border-radius: 8px;
+  }
+  .upcoming-box.empty {
+    background: var(--surface-soft);
+    border-color: var(--line);
+    border-left-color: var(--accent);
+  }
+  .upcoming-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .upcoming-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .alarm-btn {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    transition: all 0.15s;
+  }
+  .alarm-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .alarm-btn.on {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .alarm-btn.denied {
+    background: #FFEBEE;
+    color: #C62828;
+    border-color: #FFCDD2;
+    cursor: default;
+  }
+  .upcoming-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .upcoming-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--text-main);
+  }
+  .upcoming-item:hover { border-color: var(--accent); }
+  .upcoming-date {
+    font-size: 11px;
+    color: var(--text-mute);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .upcoming-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .upcoming-empty {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin: 0;
+  }
+
   @media print {
     body { background: white; padding: 0; }
     .container { box-shadow: none; }
     .saved-indicator { display: none !important; }
+  }
+  /* 연간 달력 — 일정 있는 달 표시 */
+  .month-flag {
+    font-size: 11px;
+    color: #FB8C00;
+    font-weight: 700;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+  /* 모바일 최적화 */
+  @media (max-width: 600px) {
+    body { padding: 16px 10px; }
+    .container { padding: 20px 14px; border-radius: 12px; }
+    h1 { font-size: 24px; gap: 6px; }
+    .name-input { font-size: 24px; }
+    .name-suffix { font-size: 24px; }
+    .name-input::placeholder { font-size: 20px; }
+    .timetable-btn { margin-left: 0; padding: 8px 12px; }
+    .month-card { min-height: 200px; padding: 16px; }
   }
 </style>
 </head>
@@ -469,6 +584,15 @@
   </div>
 
   <div class="help-box" contenteditable="true" id="yearGoalBox" placeholder="년간 목표를 적어보세요..."><strong>월간 목표</strong>를 적어두세요. 큰 글씨의 <strong>월 이름을 클릭</strong>하면 해당 월의 달력이 열립니다.</div>
+
+  <div class="upcoming-box" id="upcomingBox">
+    <div class="upcoming-head">
+      <h3 class="upcoming-title">🔔 다가오는 수행평가 <span style="font-weight:500;color:var(--text-sub);font-size:12px;">(3일 이내)</span></h3>
+      <button class="alarm-btn" id="alarmBtn">알림 켜기</button>
+    </div>
+    <ul class="upcoming-list" id="upcomingList"></ul>
+    <p class="upcoming-empty" id="upcomingEmpty" style="display:none;">3일 이내 수행평가가 없어요. 월간 달력에서 입력하면 여기에 표시됩니다.</p>
+  </div>
 
   <div class="months-grid" id="monthsGrid"></div>
 
@@ -541,6 +665,7 @@
 
 <div id="savedIndicator" class="saved-indicator">저장됨</div>
 
+<script src="notifications.js"></script>
 <script>
   const MONTH_DESC = ['새해','겨울','초봄','봄','중간고사','여름 시작','여름방학','한여름','가을 시작','중간고사','깊어진 가을','연말'];
 
@@ -730,6 +855,17 @@
     }
   });
 
+  // 해당 월에 입력된 수행평가(일정) 개수 — 뒤(월간/일별)에서 저장한 게 연간에도 보이도록.
+  function monthAssessmentCount(y, m) {
+    const prefix = `jihoon-assessment-${y}-${String(m).padStart(2,'0')}-`;
+    let c = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(prefix) && (localStorage.getItem(k) || '').trim()) c++;
+    }
+    return c;
+  }
+
   function renderYear() {
     document.getElementById('yearDisplay').textContent = YEAR;
     document.getElementById('yearLabel').textContent = YEAR + '년';
@@ -754,12 +890,15 @@
         statusText = '지난 달';
       }
 
+      const aCount = monthAssessmentCount(YEAR, m);
+      const flag = aCount > 0 ? `<span class="month-flag">📌 일정 ${aCount}</span>` : '';
       card.innerHTML = `
         <div class="month-header">
           <a class="month-link" href="month.html?year=${YEAR}&month=${m}" title="${m}월 달력 보기">${m}월</a>
-          <span class="month-year">${YEAR}</span>
+          <span class="month-year">${YEAR}${flag}</span>
         </div>
-        <div class="month-status">${statusText}</div>
+        <div class="month-status">${statusText}</div>`;
+      card.innerHTML += `
         <div class="plan-label">월간 목표</div>
         <textarea class="plan-textarea" data-month="${m}" placeholder="이 달의 큰 목표나 일정을 적어보세요..."></textarea>
       `;
@@ -787,6 +926,80 @@
   });
 
   renderYear();
+
+  // ===== 다가오는 수행평가 + 브라우저 알림 =====
+  const upcomingBox = document.getElementById('upcomingBox');
+  const upcomingList = document.getElementById('upcomingList');
+  const upcomingEmpty = document.getElementById('upcomingEmpty');
+  const alarmBtn = document.getElementById('alarmBtn');
+
+  function fmtKor(dateStr) {
+    const parts = dateStr.split('-');
+    return parseInt(parts[1]) + '월 ' + parseInt(parts[2]) + '일';
+  }
+
+  function renderUpcoming() {
+    const items = Assessments.getUpcoming();
+    upcomingList.innerHTML = '';
+    if (!items.length) {
+      upcomingEmpty.style.display = 'block';
+      upcomingBox.classList.add('empty');
+      return;
+    }
+    upcomingEmpty.style.display = 'none';
+    upcomingBox.classList.remove('empty');
+    items.forEach((it) => {
+      const a = document.createElement('a');
+      a.className = 'upcoming-item';
+      a.href = 'day.html?date=' + it.dateStr;
+      const badge = Assessments.buildBadge(it.dday);
+      a.appendChild(badge);
+      const text = document.createElement('span');
+      text.className = 'upcoming-text';
+      text.textContent = it.text;
+      a.appendChild(text);
+      const date = document.createElement('span');
+      date.className = 'upcoming-date';
+      date.textContent = fmtKor(it.dateStr);
+      a.appendChild(date);
+      upcomingList.appendChild(a);
+    });
+  }
+
+  function refreshAlarmBtn() {
+    const state = Assessments.permissionState();
+    if (state === 'unsupported') {
+      alarmBtn.textContent = '알림 미지원';
+      alarmBtn.classList.add('denied');
+      alarmBtn.disabled = true;
+    } else if (state === 'granted') {
+      alarmBtn.textContent = '🔔 알림 켜짐';
+      alarmBtn.classList.add('on');
+      alarmBtn.classList.remove('denied');
+    } else if (state === 'denied') {
+      alarmBtn.textContent = '알림 차단됨 (브라우저 설정)';
+      alarmBtn.classList.add('denied');
+      alarmBtn.classList.remove('on');
+    } else {
+      alarmBtn.textContent = '🔕 알림 켜기';
+      alarmBtn.classList.remove('on', 'denied');
+    }
+  }
+
+  alarmBtn.addEventListener('click', async () => {
+    const state = Assessments.permissionState();
+    if (state === 'granted' || state === 'denied' || state === 'unsupported') return;
+    const result = await Assessments.requestPermission();
+    refreshAlarmBtn();
+    if (result === 'granted') {
+      Assessments.notifyUpcoming();
+    }
+  });
+
+  refreshAlarmBtn();
+  renderUpcoming();
+  // 페이지 열 때 한 번 알림 (오늘 한 번만, 항목별로)
+  setTimeout(() => Assessments.notifyUpcoming(), 500);
 </script>
 </body>
 </html>

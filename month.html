@@ -2,21 +2,24 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>월간 스케줄표</title>
 <style>
   :root {
-    --bg: #FAF6EE;
+    --bg: #F2F3F5;
     --surface: #FFFFFF;
-    --surface-soft: #F5EDE0;
-    --text-main: #3E2723;
-    --text-sub: #6D4C41;
-    --text-mute: #A1887F;
-    --line: #E8DCC8;
-    --line-strong: #D7CCC8;
-    --accent: #00897B;
-    --accent-soft: #B2DFDB;
-    --accent-dark: #00695C;
-    --weekend: #C62828;
+    --surface-soft: #EBEDF0;
+    --text-main: #17181C;
+    --text-sub: #4A4E57;
+    --text-mute: #9CA1AB;
+    --line: #E2E4E9;
+    --line-strong: #C9CDD4;
+    --accent: #0D9488;
+    --accent-soft: #CCFBF1;
+    --accent-dark: #0B7A70;
+    --weekend: #DC2626;
+    --ink: #1F2430;
+    --ink-dark: #11141B;
   }
   * { box-sizing: border-box; }
   body {
@@ -42,10 +45,10 @@
     margin-bottom: 16px;
     flex-wrap: wrap;
     gap: 8px;
-    background: var(--accent-soft);
-    padding: 8px 12px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: var(--ink);
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(17,20,27,0.18);
   }
   .nav-btn {
     background: var(--surface);
@@ -113,6 +116,9 @@
     color: var(--text-main);
   }
   .monthly-plan-area:focus { outline: none; border-color: var(--accent); }
+  .extra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .extra-grid h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--text-main); }
+  @media (max-width: 760px) { .extra-grid { grid-template-columns: 1fr; } }
 
   .help-box {
     background: var(--surface-soft);
@@ -215,14 +221,17 @@
     color: var(--text-main);
     text-decoration: none;
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 10px;
     border-radius: 4px;
     transition: all 0.15s;
     align-self: flex-start;
+    cursor: pointer;
+    border: 1px dashed transparent;
   }
   .day-number:hover {
     background: var(--accent);
     color: white;
+    border-color: var(--accent);
   }
   .day-number.today {
     background: var(--accent);
@@ -245,6 +254,20 @@
     color: var(--text-main);
     outline: none;
     line-height: 1.4;
+  }
+  .dday-badge {
+    align-self: flex-start;
+    margin-top: 4px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .day-cell.has-upcoming .assessment-input {
+    background: #FFF8E1;
+    border-color: #FFE082;
   }
   .assessment-input:focus {
     border-color: var(--accent);
@@ -395,12 +418,26 @@
     .toolbar, .help-box, .saved-indicator, .nav-btn { display: none !important; }
     .modal-overlay { display: none !important; }
   }
+  /* 모바일 최적화 — 달력을 한눈에 */
+  @media (max-width: 760px) {
+    body { padding: 12px 6px; }
+    .container { padding: 14px 10px; border-radius: 12px; }
+    h1 { font-size: 24px; }
+    .help-box, .legend-info { font-size: 12px; padding: 10px 12px; }
+    table.calendar th { padding: 6px 2px; font-size: 12px; }
+    table.calendar td { height: 80px; }
+    .day-cell { padding: 3px; }
+    .day-number { font-size: 14px; padding: 1px 6px; }
+    .assessment-input { font-size: 11px; margin-top: 2px; padding: 2px 3px; }
+    .nav-btn, .btn { padding: 10px 12px; font-size: 13px; }
+    .subject-toolbar .btn { padding: 8px 12px; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header-bar">
-    <a href="app.html" class="nav-btn home">연간 계획</a>
+    <a id="yearLink" href="app.html" class="nav-btn home">연간 계획</a>
     <a id="prevMonthBtn" href="#" class="nav-btn">◀ 이전달</a>
     <a id="nextMonthBtn" href="#" class="nav-btn">다음달 ▶</a>
   </div>
@@ -442,8 +479,19 @@
     <textarea class="monthly-plan-area" id="monthlyPlan" placeholder="이번 달에 이루고 싶은 것, 중요한 행사를 적어보세요"></textarea>
   </div>
 
+  <div class="extra-grid">
+    <div>
+      <h3>📚 내신보강</h3>
+      <textarea class="monthly-plan-area" id="naesinArea" placeholder="이 달 내신보강 계획 (과목·일정·교재)"></textarea>
+    </div>
+    <div>
+      <h3>🎯 특강</h3>
+      <textarea class="monthly-plan-area" id="specialArea" placeholder="이 달 특강 (과목·기관·일정)"></textarea>
+    </div>
+  </div>
+
   <div class="help-box">
-    각 날짜 칸에 <strong>수행평가</strong>를 입력하세요. <strong>날짜를 클릭</strong>하면 그 날의 일별 스케줄로 이동합니다.
+    각 칸의 <strong>흰 박스에 수행평가</strong>를 입력하세요. 왼쪽 위 <strong>날짜 숫자</strong>를 클릭하면 그 날의 일별 스케줄로 이동합니다.
   </div>
 
   <div class="toolbar">
@@ -473,6 +521,7 @@
 
 <div id="savedIndicator" class="saved-indicator">저장됨</div>
 
+<script src="notifications.js"></script>
 <script>
   const params = new URLSearchParams(location.search);
   const YEAR = parseInt(params.get('year')) || new Date().getFullYear();
@@ -483,6 +532,8 @@
 
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  document.getElementById('yearLink').href = `app.html?year=${YEAR}`;
 
   const ownerName = localStorage.getItem('jihoon-owner-name') || '';
   const namePrefix = ownerName ? `${ownerName}의 ` : '';
@@ -523,6 +574,16 @@
     showSaved();
   });
 
+  // 내신보강 / 특강 (월별)
+  const NAESIN_KEY = `jihoon-naesin-${YEAR}-${MONTH}`;
+  const SPECIAL_KEY = `jihoon-special-${YEAR}-${MONTH}`;
+  const naesinArea = document.getElementById('naesinArea');
+  const specialArea = document.getElementById('specialArea');
+  naesinArea.value = localStorage.getItem(NAESIN_KEY) || '';
+  specialArea.value = localStorage.getItem(SPECIAL_KEY) || '';
+  naesinArea.addEventListener('input', () => { localStorage.setItem(NAESIN_KEY, naesinArea.value); showSaved(); });
+  specialArea.addEventListener('input', () => { localStorage.setItem(SPECIAL_KEY, specialArea.value); showSaved(); });
+
   const firstDay = new Date(YEAR, MONTH - 1, 1);
   let firstDayOfWeek = (firstDay.getDay() + 6) % 7;
   const lastDate = new Date(YEAR, MONTH, 0).getDate();
@@ -562,20 +623,39 @@
         textarea.dataset.date = dateStr;
         const saved = localStorage.getItem(`jihoon-assessment-${dateStr}`);
         if (saved) textarea.value = saved;
+
+        const updateDdayBadge = () => {
+          const existing = cell.querySelector('.dday-badge');
+          if (existing) existing.remove();
+          cell.classList.remove('has-upcoming');
+          const txt = (textarea.value || '').trim();
+          if (!txt) return;
+          const t = new Date(); t.setHours(0,0,0,0);
+          const d = new Date(YEAR, MONTH - 1, currentDay); d.setHours(0,0,0,0);
+          const diff = Math.round((d - t) / 86400000);
+          if (diff < 0 || diff > 3) return;
+          const badge = document.createElement('span');
+          badge.className = 'dday-badge';
+          badge.textContent = diff === 0 ? 'D-DAY' : 'D-' + diff;
+          badge.style.background = diff === 0 ? '#C62828'
+            : diff === 1 ? '#E53935'
+            : diff === 2 ? '#F57C00' : '#FB8C00';
+          cell.insertBefore(badge, textarea);
+          cell.classList.add('has-upcoming');
+        };
+
         textarea.addEventListener('input', () => {
           localStorage.setItem(`jihoon-assessment-${dateStr}`, textarea.value);
+          updateDdayBadge();
           showSaved();
         });
+        ['mousedown','click','focus','pointerdown','touchstart'].forEach(ev => {
+          textarea.addEventListener(ev, (e) => e.stopPropagation());
+        });
         cell.appendChild(textarea);
+        updateDdayBadge();
 
         td.appendChild(cell);
-        // Make the whole cell clickable (except the link)
-        td.style.cursor = 'pointer';
-        td.addEventListener('click', (e) => {
-          if (e.target.tagName !== 'A') {
-            location.href = `day.html?date=${dateStr}`;
-          }
-        });
         day++;
       }
       tr.appendChild(td);
@@ -613,6 +693,10 @@
       document.querySelectorAll('.assessment-input').forEach(ta => {
         localStorage.removeItem(`jihoon-assessment-${ta.dataset.date}`);
         ta.value = '';
+        const parent = ta.parentElement;
+        const badge = parent && parent.querySelector('.dday-badge');
+        if (badge) badge.remove();
+        if (parent) parent.classList.remove('has-upcoming');
       });
       subjects.forEach(sub => {
         localStorage.removeItem(`jihoon-textbook-${sub}-${YEAR}-${MONTH}`);

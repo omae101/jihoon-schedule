@@ -5,19 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>성적 분석</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
   :root {
-    --bg: #FAF6EE;
+    --bg: #F2F3F5;
     --surface: #FFFFFF;
-    --surface-soft: #F5EDE0;
-    --text-main: #3E2723;
-    --text-sub: #6D4C41;
-    --line: #E8DCC8;
-    --line-strong: #D7CCC8;
-    --accent: #00897B;
-    --accent-dark: #00695C;
+    --surface-soft: #EBEDF0;
+    --text-main: #17181C;
+    --text-sub: #4A4E57;
+    --line: #E2E4E9;
+    --line-strong: #C9CDD4;
+    --accent: #0D9488;
+    --accent-dark: #0B7A70;
     --school: #E53935;
     --mock: #1E88E5;
+    --ink: #1F2430;
+    --ink-dark: #11141B;
   }
   * { box-sizing: border-box; }
   body {
@@ -63,16 +67,46 @@
   .input-group input, .input-group select {
     padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 6px; font-size: 14px;
   }
-  .input-group input { width: 120px; }
+  .input-group input { width: 100px; }
   .input-group input[type="date"] { width: 150px; }
   .input-group input[type="text"] { width: 150px; }
   .input-group select { width: 130px; }
   .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--accent); }
+  .subj-input-wrap { position: relative; }
+  .subj-remove {
+    position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; line-height: 14px;
+    border-radius: 50%; background: var(--line-strong); color: var(--text-sub); border: none;
+    font-size: 11px; cursor: pointer; padding: 0; text-align: center;
+  }
+  .subj-remove:hover { background: var(--school); color: #fff; }
   .add-btn {
     padding: 8px 20px; background: var(--accent); color: white; border: none;
     border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; height: 36px;
   }
   .add-btn:hover { background: var(--accent-dark); }
+  .ghost-btn {
+    padding: 8px 14px; background: transparent; color: var(--accent); border: 1px dashed var(--accent);
+    border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; height: 36px;
+  }
+  .ghost-btn:hover { background: rgba(0,137,123,0.06); }
+
+  /* 업로드 영역 */
+  .upload-divider { height: 1px; background: var(--line); margin: 18px 0; }
+  .upload-row { display: flex; gap: 14px; align-items: stretch; flex-wrap: wrap; }
+  .dropzone {
+    flex: 1; min-width: 240px; border: 2px dashed var(--line-strong); border-radius: 10px;
+    padding: 18px; text-align: center; color: var(--text-sub); cursor: pointer;
+    background: var(--surface); transition: all .15s; font-size: 13px;
+  }
+  .dropzone.drag { border-color: var(--accent); background: rgba(0,137,123,0.06); color: var(--accent-dark); }
+  .dropzone strong { color: var(--text-main); }
+  .ocr-box {
+    min-width: 200px; border: 2px dashed var(--line-strong); border-radius: 10px;
+    padding: 18px; text-align: center; color: var(--text-sub); cursor: pointer;
+    background: var(--surface); transition: all .15s; font-size: 13px; display: flex;
+    flex-direction: column; justify-content: center; gap: 4px;
+  }
+  .ocr-box:hover { border-color: var(--accent); color: var(--accent-dark); }
 
   /* 범례 */
   .legend { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; font-size: 14px; }
@@ -80,13 +114,14 @@
   .legend-dot { width: 14px; height: 14px; border-radius: 50%; }
 
   /* 그래프 */
-  .charts-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; }
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 720px) { .charts-grid { grid-template-columns: 1fr; } }
   .chart-box {
     background: var(--surface); border-radius: 12px; padding: 16px;
     border: 1px solid var(--line);
   }
   .chart-box h3 { margin: 0 0 10px 0; font-size: 15px; color: var(--text-sub); text-align: center; }
-  canvas { max-height: 280px; }
+  canvas { max-height: 240px; }
 
   /* 통계 */
   .stats { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
@@ -105,12 +140,13 @@
 
   /* 테이블 */
   .table-section h3 { margin: 0 0 12px 0; font-size: 15px; color: var(--text-sub); }
+  .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th {
     background: var(--surface-soft); padding: 9px 6px; text-align: center;
-    border-bottom: 2px solid var(--line-strong); font-weight: 600; font-size: 12px;
+    border-bottom: 2px solid var(--line-strong); font-weight: 600; font-size: 12px; white-space: nowrap;
   }
-  td { padding: 9px 6px; text-align: center; border-bottom: 1px solid var(--line); }
+  td { padding: 9px 6px; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
   tr:hover { background: #FFF8E1; }
   .tag-school { background: #FFEBEE; color: var(--school); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
   .tag-mock { background: #E3F2FD; color: var(--mock); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
@@ -121,10 +157,19 @@
   .action-btn:hover { border-color: var(--accent); color: var(--accent); }
   .action-btn.del:hover { border-color: #C62828; color: #C62828; }
   .editing td input, .editing td select {
-    width: 100%; padding: 4px 6px; border: 1px solid var(--accent);
+    width: 100%; min-width: 60px; padding: 4px 6px; border: 1px solid var(--accent);
     border-radius: 4px; font-size: 12px; text-align: center; box-sizing: border-box;
   }
   .empty-msg { text-align: center; color: var(--text-sub); padding: 30px; font-size: 14px; }
+
+  /* 공부 성향 분석 */
+  .analysis-result {
+    margin-top: 16px; background: var(--surface); border: 1px solid var(--line);
+    border-left: 4px solid var(--accent); border-radius: 10px; padding: 18px 20px;
+    font-size: 14px; line-height: 1.9; color: var(--text-main); white-space: pre-line;
+  }
+  .analysis-result .char-count { display: block; margin-top: 12px; font-size: 12px; color: var(--text-sub); text-align: right; }
+  .analysis-result h4 { margin: 0 0 8px; font-size: 16px; color: var(--accent-dark); }
 
   .saved-indicator {
     position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
@@ -133,6 +178,25 @@
     pointer-events: none; z-index: 999;
   }
   .saved-indicator.show { opacity: 1; }
+
+  /* 모달 (미리보기 / OCR 편집) */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(62,39,35,0.45); display: none;
+    align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 14px; padding: 24px; max-width: 640px; width: 100%;
+    max-height: 86vh; overflow-y: auto; border: 1px solid var(--line); box-shadow: 0 10px 40px rgba(62,39,35,0.2);
+  }
+  .modal h3 { margin: 0 0 4px 0; font-size: 18px; }
+  .modal .sub { color: var(--text-sub); font-size: 13px; margin: 0 0 16px 0; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+  .modal table input, .modal table select { padding: 5px 7px; border: 1px solid var(--line-strong); border-radius: 5px; font-size: 13px; }
+  .modal table input[type="number"] { width: 70px; text-align: center; }
+  .modal table input[type="text"] { width: 110px; }
+  .ocr-progress { font-size: 13px; color: var(--accent-dark); margin-top: 6px; }
+  .meta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 </style>
 </head>
 <body>
@@ -144,7 +208,7 @@
 
   <div class="input-section">
     <h3>성적 입력</h3>
-    <div class="input-row">
+    <div class="input-row" id="manualRow">
       <div class="input-group">
         <label>구분</label>
         <select id="inputType">
@@ -160,20 +224,48 @@
         <label>시험 이름</label>
         <input type="text" id="inputExam" placeholder="예: 중간고사">
       </div>
-      <div class="input-group">
-        <label>국어</label>
-        <input type="number" id="inputKorean" min="0" max="100" placeholder="점수">
-      </div>
-      <div class="input-group">
-        <label>영어</label>
-        <input type="number" id="inputEnglish" min="0" max="100" placeholder="점수">
-      </div>
-      <div class="input-group">
-        <label>수학</label>
-        <input type="number" id="inputMath" min="0" max="100" placeholder="점수">
-      </div>
+      <!-- 과목별 점수 입력칸은 동적 생성 -->
+      <div id="subjectInputs" style="display:contents;"></div>
+      <button class="ghost-btn" id="addSubjectBtn" type="button">+ 과목 추가</button>
       <button class="add-btn" id="addBtn">추가</button>
     </div>
+
+    <div class="upload-divider"></div>
+
+    <div class="upload-row">
+      <div class="dropzone" id="dropzone">
+        <p style="margin:0 0 4px 0;">📁 <strong>엑셀/CSV 파일</strong>을 끌어다 놓거나 클릭해서 선택</p>
+        <p style="margin:0; font-size:12px;">여러 시험·여러 과목을 한 번에 불러옵니다 (.xlsx · .csv)</p>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple style="display:none;">
+      </div>
+      <div class="ocr-box" id="ocrBox">
+        <div>📷 <strong>성적표 사진</strong></div>
+        <div style="font-size:12px;">사진을 올리면 점수를 자동 인식 (OCR)</div>
+        <input type="file" id="ocrInput" accept="image/*" capture="environment" style="display:none;">
+      </div>
+    </div>
+  </div>
+
+  <div class="input-section">
+    <h3>🧭 공부 성향 · 방향 분석</h3>
+    <div class="input-row">
+      <div class="input-group">
+        <label>생년월일</label>
+        <input type="date" id="dobInput">
+      </div>
+      <div class="input-group">
+        <label>MBTI</label>
+        <select id="mbtiInput">
+          <option value="">선택</option>
+          <option>ISTJ</option><option>ISFJ</option><option>INFJ</option><option>INTJ</option>
+          <option>ISTP</option><option>ISFP</option><option>INFP</option><option>INTP</option>
+          <option>ESTP</option><option>ESFP</option><option>ENFP</option><option>ENTP</option>
+          <option>ESTJ</option><option>ESFJ</option><option>ENFJ</option><option>ENTJ</option>
+        </select>
+      </div>
+      <button class="add-btn" id="analyzeBtn">분석하기</button>
+    </div>
+    <div id="analysisResult" class="analysis-result" style="display:none;"></div>
   </div>
 
   <div class="legend">
@@ -183,110 +275,171 @@
 
   <div class="stats" id="statsArea"></div>
 
-  <div class="charts-grid">
-    <div class="chart-box">
-      <h3>국어</h3>
-      <canvas id="koreanChart"></canvas>
-    </div>
-    <div class="chart-box">
-      <h3>영어</h3>
-      <canvas id="englishChart"></canvas>
-    </div>
-    <div class="chart-box">
-      <h3>수학</h3>
-      <canvas id="mathChart"></canvas>
-    </div>
-  </div>
+  <div class="charts-grid" id="chartsGrid"></div>
 
   <div class="table-section">
     <h3>기록 목록</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>구분</th>
-          <th>날짜</th>
-          <th>시험</th>
-          <th>국어</th>
-          <th>영어</th>
-          <th>수학</th>
-          <th>평균</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="gradeBody"></tbody>
-    </table>
-    <div class="empty-msg" id="emptyMsg">아직 입력된 성적이 없어요. 위에서 성적을 추가해보세요!</div>
+    <div class="table-wrap">
+      <table>
+        <thead id="gradeHead"></thead>
+        <tbody id="gradeBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-msg" id="emptyMsg">아직 입력된 성적이 없어요. 위에서 성적을 추가하거나 파일/사진을 올려보세요!</div>
   </div>
 </div>
 
 <div id="savedIndicator" class="saved-indicator">저장됨</div>
 
+<!-- 모달 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
 <script>
   const STORAGE_KEY = 'grade-data';
+  const SUBJECTS_KEY = 'grade-subjects';
+  const DEFAULT_SUBJECTS = ['국어', '영어', '수학'];
+
   let grades = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
-  // migrate old data without type
-  grades.forEach(g => { if (!g.type) g.type = 'school'; });
+  // ---- 마이그레이션: 옛 구조(korean/english/math) -> scores 맵 ----
+  grades.forEach(g => {
+    if (!g.type) g.type = 'school';
+    if (!g.scores) {
+      g.scores = {};
+      if (g.korean !== undefined && g.korean !== null) g.scores['국어'] = g.korean;
+      if (g.english !== undefined && g.english !== null) g.scores['영어'] = g.english;
+      if (g.math !== undefined && g.math !== null) g.scores['수학'] = g.math;
+      delete g.korean; delete g.english; delete g.math;
+    }
+  });
 
+  // ---- 과목 목록(동적) ----
+  let subjectList = JSON.parse(localStorage.getItem(SUBJECTS_KEY) || 'null') || DEFAULT_SUBJECTS.slice();
+  function syncSubjectsFromData() {
+    grades.forEach(g => Object.keys(g.scores).forEach(s => {
+      if (!subjectList.includes(s)) subjectList.push(s);
+    }));
+  }
+  syncSubjectsFromData();
+
+  // ---- DOM 참조 ----
   const typeInput = document.getElementById('inputType');
   const dateInput = document.getElementById('inputDate');
   const examInput = document.getElementById('inputExam');
-  const koreanInput = document.getElementById('inputKorean');
-  const englishInput = document.getElementById('inputEnglish');
-  const mathInput = document.getElementById('inputMath');
+  const subjectInputs = document.getElementById('subjectInputs');
   const addBtn = document.getElementById('addBtn');
+  const addSubjectBtn = document.getElementById('addSubjectBtn');
   const gradeBody = document.getElementById('gradeBody');
+  const gradeHead = document.getElementById('gradeHead');
   const emptyMsg = document.getElementById('emptyMsg');
   const statsArea = document.getElementById('statsArea');
+  const chartsGrid = document.getElementById('chartsGrid');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalContent = document.getElementById('modalContent');
 
   dateInput.value = new Date().toISOString().split('T')[0];
 
   let charts = {};
 
+  // ---- 저장 ----
   function save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(grades));
+    localStorage.setItem(SUBJECTS_KEY, JSON.stringify(subjectList));
     showSaved();
   }
-
   function showSaved() {
     const ind = document.getElementById('savedIndicator');
     ind.classList.add('show');
     setTimeout(() => ind.classList.remove('show'), 1500);
   }
 
+  // ---- 숫자 파서 ----
+  function num(v) {
+    if (v === undefined || v === null) return null;
+    const c = String(v).replace(/[^0-9.\-]/g, '');
+    if (c === '') return null;
+    const n = Number(c);
+    return isFinite(n) ? n : null;
+  }
+  function round1(n) { return Math.round(n * 10) / 10; }
+
+  function calcAvg(g) {
+    const vals = Object.values(g.scores).filter(v => v !== null && v !== undefined && !isNaN(v));
+    if (vals.length === 0) return null;
+    return round1(vals.reduce((a, b) => a + b, 0) / vals.length);
+  }
+
+  // ---- 입력 폼: 과목 점수칸 동적 생성 ----
+  function renderSubjectInputs() {
+    subjectInputs.innerHTML = '';
+    subjectList.forEach(subj => {
+      const g = document.createElement('div');
+      g.className = 'input-group subj-input-wrap';
+      g.innerHTML = `
+        <label>${subj}</label>
+        <input type="number" min="0" max="100" placeholder="점수" data-subject="${subj}">
+        <button class="subj-remove" type="button" title="이 과목 칸 숨기기">×</button>
+      `;
+      g.querySelector('.subj-remove').addEventListener('click', () => removeSubject(subj));
+      subjectInputs.appendChild(g);
+    });
+  }
+
+  function addSubject() {
+    const name = (prompt('추가할 과목 이름을 입력하세요 (예: 과학, 사회, 한국사)') || '').trim();
+    if (!name) return;
+    if (subjectList.includes(name)) { alert('이미 있는 과목입니다.'); return; }
+    subjectList.push(name);
+    save();
+    renderSubjectInputs();
+    renderAll();
+  }
+
+  // 데이터에 점수가 있는 과목은 목록에서 못 빼게 막음(데이터 보호)
+  function removeSubject(subj) {
+    const used = grades.some(g => g.scores[subj] !== undefined && g.scores[subj] !== null);
+    if (used) { alert('이 과목은 기록에 점수가 있어 숨길 수 없어요. (기록을 먼저 수정/삭제하세요)'); return; }
+    subjectList = subjectList.filter(s => s !== subj);
+    save();
+    renderSubjectInputs();
+    renderAll();
+  }
+
+  addSubjectBtn.addEventListener('click', addSubject);
+
+  // ---- 직접 입력 추가 ----
   addBtn.addEventListener('click', () => {
     const type = typeInput.value;
     const date = dateInput.value;
     const exam = examInput.value.trim();
-    const korean = parseInt(koreanInput.value);
-    const english = parseInt(englishInput.value);
-    const math = parseInt(mathInput.value);
 
     if (!date || !exam) { alert('날짜와 시험 이름을 입력하세요.'); return; }
-    if (isNaN(korean) && isNaN(english) && isNaN(math)) { alert('과목 점수를 하나 이상 입력하세요.'); return; }
 
-    grades.push({
-      type, date, exam,
-      korean: isNaN(korean) ? null : korean,
-      english: isNaN(english) ? null : english,
-      math: isNaN(math) ? null : math
+    const scores = {};
+    subjectInputs.querySelectorAll('input[data-subject]').forEach(inp => {
+      const n = num(inp.value);
+      if (n !== null) scores[inp.dataset.subject] = n;
     });
 
-    grades.sort((a, b) => a.date.localeCompare(b.date));
+    if (Object.keys(scores).length === 0) { alert('과목 점수를 하나 이상 입력하세요.'); return; }
+
+    grades.push({ type, date, exam, scores });
+    grades.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     save();
-    render();
+    renderAll();
 
     examInput.value = '';
-    koreanInput.value = '';
-    englishInput.value = '';
-    mathInput.value = '';
+    subjectInputs.querySelectorAll('input[data-subject]').forEach(inp => inp.value = '');
   });
 
+  // ---- 삭제 / 수정 ----
   function deleteGrade(idx) {
     if (confirm('이 기록을 삭제할까요?')) {
       grades.splice(idx, 1);
       save();
-      render();
+      renderAll();
     }
   }
 
@@ -294,49 +447,52 @@
     const g = grades[idx];
     const tr = gradeBody.children[idx];
     tr.classList.add('editing');
+    const subjCells = subjectList.map(s =>
+      `<td><input type="number" min="0" max="100" data-subject="${s}" value="${g.scores[s] !== undefined && g.scores[s] !== null ? g.scores[s] : ''}"></td>`
+    ).join('');
     tr.innerHTML = `
       <td><select><option value="school" ${g.type==='school'?'selected':''}>학교</option><option value="mock" ${g.type==='mock'?'selected':''}>모의고사</option></select></td>
-      <td><input type="date" value="${g.date}"></td>
-      <td><input type="text" value="${g.exam}"></td>
-      <td><input type="number" min="0" max="100" value="${g.korean !== null ? g.korean : ''}"></td>
-      <td><input type="number" min="0" max="100" value="${g.english !== null ? g.english : ''}"></td>
-      <td><input type="number" min="0" max="100" value="${g.math !== null ? g.math : ''}"></td>
+      <td><input type="date" value="${g.date || ''}"></td>
+      <td><input type="text" value="${g.exam || ''}"></td>
+      ${subjCells}
       <td></td>
       <td>
         <button class="action-btn" onclick="saveEdit(${idx})">저장</button>
-        <button class="action-btn del" onclick="render()">취소</button>
+        <button class="action-btn del" onclick="renderAll()">취소</button>
       </td>
     `;
   }
 
   function saveEdit(idx) {
     const tr = gradeBody.children[idx];
-    const sel = tr.querySelector('select');
-    const inputs = tr.querySelectorAll('input');
-    const type = sel.value;
-    const date = inputs[0].value;
-    const exam = inputs[1].value.trim();
-    const korean = parseInt(inputs[2].value);
-    const english = parseInt(inputs[3].value);
-    const math = parseInt(inputs[4].value);
-
+    const type = tr.querySelector('select').value;
+    const date = tr.querySelector('input[type="date"]').value;
+    const exam = tr.querySelector('input[type="text"]').value.trim();
     if (!date || !exam) { alert('날짜와 시험 이름을 입력하세요.'); return; }
 
-    grades[idx] = {
-      type, date, exam,
-      korean: isNaN(korean) ? null : korean,
-      english: isNaN(english) ? null : english,
-      math: isNaN(math) ? null : math
-    };
-    grades.sort((a, b) => a.date.localeCompare(b.date));
+    const scores = {};
+    tr.querySelectorAll('input[data-subject]').forEach(inp => {
+      const n = num(inp.value);
+      if (n !== null) scores[inp.dataset.subject] = n;
+    });
+
+    grades[idx] = { type, date, exam, scores };
+    grades.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     save();
-    render();
+    renderAll();
   }
 
-  function render() {
+  // ---- 렌더링 ----
+  function renderAll() {
+    renderHead();
     renderTable();
     renderStats();
     renderCharts();
+  }
+
+  function renderHead() {
+    const subjTh = subjectList.map(s => `<th>${s}</th>`).join('');
+    gradeHead.innerHTML = `<tr><th>구분</th><th>날짜</th><th>시험</th>${subjTh}<th>평균</th><th></th></tr>`;
   }
 
   function renderTable() {
@@ -348,14 +504,16 @@
       const tag = g.type === 'school'
         ? '<span class="tag-school">학교</span>'
         : '<span class="tag-mock">모의</span>';
+      const subjTd = subjectList.map(s => {
+        const v = g.scores[s];
+        return `<td>${v !== undefined && v !== null ? v : '-'}</td>`;
+      }).join('');
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${tag}</td>
-        <td>${g.date}</td>
-        <td>${g.exam}</td>
-        <td>${g.korean !== null ? g.korean : '-'}</td>
-        <td>${g.english !== null ? g.english : '-'}</td>
-        <td>${g.math !== null ? g.math : '-'}</td>
+        <td>${g.date || '-'}</td>
+        <td>${g.exam || '-'}</td>
+        ${subjTd}
         <td><strong>${avg !== null ? avg : '-'}</strong></td>
         <td>
           <button class="action-btn" onclick="editGrade(${i})">수정</button>
@@ -366,36 +524,26 @@
     });
   }
 
-  function calcAvg(g) {
-    const scores = [g.korean, g.english, g.math].filter(s => s !== null);
-    if (scores.length === 0) return null;
-    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 10) / 10;
-  }
-
   function renderStats() {
     if (grades.length === 0) { statsArea.innerHTML = ''; return; }
 
-    const subjects = [
-      { key: 'korean', name: '국어' },
-      { key: 'english', name: '영어' },
-      { key: 'math', name: '수학' }
-    ];
-
-    statsArea.innerHTML = subjects.map(sub => {
-      const schoolScores = grades.filter(g => g.type === 'school').map(g => g[sub.key]).filter(s => s !== null);
-      const mockScores = grades.filter(g => g.type === 'mock').map(g => g[sub.key]).filter(s => s !== null);
+    statsArea.innerHTML = subjectList.map(subj => {
+      const schoolScores = grades.filter(g => g.type === 'school').map(g => g.scores[subj]).filter(s => s !== undefined && s !== null);
+      const mockScores = grades.filter(g => g.type === 'mock').map(g => g.scores[subj]).filter(s => s !== undefined && s !== null);
 
       function statHtml(scores, cls, label) {
         if (scores.length === 0) return `<div class="score-col"><div class="type ${cls}">${label}</div><div class="avg" style="font-size:14px;color:#999">-</div></div>`;
-        const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 10) / 10;
+        const avg = round1(scores.reduce((a, b) => a + b, 0) / scores.length);
         const max = Math.max(...scores);
         const min = Math.min(...scores);
         return `<div class="score-col"><div class="type ${cls}">${label}</div><div class="avg ${cls}">${avg}</div><div class="detail">최고${max} 최저${min}</div></div>`;
       }
 
+      if (schoolScores.length === 0 && mockScores.length === 0) return '';
+
       return `
         <div class="stat-card">
-          <div class="subject">${sub.name}</div>
+          <div class="subject">${subj}</div>
           <div class="scores">
             ${statHtml(schoolScores, 'type-school', '학교')}
             ${statHtml(mockScores, 'type-mock', '모의')}
@@ -406,74 +554,407 @@
   }
 
   function renderCharts() {
-    const subjectConfigs = [
-      { key: 'korean', canvasId: 'koreanChart' },
-      { key: 'english', canvasId: 'englishChart' },
-      { key: 'math', canvasId: 'mathChart' }
-    ];
+    Object.values(charts).forEach(c => c.destroy());
+    charts = {};
+    chartsGrid.innerHTML = '';
 
-    subjectConfigs.forEach(sub => {
-      if (charts[sub.key]) charts[sub.key].destroy();
+    if (grades.length === 0) return;
 
-      const schoolData = grades.filter(g => g.type === 'school' && g[sub.key] !== null);
-      const mockData = grades.filter(g => g.type === 'mock' && g[sub.key] !== null);
+    subjectList.forEach(subj => {
+      const schoolData = grades.filter(g => g.type === 'school' && g.scores[subj] !== undefined && g.scores[subj] !== null);
+      const mockData = grades.filter(g => g.type === 'mock' && g.scores[subj] !== undefined && g.scores[subj] !== null);
+      if (schoolData.length === 0 && mockData.length === 0) return;
+
+      const box = document.createElement('div');
+      box.className = 'chart-box';
+      const canvasId = 'chart_' + subj.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+      box.innerHTML = `<h3>${subj}</h3><canvas id="${canvasId}"></canvas>`;
+      chartsGrid.appendChild(box);
 
       const allLabels = [...new Set([...schoolData, ...mockData].map(g => g.date))].sort();
+      const schoolPoints = allLabels.map(d => { const f = schoolData.find(g => g.date === d); return f ? f.scores[subj] : null; });
+      const mockPoints = allLabels.map(d => { const f = mockData.find(g => g.date === d); return f ? f.scores[subj] : null; });
 
-      const schoolPoints = allLabels.map(d => {
-        const found = schoolData.find(g => g.date === d);
-        return found ? found[sub.key] : null;
-      });
-      const mockPoints = allLabels.map(d => {
-        const found = mockData.find(g => g.date === d);
-        return found ? found[sub.key] : null;
-      });
-
-      const ctx = document.getElementById(sub.canvasId).getContext('2d');
-      charts[sub.key] = new Chart(ctx, {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      charts[subj] = new Chart(ctx, {
         type: 'line',
         data: {
           labels: allLabels,
           datasets: [
-            {
-              label: '학교',
-              data: schoolPoints,
-              borderColor: '#E53935',
-              backgroundColor: 'rgba(229,57,53,0.08)',
-              borderWidth: 2.5,
-              pointRadius: 5,
-              pointBackgroundColor: '#E53935',
-              tension: 0.3,
-              spanGaps: true
-            },
-            {
-              label: '모의고사',
-              data: mockPoints,
-              borderColor: '#1E88E5',
-              backgroundColor: 'rgba(30,136,229,0.08)',
-              borderWidth: 2.5,
-              pointRadius: 5,
-              pointBackgroundColor: '#1E88E5',
-              tension: 0.3,
-              spanGaps: true
-            }
+            { label: '학교', data: schoolPoints, borderColor: '#E53935', backgroundColor: 'rgba(229,57,53,0.08)', borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: '#E53935', tension: 0.3, spanGaps: true },
+            { label: '모의고사', data: mockPoints, borderColor: '#1E88E5', backgroundColor: 'rgba(30,136,229,0.08)', borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: '#1E88E5', tension: 0.3, spanGaps: true }
           ]
         },
         options: {
           responsive: true,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            y: { min: 0, max: 100, ticks: { stepSize: 20 } },
-            x: { ticks: { font: { size: 10 } } }
-          }
+          plugins: { legend: { display: false } },
+          scales: { y: { min: 0, max: 100, ticks: { stepSize: 20 } }, x: { ticks: { font: { size: 10 } } } }
         }
       });
     });
   }
 
-  render();
+  // ================= 엑셀/CSV 업로드 =================
+  const FIELD_KEYWORDS = {
+    subject: ['과목', 'subject', '교과', '과목명'],
+    score: ['점수', 'score', '점', '성적', '득점', '원점수'],
+    exam: ['시험', 'exam', '시험명', '평가', '회차'],
+    date: ['날짜', 'date', '일자', '학기', '시기', '연도', '년월'],
+    type: ['구분', '종류', 'type', '유형'],
+    fullMarks: ['만점', 'full', 'total', '배점']
+  };
+
+  function normalizeKey(s) { return String(s).replace(/\s+/g, '').toLowerCase(); }
+
+  function autoMap(headers) {
+    const mapping = { subject: null, score: null, exam: null, date: null, type: null, fullMarks: null };
+    const used = new Set();
+    Object.keys(FIELD_KEYWORDS).forEach(field => {
+      const kws = FIELD_KEYWORDS[field];
+      let best = null;
+      for (const h of headers) { if (used.has(h)) continue; if (kws.some(k => normalizeKey(h) === normalizeKey(k))) { best = h; break; } }
+      if (!best) { for (const h of headers) { if (used.has(h)) continue; if (kws.some(k => normalizeKey(h).includes(normalizeKey(k)))) { best = h; break; } } }
+      if (best) { mapping[field] = best; used.add(best); }
+    });
+    return mapping;
+  }
+
+  function parseSheet(wb) {
+    const first = wb.SheetNames[0];
+    if (!first) return { headers: [], rows: [] };
+    const matrix = XLSX.utils.sheet_to_json(wb.Sheets[first], { header: 1, blankrows: false, defval: '' });
+    if (matrix.length === 0) return { headers: [], rows: [] };
+    // 엑셀 날짜셀(Date 객체)은 YYYY-MM-DD 문자열로 변환
+    const cellStr = v => {
+      if (v === undefined || v === null) return '';
+      if (v instanceof Date) return v.toISOString().slice(0, 10);
+      return String(v).trim();
+    };
+    const headers = matrix[0].map((h, i) => cellStr(h) || ('열' + (i + 1)));
+    const rows = [];
+    for (let r = 1; r < matrix.length; r++) {
+      const obj = {}; let has = false;
+      headers.forEach((h, c) => { const s = cellStr(matrix[r][c]); if (s !== '') has = true; obj[h] = s; });
+      if (has) rows.push(obj);
+    }
+    return { headers, rows };
+  }
+
+  // 행(과목·점수) 데이터를 (구분,날짜,시험)별로 묶어 exam 레코드로 변환
+  function rowsToExamRecords(sheet, mapping) {
+    const groupMap = new Map();
+    sheet.rows.forEach(row => {
+      const subject = mapping.subject ? (row[mapping.subject] || '').trim() : '';
+      let score = mapping.score ? num(row[mapping.score]) : null;
+      if (!subject || score === null) return;
+      if (mapping.fullMarks) { const fm = num(row[mapping.fullMarks]); if (fm && fm > 0) score = round1(score / fm * 100); }
+      let type = 'school';
+      if (mapping.type) { const tv = (row[mapping.type] || ''); if (/모의|mock|수능|평가원|교육청/i.test(tv)) type = 'mock'; }
+      const date = mapping.date ? (row[mapping.date] || '').trim() : '';
+      const exam = mapping.exam ? (row[mapping.exam] || '').trim() : '가져온 성적';
+      const key = type + '|' + date + '|' + exam;
+      if (!groupMap.has(key)) groupMap.set(key, { type, date, exam: exam || '가져온 성적', scores: {} });
+      groupMap.get(key).scores[subject] = score;
+    });
+    return [...groupMap.values()];
+  }
+
+  async function handleFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (files.length === 0) return;
+    let imported = [];
+    let newSubjects = new Set();
+    for (const file of files) {
+      try {
+        let wb;
+        const name = (file.name || '').toLowerCase();
+        if (name.endsWith('.csv') || file.type === 'text/csv') {
+          let txt = await file.text();
+          if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1); // BOM 제거
+          wb = XLSX.read(txt, { type: 'string', raw: true });
+        } else {
+          const buf = await file.arrayBuffer();
+          wb = XLSX.read(buf, { type: 'array', cellDates: true });
+        }
+        const sheet = parseSheet(wb);
+        const mapping = autoMap(sheet.headers);
+        if (!mapping.subject || !mapping.score) {
+          alert(`"${file.name}": 과목/점수 열을 찾지 못했어요. 첫 줄에 '과목', '점수' 머리글이 있는지 확인하세요.`);
+          continue;
+        }
+        const recs = rowsToExamRecords(sheet, mapping);
+        recs.forEach(r => { imported.push(r); Object.keys(r.scores).forEach(s => newSubjects.add(s)); });
+      } catch (e) {
+        alert(`"${file.name}" 파일을 읽는 중 오류가 발생했어요. 엑셀(.xlsx) 또는 CSV인지 확인하세요.`);
+      }
+    }
+    if (imported.length === 0) { alert('가져올 성적을 찾지 못했어요.'); return; }
+    showImportPreview(imported, newSubjects);
+  }
+
+  function showImportPreview(imported, newSubjects) {
+    const subjCols = [...new Set(imported.flatMap(r => Object.keys(r.scores)))];
+    const rowsHtml = imported.map(r => {
+      const tag = r.type === 'school' ? '<span class="tag-school">학교</span>' : '<span class="tag-mock">모의</span>';
+      const cells = subjCols.map(s => `<td>${r.scores[s] !== undefined ? r.scores[s] : '-'}</td>`).join('');
+      return `<tr><td>${tag}</td><td>${r.date || '-'}</td><td>${r.exam}</td>${cells}</tr>`;
+    }).join('');
+    modalContent.innerHTML = `
+      <h3>가져오기 미리보기</h3>
+      <p class="sub">${imported.length}개 시험 · ${subjCols.length}과목을 인식했어요. 추가할까요?</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>구분</th><th>날짜</th><th>시험</th>${subjCols.map(s=>`<th>${s}</th>`).join('')}</tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table></div>
+      <div class="modal-actions">
+        <button class="action-btn" id="importCancel">취소</button>
+        <button class="add-btn" id="importConfirm">${imported.length}개 추가</button>
+      </div>
+    `;
+    openModal();
+    document.getElementById('importCancel').onclick = closeModal;
+    document.getElementById('importConfirm').onclick = () => {
+      newSubjects.forEach(s => { if (!subjectList.includes(s)) subjectList.push(s); });
+      grades = grades.concat(imported);
+      grades.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      save();
+      renderSubjectInputs();
+      renderAll();
+      closeModal();
+    };
+  }
+
+  // ================= 사진 OCR =================
+  async function handleOcr(file) {
+    if (!file) return;
+    modalContent.innerHTML = `
+      <h3>사진에서 성적 읽는 중…</h3>
+      <p class="sub">잠시만 기다려 주세요. (한글 인식은 시간이 조금 걸릴 수 있어요)</p>
+      <div class="ocr-progress" id="ocrProgress">준비 중… 0%</div>
+    `;
+    openModal();
+    const prog = document.getElementById('ocrProgress');
+    try {
+      const { data } = await Tesseract.recognize(file, 'kor', {
+        logger: m => { if (m.status === 'recognizing text' && prog) prog.textContent = `글자 인식 중… ${Math.round(m.progress * 100)}%`; }
+      });
+      const pairs = parseOcrText(data.text || '');
+      showOcrEditor(pairs, data.text || '');
+    } catch (e) {
+      modalContent.innerHTML = `<h3>인식 실패</h3><p class="sub">사진에서 글자를 읽지 못했어요. 더 선명한 사진으로 다시 시도하거나, 직접 입력해 주세요.</p><div class="modal-actions"><button class="action-btn" onclick="closeModal()">닫기</button></div>`;
+    }
+  }
+
+  // "과목명 ... 숫자(0~100)" 패턴 추출
+  function parseOcrText(text) {
+    const pairs = [];
+    text.split(/\r?\n/).forEach(line => {
+      const m = line.match(/([가-힣A-Za-z]{2,10})\D*?(\d{1,3})(?:\D|$)/);
+      if (m) {
+        const name = m[1].trim();
+        const score = parseInt(m[2], 10);
+        if (score >= 0 && score <= 100 && name.length >= 1) pairs.push({ subject: name, score });
+      }
+    });
+    return pairs;
+  }
+
+  function showOcrEditor(pairs, rawText) {
+    const today = new Date().toISOString().split('T')[0];
+    function rowHtml(p) {
+      return `<tr>
+        <td><input type="text" class="ocr-subj" value="${(p && p.subject) ? p.subject.replace(/"/g,'') : ''}" placeholder="과목"></td>
+        <td><input type="number" class="ocr-score" min="0" max="100" value="${(p && p.score!==undefined) ? p.score : ''}" placeholder="점수"></td>
+        <td><button class="action-btn del" onclick="this.closest('tr').remove()">삭제</button></td>
+      </tr>`;
+    }
+    const initRows = (pairs.length ? pairs : [null, null, null]).map(rowHtml).join('');
+    modalContent.innerHTML = `
+      <h3>인식 결과 확인 · 수정</h3>
+      <p class="sub">자동 인식 결과예요. 틀린 부분을 고치고 빠진 과목은 추가한 뒤 저장하세요.</p>
+      <div class="meta-row">
+        <div class="input-group"><label>구분</label>
+          <select id="ocrType"><option value="school">🏫 학교 성적</option><option value="mock">📝 모의고사</option></select></div>
+        <div class="input-group"><label>날짜</label><input type="date" id="ocrDate" value="${today}"></div>
+        <div class="input-group"><label>시험 이름</label><input type="text" id="ocrExam" placeholder="예: 중간고사"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>과목</th><th>점수</th><th></th></tr></thead>
+        <tbody id="ocrRows">${initRows}</tbody>
+      </table></div>
+      <button class="ghost-btn" id="ocrAddRow" style="margin-top:10px;">+ 줄 추가</button>
+      <details style="margin-top:12px;"><summary style="cursor:pointer;color:var(--text-sub);font-size:12px;">원본 인식 텍스트 보기</summary>
+        <pre style="white-space:pre-wrap;font-size:12px;background:var(--surface-soft);padding:10px;border-radius:8px;">${(rawText||'').replace(/</g,'&lt;')}</pre></details>
+      <div class="modal-actions">
+        <button class="action-btn" id="ocrCancel">취소</button>
+        <button class="add-btn" id="ocrSave">성적 추가</button>
+      </div>
+    `;
+    openModal();
+    document.getElementById('ocrAddRow').onclick = () => {
+      const tb = document.getElementById('ocrRows');
+      const tr = document.createElement('tr');
+      tr.innerHTML = rowHtml(null);
+      tb.appendChild(tr);
+    };
+    document.getElementById('ocrCancel').onclick = closeModal;
+    document.getElementById('ocrSave').onclick = () => {
+      const type = document.getElementById('ocrType').value;
+      const date = document.getElementById('ocrDate').value;
+      const exam = document.getElementById('ocrExam').value.trim();
+      if (!date || !exam) { alert('날짜와 시험 이름을 입력하세요.'); return; }
+      const scores = {};
+      const newSubs = [];
+      document.querySelectorAll('#ocrRows tr').forEach(tr => {
+        const subj = tr.querySelector('.ocr-subj').value.trim();
+        const sc = num(tr.querySelector('.ocr-score').value);
+        if (subj && sc !== null) { scores[subj] = sc; if (!subjectList.includes(subj)) newSubs.push(subj); }
+      });
+      if (Object.keys(scores).length === 0) { alert('과목과 점수를 하나 이상 입력하세요.'); return; }
+      newSubs.forEach(s => subjectList.push(s));
+      grades.push({ type, date, exam, scores });
+      grades.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      save();
+      renderSubjectInputs();
+      renderAll();
+      closeModal();
+    };
+  }
+
+  // ================= 모달 헬퍼 =================
+  function openModal() { modalOverlay.classList.add('show'); }
+  function closeModal() { modalOverlay.classList.remove('show'); }
+  modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+
+  // ================= 이벤트 바인딩 =================
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const ocrBox = document.getElementById('ocrBox');
+  const ocrInput = document.getElementById('ocrInput');
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+  fileInput.addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+
+  ocrBox.addEventListener('click', () => ocrInput.click());
+  ocrInput.addEventListener('change', e => { handleOcr(e.target.files[0]); e.target.value = ''; });
+
+  // ================= 공부 성향 분석 =================
+  const dobInput = document.getElementById('dobInput');
+  const mbtiInput = document.getElementById('mbtiInput');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const analysisResult = document.getElementById('analysisResult');
+
+  dobInput.value = localStorage.getItem('grade-dob') || '';
+  mbtiInput.value = localStorage.getItem('grade-mbti') || '';
+  dobInput.addEventListener('change', () => localStorage.setItem('grade-dob', dobInput.value));
+  mbtiInput.addEventListener('change', () => localStorage.setItem('grade-mbti', mbtiInput.value));
+
+  const HUM = ['국어','영어','사회','역사','한국사','도덕','윤리','지리','문학','독서','한문','정치','경제','세계사','일본어','중국어','외국어'];
+  const SCI = ['수학','과학','물리','화학','생물','생명','지구','정보','기하','미적','확률','통계','공학'];
+  function categoryOf(s){ if(SCI.some(k=>s.includes(k))) return 'sci'; if(HUM.some(k=>s.includes(k))) return 'hum'; return null; }
+
+  const MBTI_TRAITS = {
+    E: '친구와 함께 설명하고 토론하며 배울 때 이해가 빨라요',
+    I: '혼자 조용히 집중해 깊이 파고들 때 능률이 높아요',
+    S: '구체적인 예시와 반복 연습, 꼼꼼한 정리에 강해요',
+    N: '개념의 원리와 큰 흐름을 먼저 잡으면 응용이 빨라요',
+    T: '왜 그런지 논리적으로 이해해야 오래 기억해요',
+    F: '배우는 의미와 동기가 분명할 때 끝까지 해내요',
+    J: '계획을 세우고 마감을 지키는 성실함이 강점이에요',
+    P: '유연하지만 미루는 경향이 있어 마감 관리가 도움이 돼요'
+  };
+
+  function statOf(subj){
+    const recs = grades.filter(g=>g.scores[subj]!==undefined && g.scores[subj]!==null)
+      .map(g=>({date:g.date||'', type:g.type, v:Number(g.scores[subj])}))
+      .filter(r=>!isNaN(r.v)).sort((a,b)=>a.date.localeCompare(b.date));
+    if(!recs.length) return null;
+    const vals = recs.map(r=>r.v);
+    const mean = arr => round1(arr.reduce((a,b)=>a+b,0)/arr.length);
+    const school = recs.filter(r=>r.type==='school').map(r=>r.v);
+    const mock = recs.filter(r=>r.type==='mock').map(r=>r.v);
+    return {
+      subj, avg: mean(vals), n: recs.length,
+      sAvg: school.length? mean(school): null,
+      mAvg: mock.length? mean(mock): null,
+      trend: recs.length>=2 ? round1(recs[recs.length-1].v - recs[0].v) : 0
+    };
+  }
+
+  function ageFrom(dob){
+    if(!dob) return null;
+    const b = new Date(dob), t = new Date();
+    let a = t.getFullYear() - b.getFullYear();
+    const m = t.getMonth() - b.getMonth();
+    if(m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
+    return (a >= 0 && a < 120) ? a : null;
+  }
+
+  function generateAnalysis(){
+    const stats = subjectList.map(statOf).filter(Boolean).sort((a,b)=>b.avg-a.avg);
+    if(!stats.length){
+      return '아직 점수가 입력된 과목이 없어요. 위에서 성적을 추가하거나 엑셀·사진을 올린 뒤 분석해 주세요.';
+    }
+    const dob = dobInput.value, mbti = mbtiInput.value;
+    const strong = stats[0], weak = stats[stats.length-1];
+    const rising = stats.filter(s=>s.trend>=3).map(s=>s.subj);
+    const falling = stats.filter(s=>s.trend<=-3).map(s=>s.subj);
+    const hum = stats.filter(s=>categoryOf(s.subj)==='hum');
+    const sci = stats.filter(s=>categoryOf(s.subj)==='sci');
+    const avgOf = arr => round1(arr.reduce((a,b)=>a+b.avg,0)/arr.length);
+    const humAvg = hum.length? avgOf(hum): null;
+    const sciAvg = sci.length? avgOf(sci): null;
+
+    const P = [];
+    const age = ageFrom(dob);
+    P.push(`${age!=null ? '만 '+age+'세 ' : ''}학생의 성적 기록(${grades.length}회 시험, ${stats.length}과목)을 바탕으로 공부 성향과 방향을 분석했습니다.`);
+    P.push(`가장 강한 과목은 ${strong.subj}(평균 ${strong.avg}점), 상대적으로 보강이 필요한 과목은 ${weak.subj}(평균 ${weak.avg}점)입니다.`);
+    if(rising.length) P.push(`${rising.join('·')}은(는) 점수가 오르는 상승세라 지금의 공부법을 유지하면 좋습니다.`);
+    if(falling.length) P.push(`반면 ${falling.join('·')}은(는) 하락세가 보여 원인 점검과 기초 복습이 필요합니다.`);
+    if(humAvg!=null && sciAvg!=null){
+      const d = round1(humAvg - sciAvg);
+      if(Math.abs(d) < 3) P.push(`어문·사회(${humAvg}점)와 수리·과학(${sciAvg}점)이 고르게 균형 잡혀 있어 진로 선택의 폭이 넓습니다.`);
+      else if(d > 0) P.push(`어문·사회(${humAvg}점)가 수리·과학(${sciAvg}점)보다 강한 문과 성향이 보입니다.`);
+      else P.push(`수리·과학(${sciAvg}점)이 어문·사회(${humAvg}점)보다 강한 이과 성향이 보입니다.`);
+    }
+    const sAll = stats.map(s=>s.sAvg).filter(v=>v!=null);
+    const mAll = stats.map(s=>s.mAvg).filter(v=>v!=null);
+    if(sAll.length && mAll.length){
+      const sA = round1(sAll.reduce((a,b)=>a+b,0)/sAll.length);
+      const mA = round1(mAll.reduce((a,b)=>a+b,0)/mAll.length);
+      if(sA - mA >= 5) P.push(`학교 내신(평균 ${sA}점)이 모의고사(평균 ${mA}점)보다 높아 학교 시험 대비와 성실성이 강점입니다. 처음 보는 응용 문제에 대한 적응력을 더 키우면 좋습니다.`);
+      else if(mA - sA >= 5) P.push(`모의고사(평균 ${mA}점)가 내신(평균 ${sA}점)보다 높아 기본 실력은 탄탄하나, 학교 시험 범위를 꼼꼼히 마무리하는 습관이 필요합니다.`);
+      else P.push(`내신(${sA}점)과 모의고사(${mA}점)가 비슷해 안정적으로 실력을 쌓아가고 있습니다.`);
+    }
+    if(mbti && mbti.length===4){
+      const t = mbti.toUpperCase().split('');
+      P.push(`${mbti} 성향으로 보면 ${t.map(l=>MBTI_TRAITS[l]).filter(Boolean).join(', ')}.`);
+      const tips = [];
+      tips.push(t[0]==='I' ? '조용한 자습 환경에서 집중 시간 확보' : '친구에게 설명하거나 스터디로 함께 공부');
+      tips.push(t[1]==='N' ? '개념·원리를 먼저 이해한 뒤 문제 풀기' : '예제 반복과 오답 노트로 꼼꼼히 다지기');
+      tips.push(t[3]==='P' ? '작은 단위 마감과 체크리스트로 미루기 방지' : '세운 계획표를 끝까지 지키는 강점 활용');
+      P.push(`그래서 ${tips.join(', ')}를 추천합니다.`);
+    } else {
+      P.push(`MBTI를 입력하면 성향에 꼭 맞는 공부법까지 분석해 드려요.`);
+    }
+    P.push(`종합하면 강점 과목 ${strong.subj}은 심화 문제로 자신감을 키우고, 약점 과목 ${weak.subj}은 기초 개념부터 차근차근 보강하는 것이 가장 빠른 성적 향상의 길입니다. 매일의 투두리스트로 작은 목표를 실행에 옮기면 이 분석이 곧 결과로 이어집니다.`);
+    return P.join(' ');
+  }
+
+  analyzeBtn.addEventListener('click', () => {
+    const text = generateAnalysis();
+    const len = text.replace(/\s/g,'').length;
+    analysisResult.style.display = 'block';
+    analysisResult.innerHTML = `<h4>📋 분석 결과</h4>${text.replace(/</g,'&lt;')}<span class="char-count">${len}자 (공백 제외)</span>`;
+    analysisResult.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  });
+
+  // ================= 초기 렌더 =================
+  renderSubjectInputs();
+  renderAll();
 </script>
 </body>
 </html>

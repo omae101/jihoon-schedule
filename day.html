@@ -2,33 +2,36 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일별 계획표</title>
 <style>
   :root {
-    --bg: #FAF6EE;
+    --bg: #F2F3F5;
     --surface: #FFFFFF;
-    --surface-soft: #F5EDE0;
-    --cell-bg: #F7F4ED;
-    --text-main: #3E2723;
-    --text-sub: #6D4C41;
-    --text-mute: #A1887F;
-    --line: #E8DCC8;
-    --line-strong: #D7CCC8;
-    --accent: #00897B;
-    --accent-soft: #B2DFDB;
-    --accent-dark: #00695C;
-    --weekend: #C62828;
+    --surface-soft: #EBEDF0;
+    --cell-bg: #FFFFFF;
+    --text-main: #17181C;
+    --text-sub: #4A4E57;
+    --text-mute: #9CA1AB;
+    --line: #E2E4E9;
+    --line-strong: #C9CDD4;
+    --accent: #0D9488;
+    --accent-soft: #CCFBF1;
+    --accent-dark: #0B7A70;
+    --weekend: #DC2626;
+    --ink: #1F2430;
+    --ink-dark: #11141B;
   }
   * { box-sizing: border-box; }
   body {
     font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
-    background: var(--bg);
+    background: #FFFFFF;
     margin: 0;
     padding: 30px 20px;
     color: var(--text-main);
   }
   .container { max-width: 1200px; margin: 0 auto; background: var(--surface); border-radius: 16px; box-shadow: 0 4px 20px rgba(62,39,35,0.06); padding: 36px; border: 1px solid var(--line); }
-  .header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; background: #6B7280; padding: 10px 14px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.10); }
   .nav-btn { background: var(--surface); color: var(--text-main); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s; }
   .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
   .nav-btn.home { background: var(--accent); color: white; border-color: var(--accent); }
@@ -38,22 +41,56 @@
   .btn { padding: 7px 16px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-main); border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
   .btn:hover { border-color: var(--accent); color: var(--accent); }
   .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .extra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .extra-grid h3 { margin: 0 0 6px; font-size: 15px; }
   h3 { margin: 12px 0 8px; font-size: 16px; color: var(--text-main); }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   th, td { border: 1px solid var(--line); padding: 8px; font-size: 13px; text-align: center; }
   th { background: var(--surface-soft); font-weight: 600; }
-  td.time { background: var(--surface-soft); color: var(--text-sub); width: 110px; }
+  td.time { background: #FFFFFF; color: var(--text-sub); width: 110px; }
   td.time:focus { outline: none; border: 1px solid var(--accent); background: var(--surface); }
   td.editable { background: var(--cell-bg); cursor: text; }
   td.editable:focus { outline: none; border: 1px solid var(--accent); background: var(--surface); }
   .todo-done { text-decoration: line-through; color: var(--weekend); }
+  /* 투두리스트 글씨 빨강, 완료하면 빨간 취소선(성취감) */
+  #todoTable td.editable, #timetable td.editable { color: #DC2626; font-weight: 600; }
+  #todoTable td.editable.todo-done { color: #DC2626; text-decoration: line-through; text-decoration-color: #DC2626; text-decoration-thickness: 2px; }
+  /* 완료 퍼센트 배지 */
+  .todo-percent {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: #9CA1AB;
+    vertical-align: middle;
+    transition: background 0.2s;
+  }
   textarea { width: 100%; height: 80px; padding: 7px 8px; border: 1px solid var(--line-strong); border-radius: 6px; font-size: 13px; resize: vertical; }
+  /* 중요 투두 하이라이트 */
+  tr.todo-important td.editable { background: #FFF8E1; font-weight: 700; border-left: 3px solid #FB8C00; }
+  .star-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 4px; color: #D7CCC8; line-height: 1; }
+  .star-btn.on { color: #FB8C00; }
+  /* 모바일 최적화 */
+  @media (max-width: 760px) {
+    body { padding: 12px 8px; }
+    .container { padding: 16px 12px; border-radius: 12px; }
+    .main-grid { grid-template-columns: 1fr; gap: 16px; }
+    .extra-grid { grid-template-columns: 1fr; }
+    .date-info { font-size: 18px; }
+    th, td { padding: 7px 6px; font-size: 14px; }
+    td.time { width: 92px; }
+    .nav-btn, .btn { padding: 10px 14px; font-size: 14px; }
+    .header-bar, .toolbar { gap: 6px; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
     <div class="header-bar">
-      <a href="month.html" class="nav-btn home">← 월간 보기</a>
+      <a id="monthLink" href="month.html" class="nav-btn home">← 월간 보기</a>
       <button class="btn" id="prevBtn">← 전날</button>
       <button class="btn" id="nextBtn">다음날 →</button>
     </div>
@@ -66,6 +103,17 @@
     </div>
   <div style="margin-bottom:12px;">
     <textarea id="assessmentInput" placeholder="오늘의 수행평가..."></textarea>
+  </div>
+
+  <div class="extra-grid">
+    <div>
+      <h3>📚 내신보강</h3>
+      <textarea id="naesinInput" placeholder="오늘 내신보강 (과목·내용)..."></textarea>
+    </div>
+    <div>
+      <h3>🎯 특강</h3>
+      <textarea id="specialInput" placeholder="오늘 특강 (과목·기관·시간)..."></textarea>
+    </div>
   </div>
 
   <div class="main-grid">
@@ -95,9 +143,9 @@
       </table>
     </section>
     <section class="todo-section">
-      <h3>to do 리스트</h3>
+      <h3>to do 리스트 <span id="todoPercent" class="todo-percent" title="완료율">0%</span></h3>
       <table id="todoTable">
-        <thead><tr><th class="editable">할일</th><th>완료</th></tr></thead>
+        <thead><tr><th class="editable">할일</th><th style="width:48px;">중요</th><th style="width:48px;">완료</th></tr></thead>
         <tbody></tbody>
       </table>
       <button class="btn" id="addTodoBtn">할일 추가</button>
@@ -111,20 +159,24 @@
   // ---------- 날짜 및 키 ----------
   const urlParams = new URLSearchParams(location.search);
   let selectedDate = urlParams.get('date') || new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  let assessmentKey = `assessment_${selectedDate}`;
+  let assessmentKey = `jihoon-assessment-${selectedDate}`;
   let timetableKey   = `timetable_${selectedDate}`;
   let todoKey        = `todo_${selectedDate}`;
   let memoKey        = `memo_${selectedDate}`;
   let schoolKey      = `school_${selectedDate}`;
   let academyKey     = `academy_${selectedDate}`;
+  let naesinKey      = `naesin_${selectedDate}`;
+  let specialKey     = `special_${selectedDate}`;
 
   function updateKeys(){
-    assessmentKey = `assessment_${selectedDate}`;
+    assessmentKey = `jihoon-assessment-${selectedDate}`;
     timetableKey   = `timetable_${selectedDate}`;
     todoKey        = `todo_${selectedDate}`;
     schoolKey      = `school_${selectedDate}`;
     academyKey     = `academy_${selectedDate}`;
     memoKey        = `memo_${selectedDate}`;
+    naesinKey      = `naesin_${selectedDate}`;
+    specialKey     = `special_${selectedDate}`;
   }
 
   // ---------- 날짜 표시 ----------
@@ -135,6 +187,9 @@
     const day = String(d.getDate()).padStart(2,'0');
     const week = ['일','월','화','수','목','금','토'][d.getDay()];
     document.getElementById('dateTitle').textContent = `${year}년 ${month}월 ${day}일 (${week}요일)`;
+    // 뒤로 갈 때 이 날짜가 속한 달/연도로 이동하도록 링크 갱신
+    const ml = document.getElementById('monthLink');
+    if (ml) ml.href = `month.html?year=${year}&month=${parseInt(month)}`;
   }
 
   function changeDate(offset){
@@ -152,6 +207,7 @@
     loadTodo();
     renderAssessment();
     loadMemo();
+    renderExtra();
     // Load school and academy timetables for the selected date
     loadSchool();
     loadAcademy();
@@ -187,6 +243,16 @@
   assessmentInput.addEventListener('blur',()=>{
     localStorage.setItem(assessmentKey, assessmentInput.value);
   });
+
+  // ---------- 내신보강 / 특강 ----------
+  const naesinInput = document.getElementById('naesinInput');
+  const specialInput = document.getElementById('specialInput');
+  function renderExtra(){
+    naesinInput.value = localStorage.getItem(naesinKey) || '';
+    specialInput.value = localStorage.getItem(specialKey) || '';
+  }
+  naesinInput.addEventListener('blur', ()=> localStorage.setItem(naesinKey, naesinInput.value));
+  specialInput.addEventListener('blur', ()=> localStorage.setItem(specialKey, specialInput.value));
 
   // ---------- 개인 시간표 (블록) ----------
   const timetableBody = document.querySelector('#timetable tbody');
@@ -350,19 +416,34 @@
     const data = localStorage.getItem(todoKey);
     if(data){
       const rows = JSON.parse(data);
-      rows.forEach(r=>addTodoRow(r.text, r.done));
+      rows.forEach(r=>addTodoRow(r.text, r.done, r.important));
     } else {
-      for(let i=0;i<5;i++) addTodoRow('', false);
+      for(let i=0;i<5;i++) addTodoRow('', false, false);
     }
+    updateTodoPercent();
   }
-  function addTodoRow(text='', done=false){
+  function addTodoRow(text='', done=false, important=false){
     const tr = document.createElement('tr');
+    if(important) tr.classList.add('todo-important');
     const tdText = document.createElement('td');
     tdText.className = 'editable';
     tdText.contentEditable = true;
     tdText.textContent = text;
     tdText.addEventListener('blur', saveTodo);
     tdText.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); tdText.blur(); } });
+    // 중요(별표) 토글
+    const tdStar = document.createElement('td');
+    const star = document.createElement('button');
+    star.className = 'star-btn' + (important ? ' on' : '');
+    star.type = 'button';
+    star.textContent = '★';
+    star.title = '중요 표시';
+    star.addEventListener('click', () => {
+      const on = star.classList.toggle('on');
+      tr.classList.toggle('todo-important', on);
+      saveTodo();
+    });
+    tdStar.appendChild(star);
     const tdChk = document.createElement('td');
     const chk = document.createElement('input');
     chk.type = 'checkbox';
@@ -371,15 +452,35 @@
     if(done) tdText.classList.add('todo-done');
     tdChk.appendChild(chk);
     tr.appendChild(tdText);
+    tr.appendChild(tdStar);
     tr.appendChild(tdChk);
     todoBody.appendChild(tr);
   }
   function saveTodo(){
     const rows = [...todoBody.querySelectorAll('tr')].map(tr=>({
       text: tr.children[0].textContent,
-      done: tr.children[1].querySelector('input').checked
+      important: tr.children[1].querySelector('.star-btn').classList.contains('on'),
+      done: tr.children[2].querySelector('input').checked
     }));
     localStorage.setItem(todoKey, JSON.stringify(rows));
+    updateTodoPercent();
+  }
+
+  // 완료율(%) — 내용이 있는 할일 기준으로 계산해 옆 배지에 표시.
+  function updateTodoPercent(){
+    const el = document.getElementById('todoPercent');
+    if(!el) return;
+    let total=0, done=0;
+    [...todoBody.querySelectorAll('tr')].forEach(tr=>{
+      const text = tr.children[0].textContent.trim();
+      if(!text) return;
+      total++;
+      if(tr.children[2].querySelector('input').checked) done++;
+    });
+    const pct = total ? Math.round(done/total*100) : 0;
+    el.textContent = pct + '%';
+    el.title = `${done}/${total} 완료`;
+    el.style.background = pct===100 ? '#16A34A' : pct>0 ? '#DC2626' : '#9CA1AB';
   }
 
   // ---------- 메모 ----------
@@ -399,6 +500,8 @@
     localStorage.removeItem(timetableKey);
     localStorage.removeItem(todoKey);
     localStorage.removeItem(memoKey);
+    localStorage.removeItem(naesinKey);
+    localStorage.removeItem(specialKey);
     // rebuild UI
     timetableBody.innerHTML='';
     loadTimetable();
@@ -406,6 +509,7 @@
     loadTodo();
     renderAssessment();
     loadMemo();
+    renderExtra();
   }
   clearBtn.addEventListener('click',()=>{ if(confirm('전체 초기화하시겠습니까?')) resetAll(); });
   resetBtn.addEventListener('click',()=>{ resetAll(); });
@@ -416,6 +520,7 @@
   // ---------- 초기 실행 ----------
   renderDateInfo();
   renderAssessment();
+  renderExtra();
   loadTimetable();
   loadTodo();
   loadMemo();

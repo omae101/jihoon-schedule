@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>스케줄표 - 학생을 위한 올인원 계획표</title>
+<title>한번에 - 학교·학원 스케줄을 한 번에</title>
 <style>
   :root {
-    --bg: #FAF6EE;
+    --bg: #F2F3F5;
     --surface: #FFFFFF;
-    --text-main: #3E2723;
-    --text-sub: #6D4C41;
-    --accent: #00897B;
-    --accent-dark: #00695C;
-    --line: #E8DCC8;
+    --text-main: #17181C;
+    --text-sub: #4A4E57;
+    --accent: #0D9488;
+    --accent-dark: #0B7A70;
+    --line: #E2E4E9;
+    --ink: #1F2430;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -25,8 +26,11 @@
   .hero {
     text-align: center;
     padding: 80px 20px 60px;
-    background: linear-gradient(135deg, #E0F2F1 0%, #FAF6EE 50%, #FFF8E1 100%);
+    background: linear-gradient(135deg, #1F2430 0%, #2A2F3C 55%, #0D9488 140%);
+    color: #fff;
   }
+  .hero h1 { color: #fff; }
+  .hero p { color: #C9CDD4; }
   .hero h1 {
     font-size: 42px;
     font-weight: 800;
@@ -89,6 +93,24 @@
   .feature-icon { font-size: 36px; margin-bottom: 12px; }
   .feature-card h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-main); }
   .feature-card p { font-size: 14px; color: var(--text-sub); line-height: 1.6; }
+
+  /* 한눈에 보는 사용법 */
+  .howto { max-width: 960px; margin: 0 auto; padding: 0 20px 60px; }
+  .howto h2 { text-align: center; font-size: 26px; margin-bottom: 30px; color: var(--text-main); }
+  .steps { display: flex; align-items: stretch; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .step {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px 18px; flex: 1; min-width: 150px; max-width: 200px; text-align: center;
+  }
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
+    color: #fff; font-weight: 700; margin-bottom: 10px;
+  }
+  .step b { display: block; font-size: 16px; margin-bottom: 6px; color: var(--text-main); }
+  .step p { font-size: 13px; color: var(--text-sub); line-height: 1.55; }
+  .step-arrow { display: flex; align-items: center; color: #B8BCC2; font-size: 22px; }
+  @media (max-width: 700px) { .step-arrow { display: none; } .step { max-width: none; } }
 
   /* 요금제 */
   .pricing {
@@ -196,35 +218,48 @@
 <body>
 
 <section class="hero">
-  <h1><span>스케줄표</span></h1>
-  <p>연간 목표부터 일별 시간표, 성적 분석까지<br>학생을 위한 올인원 계획표</p>
-  <a class="hero-btn" href="app.html">무료 체험하기</a>
-  <div class="hero-sub">가입 없이 바로 체험 가능</div>
+  <h1><span>한번에</span></h1>
+  <p>학교·학원 스케줄을 <strong>한 번에.</strong><br>수행평가 알림 · 성적 분석 · 실행까지 한 앱에서.</p>
+  <a class="hero-btn" href="app.html">무료로 시작하기</a>
+  <div class="hero-sub">가입 없이 바로 사용 · 무료</div>
 </section>
 
 <section class="features">
-  <h2>주요 기능</h2>
+  <h2>'한번에'가 해결해요</h2>
   <div class="feature-grid">
     <div class="feature-card">
-      <div class="feature-icon">📋</div>
-      <h3>연간 계획표</h3>
-      <p>5월부터 12월까지 월별 큰 목표를 설정하세요. 한눈에 1년 계획을 확인할 수 있습니다.</p>
+      <div class="feature-icon">📚</div>
+      <h3>학교 · 학원 한 번에</h3>
+      <p>흩어져 있던 학교 시간표, 학원 일정, 할 일을 한 곳에서 관리. 더 이상 여기저기 적지 않아요.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">📅</div>
-      <h3>월간 달력</h3>
-      <p>수행평가, 시험 일정을 날짜별로 관리하세요. 과목별 교재 진도도 함께 기록합니다.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">⏰</div>
-      <h3>일별 시간표</h3>
-      <p>시간 단위로 하루를 계획하세요. 학교/학원 시간표, 투두리스트, 메모까지 한 화면에.</p>
+      <div class="feature-icon">🔔</div>
+      <h3>수행평가 알림</h3>
+      <p>수행평가·시험 D-day를 미리 알려줘 놓치지 않아요. 달력에 적으면 자동으로 챙겨줍니다.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📊</div>
-      <h3>성적 분석</h3>
-      <p>학교 성적과 모의고사를 분리 기록하고, 과목별 추이 그래프로 성적 변화를 한눈에 파악합니다.</p>
+      <h3>성적 분석 — 부족한 점이 한눈에</h3>
+      <p>과목별 점수 추이를 그래프로. 어느 과목이 약한지, 무엇을 보강할지 바로 보여요.</p>
     </div>
+    <div class="feature-card">
+      <div class="feature-icon">✅</div>
+      <h3>투두리스트로 바로 실행</h3>
+      <p>알게 된 것을 그날 할 일로. 체크하면 완료율이 차올라 아이가 스스로 실행에 옮겨요.</p>
+    </div>
+  </div>
+</section>
+
+<section class="howto">
+  <h2>한눈에 보는 사용법</h2>
+  <div class="steps">
+    <div class="step"><span class="step-num">1</span><b>계획</b><p>연간·월간 목표와 학교·학원 일정을 적어요.</p></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><span class="step-num">2</span><b>실행</b><p>그날 할 일을 투두리스트로 체크하며 바로 실행.</p></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><span class="step-num">3</span><b>분석</b><p>성적을 기록하면 부족한 과목이 한눈에.</p></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><span class="step-num">4</span><b>보강</b><p>부족한 부분을 내신보강·특강으로 채워요.</p></div>
   </div>
 </section>
 
@@ -234,16 +269,13 @@
   <div class="pricing-grid" style="max-width:380px">
     <div class="plan-card popular">
       <div class="plan-badge">이용권</div>
-      <h3>스케줄표</h3>
-      <div class="plan-price">1,000원 <span>/월</span></div>
-      <div class="plan-period">모든 기능 이용 가능</div>
+      <h3>한번에</h3>
+      <div class="plan-price">19,000원 <span>/월</span></div>
+      <div class="plan-period">모든 기능 무제한</div>
       <ul class="plan-features">
-        <li>연간/월간/일별 계획표</li>
-        <li>성적 분석 (학교+모의고사)</li>
-        <li>학교/학원 시간표</li>
-        <li>여러 기기 데이터 동기화</li>
-        <li>성적 AI 분석 리포트</li>
-        <li>PDF 내보내기</li>
+        <li>학교·학원 한 번에</li>
+        <li>수행평가 알림 · 성적 분석</li>
+        <li>여러 기기 동기화</li>
       </ul>
       <button class="plan-btn paid" onclick="alert('결제 서비스 준비 중입니다. 곧 만나요!')">결제하고 시작하기</button>
     </div>
@@ -251,7 +283,7 @@
 </section>
 
 <footer class="footer">
-  <p>&copy; 2026 스케줄표. 문의: <a href="mailto:omae101@gmail.com">omae101@gmail.com</a></p>
+  <p>&copy; 2026 한번에. 문의: <a href="mailto:omae101@gmail.com">omae101@gmail.com</a></p>
 </footer>
 
 </body>
