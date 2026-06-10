@@ -334,19 +334,28 @@
     .months-grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 600px) {
-    .months-grid { grid-template-columns: 1fr; }
+    .months-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   }
 
   .month-card {
     background: var(--surface);
     border-radius: 12px;
-    padding: 20px;
+    padding: 16px;
     border: 1px solid var(--line);
     transition: all 0.2s;
     display: flex;
     flex-direction: column;
-    min-height: 260px;
+    cursor: pointer;
   }
+  /* 기본은 접힘(개요), 카드를 누르면 월간 목표 펼침 */
+  .month-card .plan-label,
+  .month-card .plan-textarea { display: none; }
+  .month-card.expanded .plan-label,
+  .month-card.expanded .plan-textarea { display: block; }
+  .month-meta { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .goal-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .month-meta .chev { margin-left: auto; color: var(--text-mute); font-size: 13px; transition: transform 0.2s; }
+  .month-card.expanded .month-meta .chev { transform: rotate(180deg); }
   .month-card:hover {
     border-color: var(--line-strong);
     box-shadow: 0 4px 16px rgba(62,39,35,0.08);
@@ -571,7 +580,16 @@
     .name-suffix { font-size: 24px; }
     .name-input::placeholder { font-size: 20px; }
     .timetable-btn { margin-left: 0; padding: 8px 12px; }
-    .month-card { min-height: 200px; padding: 16px; }
+    /* 스마트폰: 12개월이 한 화면에 들어오도록 컴팩트 타일 */
+    .month-card { padding: 10px 8px; }
+    .month-header { margin-bottom: 4px; }
+    .month-link { font-size: 20px; }
+    .month-year { font-size: 10px; }
+    .month-flag { font-size: 10px; margin-left: 3px; }
+    .month-status { font-size: 10px; padding: 1px 7px; margin-bottom: 0; }
+    .month-meta { margin-top: 4px; }
+    /* 펼치면 입력하기 편하게 한 줄 전체 차지 */
+    .month-card.expanded { grid-column: 1 / -1; }
   }
 </style>
 <link rel="manifest" href="/app.webmanifest">
@@ -594,12 +612,12 @@
       <span class="icon">🎒</span> 학원 시간표
     </button>
   </h1>
-  <p class="subtitle">1월부터 12월까지 · 각 달을 클릭하면 자세한 달력을 볼 수 있어요</p>
+  <p class="subtitle">달 이름(예: 3월)을 누르면 달력 · 카드를 누르면 월간 목표가 펼쳐져요</p>
   <div style="text-align:center;margin-bottom:16px;">
-    <button id="prevYear" style="padding:8px 16px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:15px;cursor:pointer;font-weight:600;">◀ 이전 년도</button>
+    <button id="prevYear" title="이전 년도" style="padding:8px 14px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;">◀</button>
     <input id="yearInput" type="number" min="2000" max="2100" title="연도를 직접 입력하세요" style="width:96px;text-align:center;padding:8px 6px;font-size:18px;font-weight:700;color:#17181C;border:1px solid #C9CDD4;border-radius:8px;">
     <span style="font-size:18px;font-weight:700;color:#17181C;">년</span>
-    <button id="nextYear" style="padding:8px 16px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:15px;cursor:pointer;font-weight:600;">다음 년도 ▶</button>
+    <button id="nextYear" title="다음 년도" style="padding:8px 14px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;">▶</button>
     <a href="grade.html" style="display:inline-block;padding:8px 20px;background:#E53935;color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-left:12px;">📊 성적 분석</a>
   </div>
 
@@ -700,8 +718,6 @@
 
 <script src="notifications.js"></script>
 <script>
-  const MONTH_DESC = ['새해','겨울','초봄','봄','중간고사','여름 시작','여름방학','한여름','가을 시작','중간고사','깊어진 가을','연말'];
-
   const params = new URLSearchParams(location.search);
   let YEAR = parseInt(params.get('year')) || new Date().getFullYear();
 
@@ -958,7 +974,7 @@
       const card = document.createElement('div');
       card.className = 'month-card';
 
-      let statusText = MONTH_DESC[m - 1];
+      let statusText = '';
       if (currentYear === YEAR && currentMonth === m) {
         card.classList.add('current');
         statusText = '이번 달';
@@ -967,25 +983,41 @@
       }
 
       const aCount = monthAssessmentCount(YEAR, m);
-      const flag = aCount > 0 ? `<span class="month-flag">📌 일정 ${aCount}</span>` : '';
+      const flag = aCount > 0 ? `<span class="month-flag">📌 ${aCount}</span>` : '';
+      const key = `jihoon-monthly-plan-${YEAR}-${m}`;
+      const goalVal = localStorage.getItem(key) || '';
+      const statusHtml = statusText ? `<div class="month-status">${statusText}</div>` : '';
+      const dot = goalVal.trim() ? '<span class="goal-dot" title="작성한 목표 있음"></span>' : '';
       card.innerHTML = `
         <div class="month-header">
           <a class="month-link" href="month.html?year=${YEAR}&month=${m}" title="${m}월 달력 보기">${m}월</a>
           <span class="month-year">${YEAR}${flag}</span>
         </div>
-        <div class="month-status">${statusText}</div>`;
-      card.innerHTML += `
+        ${statusHtml}
+        <div class="month-meta">${dot}<span class="chev">▾</span></div>
         <div class="plan-label">월간 목표</div>
         <textarea class="plan-textarea" data-month="${m}" placeholder="이 달의 큰 목표나 일정을 적어보세요..."></textarea>
       `;
       grid.appendChild(card);
 
       const ta = card.querySelector('.plan-textarea');
-      const key = `jihoon-monthly-plan-${YEAR}-${m}`;
-      ta.value = localStorage.getItem(key) || '';
+      ta.value = goalVal;
       ta.addEventListener('input', () => {
         localStorage.setItem(key, ta.value);
+        const meta = card.querySelector('.month-meta');
+        let gd = meta.querySelector('.goal-dot');
+        if (ta.value.trim() && !gd) {
+          meta.insertAdjacentHTML('afterbegin', '<span class="goal-dot" title="작성한 목표 있음"></span>');
+        } else if (!ta.value.trim() && gd) {
+          gd.remove();
+        }
         showSaved();
+      });
+
+      // 카드를 누르면 월간 목표 펼침/접힘 (월 숫자 링크·입력창 제외)
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.month-link') || e.target.closest('.plan-textarea')) return;
+        card.classList.toggle('expanded');
       });
     }
   }
