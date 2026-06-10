@@ -132,9 +132,9 @@
   }
   .pricing-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    max-width: 700px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 20px;
+    max-width: 860px;
     margin: 0 auto;
   }
   @media (max-width: 600px) { .pricing-grid { grid-template-columns: 1fr; } }
@@ -271,30 +271,42 @@
 <section class="pricing" id="pricing">
   <h2>요금제</h2>
   <p class="subtitle">지금 바로 무료로 체험해보세요</p>
-  <div class="pricing-grid" style="max-width:760px">
+  <div class="pricing-grid" style="max-width:860px">
     <div class="plan-card">
-      <div class="plan-badge">기본</div>
+      <div class="plan-badge">무료</div>
       <h3>한번에</h3>
-      <div class="plan-price">2,000원 <span>/월</span></div>
-      <div class="plan-period">모든 기능 무제한</div>
+      <div class="plan-price">0원</div>
+      <div class="plan-period">기본 기능 평생 무료</div>
       <ul class="plan-features">
-        <li>학교·학원 한 번에</li>
-        <li>수행평가 알림 · 성향 분석</li>
-        <li>여러 기기 동기화</li>
+        <li>학교·학원 일정 관리</li>
+        <li>수행평가 D-day 알림</li>
+        <li>성향 분석 1회 체험</li>
       </ul>
-      <button class="plan-btn paid" onclick="alert('결제 서비스 준비 중입니다. 곧 만나요!')">결제하고 시작하기</button>
+      <button class="plan-btn free" onclick="location.href='app.html'">무료로 시작하기</button>
     </div>
     <div class="plan-card popular">
-      <div class="plan-badge">부모자녀용</div>
-      <h3>한번에 패밀리</h3>
-      <div class="plan-price">5,000원 <span>/월</span></div>
+      <div class="plan-badge">프리미엄</div>
+      <h3>성향 분석</h3>
+      <div class="plan-price">900원 <span>/월</span></div>
+      <div class="plan-period">사주·MBTI·성적 정밀분석</div>
+      <ul class="plan-features">
+        <li>성향 정밀 분석 무제한</li>
+        <li>아침형·밤형, 대입 방향</li>
+        <li>광고 제거</li>
+      </ul>
+      <button class="plan-btn paid" onclick="alert('결제 서비스 준비 중입니다. 곧 만나요!')">구독하기</button>
+    </div>
+    <div class="plan-card">
+      <div class="plan-badge">패밀리</div>
+      <h3>자녀 연동</h3>
+      <div class="plan-price">1,900원 <span>/월</span></div>
       <div class="plan-period">엄마와 자녀가 함께</div>
       <ul class="plan-features">
-        <li>기본 기능 모두 포함</li>
+        <li>프리미엄 기능 모두 포함</li>
         <li>엄마·자녀 함께 보기</li>
         <li>함께 계획하고 응원</li>
       </ul>
-      <button class="plan-btn paid" onclick="alert('결제 서비스 준비 중입니다. 곧 만나요!')">결제하고 시작하기</button>
+      <button class="plan-btn paid" onclick="alert('결제 서비스 준비 중입니다. 곧 만나요!')">구독하기</button>
     </div>
   </div>
 </section>
