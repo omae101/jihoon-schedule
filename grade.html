@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
   :root {
     --bg: #F2F3F5;
@@ -197,6 +198,26 @@
   .modal table input[type="text"] { width: 110px; }
   .ocr-progress { font-size: 13px; color: var(--accent-dark); margin-top: 6px; }
   .meta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+
+  /* 사주·MBTI 성향 분석 결과 */
+  .an { font-family:'Pretendard',-apple-system,'Malgun Gothic',sans-serif; }
+  .an-top { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+  .an-chip { flex:1; min-width:130px; background:var(--surface-soft); border:1px solid var(--line); border-radius:12px; padding:11px 14px; }
+  .an-chip b { display:block; font-size:11px; color:var(--text-sub); font-weight:700; margin-bottom:4px; }
+  .an-chip .v { font-size:15px; font-weight:800; color:var(--text-main); letter-spacing:-.2px; }
+  .bar-row { margin:11px 0; }
+  .bar-row .lab { display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:5px; color:var(--text-main); }
+  .bar-row .lab .sc { color:var(--accent-dark); font-weight:800; }
+  .bar-track { height:9px; background:var(--surface-soft); border-radius:99px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#34D3C4,var(--accent)); transition:width .7s cubic-bezier(.2,.8,.2,1); }
+  .daynight { display:flex; gap:10px; margin:18px 0 6px; }
+  .dn-card { flex:1; border-radius:14px; padding:13px; text-align:center; border:1.5px solid var(--line); background:var(--surface-soft); font-size:13px; font-weight:600; color:var(--text-sub); }
+  .dn-card.on { border-color:var(--accent); background:rgba(13,148,136,.09); color:var(--accent-dark); }
+  .dn-card .big { font-size:22px; display:block; margin-bottom:2px; }
+  .an-summary { margin-top:14px; font-size:14px; line-height:1.92; color:var(--text-main); }
+  .an-tip { margin-top:14px; background:#FFF8E1; border:1px solid #FFE9A8; border-radius:12px; padding:13px 16px; font-size:13.5px; line-height:1.7; color:#7A5E12; }
+  .an-tip b { color:#8A6D1A; }
+  .an-disclaimer { margin-top:12px; font-size:11.5px; color:var(--text-sub); line-height:1.6; }
 </style>
 </head>
 <body>
@@ -247,11 +268,50 @@
   </div>
 
   <div class="input-section">
-    <h3>🧭 공부 성향 · 방향 분석</h3>
+    <h3>🧭 사주·MBTI 성향 분석</h3>
     <div class="input-row">
       <div class="input-group">
         <label>생년월일</label>
         <input type="date" id="dobInput">
+      </div>
+      <div class="input-group">
+        <label>태어난 시각 (선택)</label>
+        <select id="birthTimeInput">
+          <option value="">모름</option>
+          <option value="0">자시 (23:30~01:30)</option>
+          <option value="2">축시 (01:30~03:30)</option>
+          <option value="4">인시 (03:30~05:30)</option>
+          <option value="6">묘시 (05:30~07:30)</option>
+          <option value="8">진시 (07:30~09:30)</option>
+          <option value="10">사시 (09:30~11:30)</option>
+          <option value="12">오시 (11:30~13:30)</option>
+          <option value="14">미시 (13:30~15:30)</option>
+          <option value="16">신시 (15:30~17:30)</option>
+          <option value="18">유시 (17:30~19:30)</option>
+          <option value="20">술시 (19:30~21:30)</option>
+          <option value="22">해시 (21:30~23:30)</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>학교급</label>
+        <select id="levelInput">
+          <option value="auto">나이로 자동</option>
+          <option value="elem">초등</option>
+          <option value="mid">중등</option>
+          <option value="high">고등</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>고교 유형 (고등)</label>
+        <select id="hsTypeInput">
+          <option value="">선택 안 함</option>
+          <option value="gen_metro">일반고 · 수도권</option>
+          <option value="gen_local">일반고 · 지방</option>
+          <option value="autonomous">자사고</option>
+          <option value="special_lang">특목고 · 외고/국제고</option>
+          <option value="special_sci">특목고 · 과학고/영재고</option>
+          <option value="arts">예술·체육고</option>
+        </select>
       </div>
       <div class="input-group">
         <label>MBTI</label>
@@ -262,6 +322,20 @@
           <option>ESTP</option><option>ESFP</option><option>ENFP</option><option>ENTP</option>
           <option>ESTJ</option><option>ESFJ</option><option>ENFJ</option><option>ENTJ</option>
         </select>
+      </div>
+    </div>
+    <div class="input-row" style="margin-top:12px;">
+      <div class="input-group">
+        <label>주말 기상 (선택)</label>
+        <select id="cWake"><option value="">—</option><option value="1">일찍 (7시 전)</option><option value="0">보통 (7~9시)</option><option value="-1">늦게 (9시 후)</option></select>
+      </div>
+      <div class="input-group">
+        <label>집중 잘 되는 때 (선택)</label>
+        <select id="cFocus"><option value="">—</option><option value="1">오전</option><option value="0">오후</option><option value="-1">밤</option></select>
+      </div>
+      <div class="input-group">
+        <label>저녁 졸음 (선택)</label>
+        <select id="cSleepy"><option value="">—</option><option value="1">일찍 잠</option><option value="0">보통</option><option value="-1">늦게까지</option></select>
       </div>
       <button class="add-btn" id="analyzeBtn">분석하기</button>
     </div>
@@ -844,13 +918,26 @@
   // ================= 공부 성향 분석 =================
   const dobInput = document.getElementById('dobInput');
   const mbtiInput = document.getElementById('mbtiInput');
+  const birthTimeInput = document.getElementById('birthTimeInput');
+  const levelInput = document.getElementById('levelInput');
+  const hsTypeInput = document.getElementById('hsTypeInput');
+  const cWake = document.getElementById('cWake');
+  const cFocus = document.getElementById('cFocus');
+  const cSleepy = document.getElementById('cSleepy');
   const analyzeBtn = document.getElementById('analyzeBtn');
   const analysisResult = document.getElementById('analysisResult');
 
   dobInput.value = localStorage.getItem('grade-dob') || '';
   mbtiInput.value = localStorage.getItem('grade-mbti') || '';
+  birthTimeInput.value = localStorage.getItem('grade-birthtime') || '';
+  levelInput.value = localStorage.getItem('grade-level') || 'auto';
+  hsTypeInput.value = localStorage.getItem('grade-hstype') || '';
   dobInput.addEventListener('change', () => localStorage.setItem('grade-dob', dobInput.value));
   mbtiInput.addEventListener('change', () => localStorage.setItem('grade-mbti', mbtiInput.value));
+  birthTimeInput.addEventListener('change', () => localStorage.setItem('grade-birthtime', birthTimeInput.value));
+  levelInput.addEventListener('change', () => localStorage.setItem('grade-level', levelInput.value));
+  hsTypeInput.addEventListener('change', () => localStorage.setItem('grade-hstype', hsTypeInput.value));
+  [['grade-cwake',cWake],['grade-cfocus',cFocus],['grade-csleepy',cSleepy]].forEach(([k,el])=>{ el.value=localStorage.getItem(k)||''; el.addEventListener('change',()=>localStorage.setItem(k,el.value)); });
 
   const HUM = ['국어','영어','사회','역사','한국사','도덕','윤리','지리','문학','독서','한문','정치','경제','세계사','일본어','중국어','외국어'];
   const SCI = ['수학','과학','물리','화학','생물','생명','지구','정보','기하','미적','확률','통계','공학'];
@@ -893,64 +980,200 @@
     return (a >= 0 && a < 120) ? a : null;
   }
 
-  function generateAnalysis(){
-    const stats = subjectList.map(statOf).filter(Boolean).sort((a,b)=>b.avg-a.avg);
-    if(!stats.length){
-      return '아직 점수가 입력된 과목이 없어요. 위에서 성적을 추가하거나 엑셀·사진을 올린 뒤 분석해 주세요.';
-    }
-    const dob = dobInput.value, mbti = mbtiInput.value;
-    const strong = stats[0], weak = stats[stats.length-1];
-    const rising = stats.filter(s=>s.trend>=3).map(s=>s.subj);
-    const falling = stats.filter(s=>s.trend<=-3).map(s=>s.subj);
-    const hum = stats.filter(s=>categoryOf(s.subj)==='hum');
-    const sci = stats.filter(s=>categoryOf(s.subj)==='sci');
-    const avgOf = arr => round1(arr.reduce((a,b)=>a+b.avg,0)/arr.length);
-    const humAvg = hum.length? avgOf(hum): null;
-    const sciAvg = sci.length? avgOf(sci): null;
+  // ===== 사주(오행) 데이터 =====
+  const STEMS = ['갑','을','병','정','무','기','경','신','임','계'];
+  const BRANCHES = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
+  const STEM_EL = ['목','목','화','화','토','토','금','금','수','수'];
+  const STEM_YANG = [true,false,true,false,true,false,true,false,true,false];
+  const BRANCH_EL = ['수','토','목','목','토','화','화','토','금','금','토','수'];
+  const EL_NAME = {목:'나무(목)',화:'불(화)',토:'흙(토)',금:'쇠(금)',수:'물(수)'};
+  const EL_TRAIT = {목:'성장·기획·언어 감각',화:'표현·활동·열정',토:'끈기·안정·성실함',금:'논리·규칙·정밀함',수:'사고·이해·암기력'};
 
-    const P = [];
-    const age = ageFrom(dob);
-    P.push(`${age!=null ? '만 '+age+'세 ' : ''}학생의 성적 기록(${grades.length}회 시험, ${stats.length}과목)을 바탕으로 공부 성향과 방향을 분석했습니다.`);
-    P.push(`가장 강한 과목은 ${strong.subj}(평균 ${strong.avg}점), 상대적으로 보강이 필요한 과목은 ${weak.subj}(평균 ${weak.avg}점)입니다.`);
-    if(rising.length) P.push(`${rising.join('·')}은(는) 점수가 오르는 상승세라 지금의 공부법을 유지하면 좋습니다.`);
-    if(falling.length) P.push(`반면 ${falling.join('·')}은(는) 하락세가 보여 원인 점검과 기초 복습이 필요합니다.`);
-    if(humAvg!=null && sciAvg!=null){
-      const d = round1(humAvg - sciAvg);
-      if(Math.abs(d) < 3) P.push(`어문·사회(${humAvg}점)와 수리·과학(${sciAvg}점)이 고르게 균형 잡혀 있어 진로 선택의 폭이 넓습니다.`);
-      else if(d > 0) P.push(`어문·사회(${humAvg}점)가 수리·과학(${sciAvg}점)보다 강한 문과 성향이 보입니다.`);
-      else P.push(`수리·과학(${sciAvg}점)이 어문·사회(${humAvg}점)보다 강한 이과 성향이 보입니다.`);
+  const HS_TYPE = {
+    gen_metro:   {name:'수도권 일반고', dae:'내신 관리가 수시(학생부교과·종합)의 핵심이라 전 과목을 고르게 챙기고 세특·동아리 등 비교과도 함께 쌓는 전략이 유리합니다.', tip:'시험 4주 전부터 과목별 진도를 역산해 내신 계획을 세우세요.'},
+    gen_local:   {name:'지방 일반고', dae:'내신을 따기 유리한 환경이라 교과전형·지역균형선발 등 수시를 적극 노리고 농어촌 등 지역 전형도 함께 검토하면 좋습니다.', tip:'내신 강점을 살려 목표 대학의 교과 반영 비율을 미리 확인하세요.'},
+    autonomous:  {name:'자사고', dae:'내신 경쟁이 치열한 편이라 수능 경쟁력을 키워 정시·논술 전형을 함께 준비하는 전략이 효과적입니다.', tip:'모의고사 오답을 단원별로 누적 관리해 수능 실전력을 키우세요.'},
+    special_lang:{name:'외고·국제고', dae:'어학·인문 역량과 전공적합성을 살린 학생부종합전형이 강점이며 내신이 불리할 땐 정시도 병행하세요.', tip:'전공 관련 원서·시사 읽기와 발표 활동을 학기마다 기록으로 남기세요.'},
+    special_sci: {name:'과학고·영재고', dae:'수학·과학 심화 역량과 연구활동(R&E)을 살린 이공계 학생부종합전형이 핵심이고 의약·이공 특기자 전형도 유리합니다.', tip:'수학·과학 심화 탐구(R&E) 주제를 정해 꾸준히 정리해 두세요.'},
+    arts:        {name:'예술·체육고', dae:'실기 역량이 핵심이라 실기 위주 전형을 중심으로, 수능 최저가 필요한 전형은 국·영·탐 관리를 병행하세요.', tip:'실기 연습과 주요 과목 공부 시간을 주간 단위로 균형 있게 배분하세요.'}
+  };
+
+  function jdn(y,m,d){const a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
+  function dayPillar(Y,M,D){const i=((jdn(Y,M,D)+49)%60+60)%60;return {stem:i%10,branch:i%12};}
+  function yearPillar(Y,M,D){let y=Y; if(M===1||(M===2&&D<4)) y=Y-1; return {stem:((y-4)%10+10)%10,branch:((y-4)%12+12)%12};}
+  function monthBranch(M,D){const thr={1:6,2:4,3:6,4:5,5:6,6:6,7:7,8:8,9:8,10:8,11:7,12:7};return D<thr[M]?(M%12+11)%12:M%12;}
+  function monthStem(yStem,mBr){const base=[2,4,6,8,0][yStem%5];return (base+(((mBr-2)+12)%12))%10;}
+  function hourPillar(dStem,h){const br=Math.floor((h+1)/2)%12;const base=[0,2,4,6,8][dStem%5];return {stem:(base+br)%10,branch:br};}
+  function buildPillars(Y,M,D,h){
+    const yp=yearPillar(Y,M,D);
+    const mBr=monthBranch(M,D); const mp={stem:monthStem(yp.stem,mBr),branch:mBr};
+    const dp=dayPillar(Y,M,D);
+    const list=[yp,mp,dp];
+    if(h!==null&&h!==undefined&&h!=='') list.push(hourPillar(dp.stem,parseInt(h)));
+    return {yp,mp,dp,list};
+  }
+  function collectEl(list){const c={목:0,화:0,토:0,금:0,수:0};list.forEach(p=>{c[STEM_EL[p.stem]]++;c[BRANCH_EL[p.branch]]++;});return c;}
+  function ohaengStr(c){return `목${c.목}·화${c.화}·토${c.토}·금${c.금}·수${c.수}`;}
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+  function gradeSignal(stats){
+    if(!stats.length) return null;
+    const sci=stats.filter(s=>categoryOf(s.subj)==='sci');
+    const hum=stats.filter(s=>categoryOf(s.subj)==='hum');
+    const avgA=a=>a.length?round1(a.reduce((x,y)=>x+y.avg,0)/a.length):null;
+    const avgV=key=>{const v=stats.map(s=>s[key]).filter(x=>x!=null);return v.length?round1(v.reduce((a,b)=>a+b,0)/v.length):null;};
+    const sciA=avgA(sci), humA=avgA(hum), schoolAvg=avgV('sAvg'), mockAvg=avgV('mAvg');
+    const rising=stats.filter(s=>s.trend>=3).length;
+    return {
+      sciA,humA,schoolAvg,mockAvg,rising,n:stats.length,
+      sci: sciA!=null?clamp(sciA-65,-18,26):0,
+      hum: humA!=null?clamp(humA-65,-18,26):0,
+      diligence:((schoolAvg!=null&&mockAvg!=null)?clamp(schoolAvg-mockAvg,-10,12):0)+rising*3
+    };
+  }
+  function resolveLevel(age){
+    const v=levelInput.value;
+    if(v==='elem'||v==='mid'||v==='high') return v;
+    if(age==null) return 'mid';
+    if(age<=12) return 'elem';
+    if(age<=15) return 'mid';
+    return 'high';
+  }
+  function tendencyScores(c,mbti,g,w){
+    const tot=Object.values(c).reduce((a,b)=>a+b,0)||1; const p=k=>c[k]/tot;
+    const s={
+      수리:p('금')*1.0+p('수')*0.55+p('토')*0.3,
+      문해:p('목')*1.0+p('수')*0.8+p('화')*0.3,
+      집중:p('토')*1.0+p('금')*0.6+p('수')*0.2,
+      창의:p('화')*1.0+p('목')*0.7,
+      성실:p('토')*0.95+p('금')*0.7
+    };
+    for(const k in s) s[k]=32+s[k]*78;
+    if(mbti&&mbti.length===4){const t=mbti.toUpperCase();
+      if(t[0]==='I')s.집중+=5; else s.창의+=4;
+      if(t[1]==='N'){s.창의+=5;s.문해+=3;} else {s.성실+=5;s.수리+=3;}
+      if(t[2]==='T'){s.수리+=6;s.집중+=3;} else s.문해+=5;
+      if(t[3]==='J'){s.집중+=5;s.성실+=6;} else {s.창의+=4;s.집중-=3;}
     }
-    const sAll = stats.map(s=>s.sAvg).filter(v=>v!=null);
-    const mAll = stats.map(s=>s.mAvg).filter(v=>v!=null);
-    if(sAll.length && mAll.length){
-      const sA = round1(sAll.reduce((a,b)=>a+b,0)/sAll.length);
-      const mA = round1(mAll.reduce((a,b)=>a+b,0)/mAll.length);
-      if(sA - mA >= 5) P.push(`학교 내신(평균 ${sA}점)이 모의고사(평균 ${mA}점)보다 높아 학교 시험 대비와 성실성이 강점입니다. 처음 보는 응용 문제에 대한 적응력을 더 키우면 좋습니다.`);
-      else if(mA - sA >= 5) P.push(`모의고사(평균 ${mA}점)가 내신(평균 ${sA}점)보다 높아 기본 실력은 탄탄하나, 학교 시험 범위를 꼼꼼히 마무리하는 습관이 필요합니다.`);
-      else P.push(`내신(${sA}점)과 모의고사(${mA}점)가 비슷해 안정적으로 실력을 쌓아가고 있습니다.`);
+    if(g){ s.수리+=g.sci*w; s.문해+=g.hum*w; s.집중+=g.diligence*w; s.성실+=g.diligence*w; }
+    for(const k in s) s[k]=clamp(Math.round(s[k]),28,94);
+    return s;
+  }
+  function dayNight(c,dStem,mbti,chrono){
+    let m=(c.화+c.목), n=(c.수+c.금);
+    if(STEM_YANG[dStem]) m+=1.3; else n+=1.3;
+    if(mbti&&mbti.length===4){const t=mbti.toUpperCase();
+      if(t[3]==='J')m+=1.5; else n+=1.2;
+      if(t[1]==='S')m+=1; else n+=1;}
+    const base=(m-n)/((m+n)||1); // -1..1 (양수=아침형)
+    let score=base, blended=false;
+    if(chrono&&chrono.length){
+      const cs=chrono.reduce((a,b)=>a+b,0)/chrono.length;
+      score=base*0.65+cs*0.35; blended=true;
     }
-    if(mbti && mbti.length===4){
-      const t = mbti.toUpperCase().split('');
-      P.push(`${mbti} 성향으로 보면 ${t.map(l=>MBTI_TRAITS[l]).filter(Boolean).join(', ')}.`);
-      const tips = [];
-      tips.push(t[0]==='I' ? '조용한 자습 환경에서 집중 시간 확보' : '친구에게 설명하거나 스터디로 함께 공부');
-      tips.push(t[1]==='N' ? '개념·원리를 먼저 이해한 뒤 문제 풀기' : '예제 반복과 오답 노트로 꼼꼼히 다지기');
-      tips.push(t[3]==='P' ? '작은 단위 마감과 체크리스트로 미루기 방지' : '세운 계획표를 끝까지 지키는 강점 활용');
-      P.push(`그래서 ${tips.join(', ')}를 추천합니다.`);
-    } else {
-      P.push(`MBTI를 입력하면 성향에 꼭 맞는 공부법까지 분석해 드려요.`);
-    }
-    P.push(`종합하면 강점 과목 ${strong.subj}은 심화 문제로 자신감을 키우고, 약점 과목 ${weak.subj}은 기초 개념부터 차근차근 보강하는 것이 가장 빠른 성적 향상의 길입니다. 매일의 투두리스트로 작은 목표를 실행에 옮기면 이 분석이 곧 결과로 이어집니다.`);
-    return P.join(' ');
+    const isM=score>=0, near=Math.abs(score)<0.12;
+    let desc=near?'아침·저녁 차이가 크지 않은 균형형이라, 무엇보다 규칙적인 수면 리듬을 지키는 것이 중요해요.'
+      :isM?'오전~낮에 집중력이 가장 좋은 편이라, 어려운 과목을 오전에 배치하면 효율이 높아요.'
+           :'저녁~밤에 몰입이 잘 되는 편이라, 핵심 공부를 늦은 오후 이후로 두면 효과적이에요.';
+    if(blended) desc+=' (실제 생활 패턴까지 반영한 결과예요.)';
+    return {isM,near,blended,label:near?'균형형':(isM?'아침형':'밤형'),desc};
+  }
+  function mbtiOneLine(mbti){const t=mbti.toUpperCase();
+    return `${t[0]==='I'?'혼자 깊이 파고들 때':'함께 토론하며 배울 때'} 이해가 빠르고, ${t[3]==='J'?'계획대로 실천하는 성실함이 강점입니다.':'유연하지만 마감 관리가 필요한 면이 있습니다.'}`;}
+  function mbtiStudyTip(mbti){const t=mbti.toUpperCase();
+    return `${t[1]==='N'?'개념·원리를 먼저 잡고':'예제 반복과 오답노트로'} ${t[2]==='T'?'논리적으로 이해하며':'배우는 의미를 느끼며'} 공부하면 효율이 높습니다.`;}
+
+  function analyzeEngine(){
+    const dob=dobInput.value;
+    if(!dob) return {error:'생년월일을 먼저 입력하면 사주·MBTI 기반 성향 분석을 시작합니다.'};
+    const [Y,M,D]=dob.split('-').map(Number);
+    const pil=buildPillars(Y,M,D,birthTimeInput.value);
+    const cnt=collectEl(pil.list);
+    const mbti=mbtiInput.value;
+    const stats=subjectList.map(statOf).filter(Boolean);
+    const gsig=gradeSignal(stats);
+    const age=ageFrom(dob);
+    const level=resolveLevel(age);
+    const w=({elem:0.12,mid:0.35,high:0.55})[level]||0.2;
+    const scores=tendencyScores(cnt,mbti,gsig,w);
+    const chrono=[cWake.value,cFocus.value,cSleepy.value].filter(v=>v!=='').map(Number);
+    return {dp:pil.dp,cnt,mbti,stats,gsig,age,level,scores,
+      dayMasterEl:STEM_EL[pil.dp.stem], dn:dayNight(cnt,pil.dp.stem,mbti,chrono), hsType:hsTypeInput.value};
   }
 
-  analyzeBtn.addEventListener('click', () => {
-    const text = generateAnalysis();
-    const len = text.replace(/\s/g,'').length;
-    analysisResult.style.display = 'block';
-    analysisResult.innerHTML = `<h4>📋 분석 결과</h4>${text.replace(/</g,'&lt;')}<span class="char-count">${len}자 (공백 제외)</span>`;
-    analysisResult.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  });
+  function buildSummary(r){
+    const NM={수리:'수리·논리력',문해:'문해·언어력',집중:'집중 지속력',창의:'창의·표현력',성실:'성실·자기관리'};
+    const ord=Object.entries(r.scores).sort((a,b)=>b[1]-a[1]);
+    const t1=NM[ord[0][0]], t2=NM[ord[1][0]], low=NM[ord[ord.length-1][0]];
+    const elTop=Object.entries(r.cnt).sort((a,b)=>b[1]-a[1])[0][0];
+    const P=[];
+    P.push(`사주로 보면 일간이 ${STEMS[r.dp.stem]}${BRANCHES[r.dp.branch]}(${EL_NAME[r.dayMasterEl]}) 기운이라 ${EL_TRAIT[r.dayMasterEl]}이(가) 바탕이 되는 아이입니다.`);
+    P.push(`오행 중 ${EL_NAME[elTop]} 기운이 가장 두드러져 ${t1}과(와) ${t2}에서 강점이 보입니다.`);
+    if(r.level==='elem'){
+      P.push(`초등 시기에는 성적 데이터가 아직 얕아 점수보다 타고난 기질이 더 정확합니다. 강점인 ${t1}은(는) 칭찬으로 키우고, ${low}은(는) 독서·놀이처럼 부담 없이 접근하면 효과적입니다.`);
+    } else if(r.level==='mid'){
+      P.push(`중등은 기질과 내신이 함께 쌓이는 단계라, ${t1} 강점을 살리되 ${low}을(를) 시험 범위 안에서 꾸준히 보강하면 성적이 안정됩니다.`);
+    } else {
+      let d='';
+      if(r.gsig&&r.gsig.schoolAvg!=null&&r.gsig.mockAvg!=null){
+        d=r.gsig.schoolAvg-r.gsig.mockAvg>=4?' 내신이 모의고사보다 높아 수시(학생부) 전형이 유리하고,'
+          :r.gsig.mockAvg-r.gsig.schoolAvg>=4?' 모의고사가 내신보다 높아 정시(수능) 전형에 강점이 있고,'
+          :' 내신과 모의고사가 비슷해 수시·정시를 함께 준비할 수 있고,';
+      }
+      let gye='';
+      if(r.gsig&&r.gsig.sciA!=null&&r.gsig.humA!=null){
+        gye=r.gsig.sciA-r.gsig.humA>=3?' 수리·과학이 강해 이과 계열이 잘 맞습니다.'
+           :r.gsig.humA-r.gsig.sciA>=3?' 어문·사회가 강해 문과 계열이 잘 맞습니다.':' 문·이과가 고른 편입니다.';
+      }
+      const ht=(r.hsType&&HS_TYPE[r.hsType])?` ${HS_TYPE[r.hsType].name} 기준, ${HS_TYPE[r.hsType].dae}`
+        :(r.gsig?'':' 성적을 입력하면 수시·정시 적합도까지 더 정확히 분석해 드립니다.');
+      P.push(`고등은 대입을 염두에 둔 분석이 필요합니다.${d}${gye}${ht}`);
+    }
+    if(r.mbti&&r.mbti.length===4) P.push(`MBTI ${r.mbti}는 ${mbtiOneLine(r.mbti)} ${mbtiStudyTip(r.mbti)}`);
+    P.push(`종합하면 ${t1}을(를) 무기로 삼고 ${low}은(는) 작은 목표로 나눠 채우는 것이 가장 빠른 성장 경로입니다.`);
+    return P.join(' ');
+  }
+  function buildTips(r){
+    const t=[]; const mb=(r.mbti&&r.mbti.length===4)?r.mbti.toUpperCase():'';
+    if(mb&&mb[3]==='P') t.push('하루 목표를 3개 이내 체크리스트로 쪼개 미루기를 막아 보세요.');
+    else if(mb&&mb[3]==='J') t.push('주간 계획표를 미리 짜고 끝까지 지키는 강점을 활용하세요.');
+    else t.push('하루 할 일을 3개로 정해 작게 시작해 보세요.');
+    if(r.level==='high'&&r.hsType&&HS_TYPE[r.hsType]) t.push(HS_TYPE[r.hsType].tip);
+    else if(r.scores.집중<58) t.push('한 번에 25분 집중 + 5분 휴식(뽀모도로)으로 앉아있는 힘을 키워 보세요.');
+    else t.push(`집중 지속력이 좋은 편이라 ${r.dn.isM?'오전':'저녁'} 시간에 어려운 과목을 몰아서 공부하면 효과적이에요.`);
+    return t;
+  }
+
+  function renderResult(){
+    const r=analyzeEngine();
+    analysisResult.style.display='block';
+    if(r.error){ analysisResult.innerHTML=`<h4 style="margin:0 0 8px;color:var(--accent-dark);">📋 분석</h4><div class="an">${r.error}</div>`; analysisResult.scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
+    const NM={수리:'수리·논리력',문해:'문해·언어력',집중:'집중 지속력',창의:'창의·표현력',성실:'성실·자기관리'};
+    const order=['수리','문해','집중','창의','성실'];
+    const bars=order.map(k=>`<div class="bar-row"><div class="lab"><span>${NM[k]}</span><span class="sc">${r.scores[k]}</span></div><div class="bar-track"><div class="bar-fill" style="width:${r.scores[k]}%"></div></div></div>`).join('');
+    const lv={elem:'초등',mid:'중등',high:'고등'}[r.level]||'';
+    const summary=buildSummary(r); const tips=buildTips(r);
+    analysisResult.innerHTML=`
+     <div class="an">
+      <div class="an-top">
+        <div class="an-chip"><b>일간 (사주)</b><span class="v">${STEMS[r.dp.stem]}${BRANCHES[r.dp.branch]} · ${EL_NAME[r.dayMasterEl]}</span></div>
+        <div class="an-chip"><b>오행 균형</b><span class="v">${ohaengStr(r.cnt)}</span></div>
+        <div class="an-chip"><b>MBTI</b><span class="v">${r.mbti||'—'}</span></div>
+        <div class="an-chip"><b>학교급</b><span class="v">${lv}${r.age!=null?` · 만 ${r.age}세`:''}</span></div>
+      </div>
+      ${bars}
+      <div class="daynight">
+        <div class="dn-card ${r.dn.isM||r.dn.near?'on':''}"><span class="big">🌅</span>아침형</div>
+        <div class="dn-card ${!r.dn.isM||r.dn.near?'on':''}"><span class="big">🌙</span>밤형</div>
+      </div>
+      <div style="font-size:13px;color:var(--text-sub);margin-top:6px;">${r.dn.desc}</div>
+      <div class="an-summary">${summary.replace(/</g,'&lt;')}</div>
+      <div class="an-tip"><b>📝 계획 팁</b><br>${tips.map(x=>'· '+x).join('<br>')}</div>
+      <div class="an-disclaimer">※ 사주는 출생시간·절기에 따라 달라질 수 있는 참고용 경향 분석이며, 성적·기질을 종합한 학습 가이드입니다. (요약 ${summary.length}자)</div>
+     </div>`;
+    analysisResult.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  analyzeBtn.addEventListener('click', renderResult);
 
   // ================= 초기 렌더 =================
   renderSubjectInputs();
