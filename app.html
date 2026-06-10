@@ -574,6 +574,13 @@
     .month-card { min-height: 200px; padding: 16px; }
   }
 </style>
+<link rel="manifest" href="/app.webmanifest">
+<meta name="theme-color" content="#0D9488">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="한번에">
+<script src="/pwa.js" defer></script>
 </head>
 <body>
 <div class="container">
@@ -602,6 +609,7 @@
     <div class="upcoming-head">
       <h3 class="upcoming-title">🔔 다가오는 수행평가 <span style="font-weight:500;color:var(--text-sub);font-size:12px;">(3일 이내)</span></h3>
       <button class="alarm-btn" id="alarmBtn">알림 켜기</button>
+      <button class="alarm-btn" id="pwaInstallBtn" style="display:none;">📲 홈화면 추가</button>
     </div>
     <ul class="upcoming-list" id="upcomingList"></ul>
     <p class="upcoming-empty" id="upcomingEmpty" style="display:none;">3일 이내 수행평가가 없어요. 월간 달력에서 입력하면 여기에 표시됩니다.</p>
