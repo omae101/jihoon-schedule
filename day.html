@@ -222,16 +222,14 @@
   <div class="fold open">
     <div class="fold-head" onclick="this.parentElement.classList.toggle('open')">
       <span class="fold-emoji">📚</span>
-      <span class="fold-title">수행평가 · 내신보강 · 특강</span>
+      <span class="fold-title">수행평가 · 보강 · 특강</span>
       <span class="chev">▾</span>
     </div>
     <div class="fold-body">
       <div class="sub-label">오늘의 수행평가</div>
       <textarea class="field" id="assessmentInput" rows="2" placeholder="오늘의 수행평가..."></textarea>
-      <div class="sub-label">📚 내신보강</div>
-      <textarea class="field" id="naesinInput" rows="2" placeholder="오늘 내신보강 (과목·내용)..."></textarea>
-      <div class="sub-label">🎯 특강</div>
-      <textarea class="field" id="specialInput" rows="2" placeholder="오늘 특강 (과목·기관·시간)..."></textarea>
+      <div class="sub-label">📚 보강 · 특강</div>
+      <textarea class="field" id="extraInput" rows="3" placeholder="오늘 보강·특강 (과목·기관·시간)..."></textarea>
     </div>
   </div>
 
@@ -262,7 +260,7 @@
   // ---------- 날짜 및 키 ----------
   const urlParams = new URLSearchParams(location.search);
   let selectedDate = urlParams.get('date') || new Date().toISOString().split('T')[0];
-  let assessmentKey, timetableKey, todoKey, memoKey, schoolKey, academyKey, naesinKey, specialKey;
+  let assessmentKey, timetableKey, todoKey, memoKey, schoolKey, academyKey, extraKey;
   function updateKeys(){
     assessmentKey = `jihoon-assessment-${selectedDate}`;
     timetableKey  = `timetable_${selectedDate}`;
@@ -270,8 +268,7 @@
     schoolKey     = `school_${selectedDate}`;
     academyKey    = `academy_${selectedDate}`;
     memoKey       = `memo_${selectedDate}`;
-    naesinKey     = `naesin_${selectedDate}`;
-    specialKey    = `special_${selectedDate}`;
+    extraKey      = `extra_${selectedDate}`;
   }
   updateKeys();
 
@@ -298,12 +295,25 @@
     if (ml) ml.href = `month.html?year=${y}&month=${parseInt(m)}`;
   }
 
+  function loadExtra(){
+    const el = document.getElementById('extraInput');
+    let v = localStorage.getItem(extraKey);
+    if (v === null){
+      // 기존 내신보강·특강 칸 데이터를 한 칸으로 통합 (1회 마이그레이션)
+      const old1 = (localStorage.getItem(`naesin_${selectedDate}`) || '').trim();
+      const old2 = (localStorage.getItem(`special_${selectedDate}`) || '').trim();
+      const merged = [old1, old2].filter(Boolean).join('\n');
+      v = merged;
+      if (merged) localStorage.setItem(extraKey, merged);
+    }
+    el.value = v;
+  }
+
   function reloadAll(){
     renderDateInfo();
     loadTodo(); loadTimetable(); loadSchool(); loadAcademy();
     document.getElementById('assessmentInput').value = localStorage.getItem(assessmentKey) || '';
-    document.getElementById('naesinInput').value = localStorage.getItem(naesinKey) || '';
-    document.getElementById('specialInput').value = localStorage.getItem(specialKey) || '';
+    loadExtra();
     document.getElementById('memoArea').value = localStorage.getItem(memoKey) || '';
     renderUpcoming();
   }
@@ -463,13 +473,13 @@
     el.addEventListener('input', showSaved);
   }
   bindArea('assessmentInput', ()=>assessmentKey);
-  bindArea('naesinInput', ()=>naesinKey);
-  bindArea('specialInput', ()=>specialKey);
+  bindArea('extraInput', ()=>extraKey);
   bindArea('memoArea', ()=>memoKey);
 
   // ---------- 초기화 / 리셋 ----------
   function resetAll(){
-    [assessmentKey, timetableKey, todoKey, memoKey, naesinKey, specialKey, schoolKey, academyKey]
+    [assessmentKey, timetableKey, todoKey, memoKey, extraKey, schoolKey, academyKey,
+     `naesin_${selectedDate}`, `special_${selectedDate}`]
       .forEach(k=>localStorage.removeItem(k));
     reloadAll();
   }

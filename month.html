@@ -488,12 +488,8 @@
 
   <div class="extra-grid">
     <div>
-      <h3>📚 내신보강</h3>
-      <textarea class="monthly-plan-area" id="naesinArea" placeholder="이 달 내신보강 계획 (과목·일정·교재)"></textarea>
-    </div>
-    <div>
-      <h3>🎯 특강</h3>
-      <textarea class="monthly-plan-area" id="specialArea" placeholder="이 달 특강 (과목·기관·일정)"></textarea>
+      <h3>📚 보강 · 특강</h3>
+      <textarea class="monthly-plan-area" id="extraArea" placeholder="이 달 보강·특강 계획 (과목·기관·일정·교재)"></textarea>
     </div>
   </div>
 
@@ -581,15 +577,21 @@
     showSaved();
   });
 
-  // 내신보강 / 특강 (월별)
+  // 보강 · 특강 (월별, 한 칸 통합)
   const NAESIN_KEY = `jihoon-naesin-${YEAR}-${MONTH}`;
   const SPECIAL_KEY = `jihoon-special-${YEAR}-${MONTH}`;
-  const naesinArea = document.getElementById('naesinArea');
-  const specialArea = document.getElementById('specialArea');
-  naesinArea.value = localStorage.getItem(NAESIN_KEY) || '';
-  specialArea.value = localStorage.getItem(SPECIAL_KEY) || '';
-  naesinArea.addEventListener('input', () => { localStorage.setItem(NAESIN_KEY, naesinArea.value); showSaved(); });
-  specialArea.addEventListener('input', () => { localStorage.setItem(SPECIAL_KEY, specialArea.value); showSaved(); });
+  const EXTRA_KEY = `jihoon-extra-${YEAR}-${MONTH}`;
+  const extraArea = document.getElementById('extraArea');
+  let extraVal = localStorage.getItem(EXTRA_KEY);
+  if (extraVal === null) {
+    // 기존 내신보강·특강 데이터를 한 칸으로 통합 (1회 마이그레이션)
+    const o1 = (localStorage.getItem(NAESIN_KEY) || '').trim();
+    const o2 = (localStorage.getItem(SPECIAL_KEY) || '').trim();
+    extraVal = [o1, o2].filter(Boolean).join('\n');
+    if (extraVal) localStorage.setItem(EXTRA_KEY, extraVal);
+  }
+  extraArea.value = extraVal;
+  extraArea.addEventListener('input', () => { localStorage.setItem(EXTRA_KEY, extraArea.value); showSaved(); });
 
   const firstDay = new Date(YEAR, MONTH - 1, 1);
   let firstDayOfWeek = (firstDay.getDay() + 6) % 7;
