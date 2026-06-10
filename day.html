@@ -4,529 +4,492 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일별 계획표</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
   :root {
-    --bg: #F2F3F5;
+    --bg: #F4F5F7;
     --surface: #FFFFFF;
-    --surface-soft: #EBEDF0;
-    --cell-bg: #FFFFFF;
-    --text-main: #17181C;
-    --text-sub: #4A4E57;
-    --text-mute: #9CA1AB;
-    --line: #E2E4E9;
-    --line-strong: #C9CDD4;
+    --text: #16181D;
+    --text-sub: #5A6068;
+    --text-mute: #9AA0A8;
+    --line: #EDEFF2;
+    --line-2: #E3E6EA;
     --accent: #0D9488;
-    --accent-soft: #CCFBF1;
-    --accent-dark: #0B7A70;
-    --weekend: #DC2626;
-    --ink: #1F2430;
-    --ink-dark: #11141B;
+    --accent-soft: #E6F5F3;
+    --accent-deep: #0B7A70;
+    --warn: #F08C00;
+    --danger: #E03131;
+    --shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.06);
+    --radius: 18px;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
   body {
-    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
-    background: #FFFFFF;
-    margin: 0;
-    padding: 30px 20px;
-    color: var(--text-main);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: 0 0 56px;
   }
-  .container { max-width: 1200px; margin: 0 auto; background: var(--surface); border-radius: 16px; box-shadow: 0 4px 20px rgba(62,39,35,0.06); padding: 36px; border: 1px solid var(--line); }
-  .header-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; background: #6B7280; padding: 10px 14px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.10); }
-  .nav-btn { background: var(--surface); color: var(--text-main); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 13px; font-weight: 500; text-decoration: none; transition: all 0.15s; }
-  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .nav-btn.home { background: var(--accent); color: white; border-color: var(--accent); }
-  .nav-btn.home:hover { background: var(--accent-dark); color: white; }
-  .date-info { text-align: center; font-size: 20px; font-weight: 600; margin-bottom: 12px; }
-  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
-  .btn { padding: 7px 16px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-main); border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
-  .btn:hover { border-color: var(--accent); color: var(--accent); }
-  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
-  .extra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-  .extra-grid h3 { margin: 0 0 6px; font-size: 15px; }
-  h3 { margin: 12px 0 8px; font-size: 16px; color: var(--text-main); }
-  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  th, td { border: 1px solid var(--line); padding: 8px; font-size: 13px; text-align: center; }
-  th { background: var(--surface-soft); font-weight: 600; }
-  td.time { background: #FFFFFF; color: var(--text-sub); width: 110px; }
-  td.time:focus { outline: none; border: 1px solid var(--accent); background: var(--surface); }
-  td.editable { background: var(--cell-bg); cursor: text; }
-  td.editable:focus { outline: none; border: 1px solid var(--accent); background: var(--surface); }
-  .todo-done { text-decoration: line-through; color: var(--weekend); }
-  /* 투두리스트 글씨 빨강, 완료하면 빨간 취소선(성취감) */
-  #todoTable td.editable, #timetable td.editable { color: #DC2626; font-weight: 600; }
-  #todoTable td.editable.todo-done { color: #DC2626; text-decoration: line-through; text-decoration-color: #DC2626; text-decoration-thickness: 2px; }
-  /* 완료 퍼센트 배지 */
-  .todo-percent {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #fff;
-    background: #9CA1AB;
-    vertical-align: middle;
-    transition: background 0.2s;
+  .app { max-width: 480px; margin: 0 auto; padding: 0 18px; }
+
+  /* 상단 날짜 헤더 */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(244,245,247,.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    padding: 14px 0 10px;
   }
-  textarea { width: 100%; height: 80px; padding: 7px 8px; border: 1px solid var(--line-strong); border-radius: 6px; font-size: 13px; resize: vertical; }
-  /* 중요 투두 하이라이트 */
-  tr.todo-important td.editable { background: #FFF8E1; font-weight: 700; border-left: 3px solid #FB8C00; }
-  .star-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 0 4px; color: #D7CCC8; line-height: 1; }
-  .star-btn.on { color: #FB8C00; }
-  /* 모바일 최적화 */
-  @media (max-width: 760px) {
-    body { padding: 12px 8px; }
-    .container { padding: 16px 12px; border-radius: 12px; }
-    .main-grid { grid-template-columns: 1fr; gap: 16px; }
-    .extra-grid { grid-template-columns: 1fr; }
-    .date-info { font-size: 18px; }
-    th, td { padding: 7px 6px; font-size: 14px; }
-    td.time { width: 92px; }
-    .nav-btn, .btn { padding: 10px 14px; font-size: 14px; }
-    .header-bar, .toolbar { gap: 6px; }
+  .topbar-inner {
+    max-width: 480px; margin: 0 auto; padding: 0 18px;
+    display: flex; align-items: center; justify-content: space-between;
   }
+  .nav-circle {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--line-2); background: var(--surface);
+    display: grid; place-items: center; cursor: pointer;
+    font-size: 20px; color: var(--text-sub); transition: .15s; line-height: 1;
+  }
+  .nav-circle:hover { border-color: var(--accent); color: var(--accent); }
+  .date-center { text-align: center; }
+  .date-main { font-size: 19px; font-weight: 700; letter-spacing: -.3px; }
+  .today-pill {
+    display: inline-block; margin-top: 4px;
+    font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); padding: 2px 9px; border-radius: 999px;
+  }
+
+  /* 진행률 히어로 */
+  .hero {
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    border-radius: var(--radius); padding: 20px 22px; margin-top: 6px;
+    color: #fff; box-shadow: 0 8px 24px rgba(13,148,136,.28);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .hero-label { font-size: 13px; opacity: .85; font-weight: 500; }
+  .hero-big { font-size: 25px; font-weight: 800; letter-spacing: -.5px; margin-top: 2px; }
+  .hero-sub { font-size: 12.5px; opacity: .82; margin-top: 3px; }
+  .ring {
+    width: 64px; height: 64px; border-radius: 50%; flex: none;
+    background: conic-gradient(#fff var(--p,0%), rgba(255,255,255,.25) 0);
+    display: grid; place-items: center; transition: background .4s;
+  }
+  .ring span {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--accent-deep); display: grid; place-items: center;
+    font-size: 13px; font-weight: 800; color: #fff;
+  }
+
+  /* 카드 */
+  .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 14px; overflow: hidden; }
+  .card-head { display: flex; align-items: center; gap: 7px; padding: 16px 18px 8px; }
+  .card-title { font-size: 15.5px; font-weight: 700; letter-spacing: -.2px; }
+  .card-count { font-size: 12px; color: var(--text-mute); font-weight: 600; }
+  .card-body { padding: 0 8px 8px; }
+
+  /* 체크리스트 */
+  .todo { display: flex; align-items: center; gap: 12px; padding: 11px 10px; border-radius: 12px; transition: background .12s; }
+  .todo:hover { background: #F8F9FB; }
+  .check { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-2); display: grid; place-items: center; transition: .15s; color: transparent; font-size: 13px; cursor: pointer; }
+  .todo.done .check { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .todo-text { flex: 1; font-size: 15px; color: var(--text); transition: color .15s; outline: none; min-height: 22px; line-height: 22px; }
+  .todo.done .todo-text { color: var(--text-mute); text-decoration: line-through; }
+  .todo.important { background: #FFF9EC; }
+  .todo.important .todo-text { font-weight: 600; }
+  .star { flex: none; font-size: 17px; color: #DFE3E8; transition: .15s; padding: 4px; cursor: pointer; user-select: none; }
+  .star.on { color: var(--warn); }
+  [contenteditable][data-ph]:empty:before { content: attr(data-ph); color: var(--text-mute); }
+  .add-row { display: flex; align-items: center; gap: 8px; padding: 12px; color: var(--accent); font-weight: 600; font-size: 14px; cursor: pointer; border-radius: 12px; }
+  .add-row:hover { background: var(--accent-soft); }
+
+  /* 타임라인 */
+  .tl { display: flex; gap: 12px; padding: 11px 14px; align-items: baseline; }
+  .tl + .tl { border-top: 1px solid var(--line); }
+  .tl-time { flex: none; min-width: 86px; font-size: 12px; color: var(--text-mute); font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; outline: none; }
+  .tl-time:focus { color: var(--accent); }
+  .tl-text { flex: 1; font-size: 14.5px; outline: none; min-height: 21px; }
+
+  /* 접이식 */
+  .fold { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 14px; }
+  .fold-head { display: flex; align-items: center; gap: 10px; padding: 15px 18px; cursor: pointer; user-select: none; }
+  .fold-emoji { font-size: 17px; }
+  .fold-title { flex: 1; font-size: 14.5px; font-weight: 600; }
+  .fold-meta { font-size: 12px; color: var(--text-mute); }
+  .chev { color: var(--text-mute); transition: transform .2s; font-size: 12px; }
+  .fold.open .chev { transform: rotate(180deg); }
+  .fold-body { display: none; padding: 0 18px 16px; }
+  .fold.open .fold-body { display: block; }
+  .sub-label { font-size: 12.5px; font-weight: 700; color: var(--text-sub); margin: 12px 0 6px; }
+  .field { width: 100%; border: 1px solid var(--line-2); border-radius: 12px; padding: 11px 13px; font-family: inherit; font-size: 14px; color: var(--text); resize: vertical; outline: none; background: #FCFCFD; line-height: 1.5; }
+  .field:focus { border-color: var(--accent); background: #fff; }
+  .field::placeholder { color: var(--text-mute); }
+  .mini-list { border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden; }
+  .mini-row { display: flex; gap: 10px; padding: 9px 12px; align-items: baseline; }
+  .mini-row + .mini-row { border-top: 1px solid var(--line); }
+  .mini-time { flex: none; min-width: 88px; font-size: 12px; color: var(--text-mute); font-weight: 600; outline: none; white-space: nowrap; }
+  .mini-text { flex: 1; font-size: 14px; outline: none; min-height: 20px; }
+
+  .banner { background: #FFF8E1; border: 1px solid #FFE9A8; border-radius: 14px; padding: 12px 16px; margin-top: 14px; font-size: 13.5px; color: #8A6D1A; display: flex; align-items: center; gap: 9px; text-decoration: none; }
+  .banner .dd { font-weight: 800; color: var(--danger); }
+  .banner-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+
+  .footer-tools { display: flex; gap: 8px; margin-top: 18px; }
+  .ghost-btn { flex: 1; text-align: center; padding: 11px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); color: var(--text-sub); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ghost-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+  .saved { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%) translateY(8px); background: var(--text); color: #fff; padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: .25s; z-index: 50; }
+  .saved.show { opacity: .95; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
-<div class="container">
-    <div class="header-bar">
-      <a id="monthLink" href="month.html" class="nav-btn home">← 월간 보기</a>
-      <button class="btn" id="prevBtn">← 전날</button>
-      <button class="btn" id="nextBtn">다음날 →</button>
-    </div>
-    <div class="date-info" id="dateTitle"></div>
-    <div class="toolbar">
-      <button class="btn" id="clearBtn">전체 초기화</button>
-      <button class="btn" id="resetBtn">새 일정 만들기</button>
-      <button class="btn" id="schoolBtn">🏫</button>
-      <button class="btn" id="academyBtn">🎓</button>
-    </div>
-  <div style="margin-bottom:12px;">
-    <textarea id="assessmentInput" placeholder="오늘의 수행평가..."></textarea>
-  </div>
 
-  <div class="extra-grid">
-    <div>
-      <h3>📚 내신보강</h3>
-      <textarea id="naesinInput" placeholder="오늘 내신보강 (과목·내용)..."></textarea>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="nav-circle" id="prevBtn" title="전날">‹</div>
+    <div class="date-center">
+      <div class="date-main" id="dateTitle"></div>
+      <div class="today-pill" id="todayPill" style="display:none;">오늘</div>
     </div>
-    <div>
-      <h3>🎯 특강</h3>
-      <textarea id="specialInput" placeholder="오늘 특강 (과목·기관·시간)..."></textarea>
-    </div>
-  </div>
-
-  <div class="main-grid">
-    <section class="schedule-section">
-      <h3>할일</h3>
-      <table id="timetable">
-        <thead><tr><th class="time">시간</th><th class="editable">내용</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-    <section class="schedule-section">
-      <h3>학교 시간표</h3>
-      <table id="schoolTable">
-        <thead>
-          <tr><th class="time">시간</th><th class="editable">내용</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-    <section class="schedule-section">
-      <h3>학원 시간표</h3>
-      <table id="academyTable">
-        <thead>
-          <tr><th class="time">시간</th><th class="editable">내용</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-    <section class="todo-section">
-      <h3>to do 리스트 <span id="todoPercent" class="todo-percent" title="완료율">0%</span></h3>
-      <table id="todoTable">
-        <thead><tr><th class="editable">할일</th><th style="width:48px;">중요</th><th style="width:48px;">완료</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <button class="btn" id="addTodoBtn">할일 추가</button>
-      <div style="margin-top:12px;">
-        <textarea id="memoArea" placeholder="메모..." style="width:100%;height:80px;padding:7px 8px;border:1px solid var(--line-strong);border-radius:6px;font-size:13px;resize:vertical;"></textarea>
-      </div>
-    </section>
+    <div class="nav-circle" id="nextBtn" title="다음날">›</div>
   </div>
 </div>
+
+<div class="app">
+
+  <!-- 진행률 -->
+  <div class="hero">
+    <div>
+      <div class="hero-label">오늘 할 일</div>
+      <div class="hero-big" id="heroBig">0 / 0 완료</div>
+      <div class="hero-sub" id="heroSub">할 일을 추가해 보세요</div>
+    </div>
+    <div class="ring" id="ring" style="--p:0%"><span id="ringPct">0%</span></div>
+  </div>
+
+  <!-- 다가오는 수행평가 -->
+  <div class="banner-list" id="upcomingList"></div>
+
+  <!-- 할 일 체크리스트 -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">할 일</span>
+      <span class="card-count" id="todoCount"></span>
+    </div>
+    <div class="card-body">
+      <div id="todoList"></div>
+      <div class="add-row" id="addTodoBtn">＋ 할 일 추가</div>
+    </div>
+  </div>
+
+  <!-- 오늘 일정 (시간 블록) -->
+  <div class="card">
+    <div class="card-head"><span class="card-title">오늘 일정</span></div>
+    <div class="card-body" style="padding:0 0 4px;">
+      <div id="tlList"></div>
+      <div class="add-row" id="addTlBtn" style="padding-left:14px;">＋ 시간 추가</div>
+    </div>
+  </div>
+
+  <!-- 학교·학원 시간표 -->
+  <div class="fold">
+    <div class="fold-head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="fold-emoji">🏫</span>
+      <span class="fold-title">학교 · 학원 시간표</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="fold-body">
+      <div class="sub-label">🏫 학교 시간표</div>
+      <div class="mini-list" id="schoolList"></div>
+      <div class="add-row" id="addSchoolBtn" style="padding:8px 4px;">＋ 줄 추가</div>
+      <div class="sub-label">🎓 학원 시간표</div>
+      <div class="mini-list" id="academyList"></div>
+      <div class="add-row" id="addAcademyBtn" style="padding:8px 4px;">＋ 줄 추가</div>
+    </div>
+  </div>
+
+  <!-- 수행평가·내신보강·특강 -->
+  <div class="fold open">
+    <div class="fold-head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="fold-emoji">📚</span>
+      <span class="fold-title">수행평가 · 내신보강 · 특강</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="fold-body">
+      <div class="sub-label">오늘의 수행평가</div>
+      <textarea class="field" id="assessmentInput" rows="2" placeholder="오늘의 수행평가..."></textarea>
+      <div class="sub-label">📚 내신보강</div>
+      <textarea class="field" id="naesinInput" rows="2" placeholder="오늘 내신보강 (과목·내용)..."></textarea>
+      <div class="sub-label">🎯 특강</div>
+      <textarea class="field" id="specialInput" rows="2" placeholder="오늘 특강 (과목·기관·시간)..."></textarea>
+    </div>
+  </div>
+
+  <!-- 메모 -->
+  <div class="fold">
+    <div class="fold-head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="fold-emoji">📝</span>
+      <span class="fold-title">메모</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="fold-body">
+      <textarea class="field" id="memoArea" rows="3" placeholder="자유롭게 메모하세요..."></textarea>
+    </div>
+  </div>
+
+  <div class="footer-tools">
+    <a class="ghost-btn" id="monthLink" href="month.html">← 월간 보기</a>
+    <div class="ghost-btn" id="resetBtn">새 일정 만들기</div>
+    <div class="ghost-btn danger" id="clearBtn">전체 초기화</div>
+  </div>
+
+</div>
+
+<div class="saved" id="saved">저장됨</div>
+
+<script src="notifications.js"></script>
 <script>
   // ---------- 날짜 및 키 ----------
   const urlParams = new URLSearchParams(location.search);
-  let selectedDate = urlParams.get('date') || new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  let assessmentKey = `jihoon-assessment-${selectedDate}`;
-  let timetableKey   = `timetable_${selectedDate}`;
-  let todoKey        = `todo_${selectedDate}`;
-  let memoKey        = `memo_${selectedDate}`;
-  let schoolKey      = `school_${selectedDate}`;
-  let academyKey     = `academy_${selectedDate}`;
-  let naesinKey      = `naesin_${selectedDate}`;
-  let specialKey     = `special_${selectedDate}`;
-
+  let selectedDate = urlParams.get('date') || new Date().toISOString().split('T')[0];
+  let assessmentKey, timetableKey, todoKey, memoKey, schoolKey, academyKey, naesinKey, specialKey;
   function updateKeys(){
     assessmentKey = `jihoon-assessment-${selectedDate}`;
-    timetableKey   = `timetable_${selectedDate}`;
-    todoKey        = `todo_${selectedDate}`;
-    schoolKey      = `school_${selectedDate}`;
-    academyKey     = `academy_${selectedDate}`;
-    memoKey        = `memo_${selectedDate}`;
-    naesinKey      = `naesin_${selectedDate}`;
-    specialKey     = `special_${selectedDate}`;
+    timetableKey  = `timetable_${selectedDate}`;
+    todoKey       = `todo_${selectedDate}`;
+    schoolKey     = `school_${selectedDate}`;
+    academyKey    = `academy_${selectedDate}`;
+    memoKey       = `memo_${selectedDate}`;
+    naesinKey     = `naesin_${selectedDate}`;
+    specialKey    = `special_${selectedDate}`;
+  }
+  updateKeys();
+
+  // ---------- 저장 표시 ----------
+  let savedTimer;
+  function showSaved(){
+    const el = document.getElementById('saved');
+    el.classList.add('show');
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(()=>el.classList.remove('show'), 1200);
   }
 
   // ---------- 날짜 표시 ----------
   function renderDateInfo(){
     const d = new Date(selectedDate);
-    const year = d.getFullYear();
-    const month = String(d.getMonth()+1).padStart(2,'0');
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
     const day = String(d.getDate()).padStart(2,'0');
     const week = ['일','월','화','수','목','금','토'][d.getDay()];
-    document.getElementById('dateTitle').textContent = `${year}년 ${month}월 ${day}일 (${week}요일)`;
-    // 뒤로 갈 때 이 날짜가 속한 달/연도로 이동하도록 링크 갱신
+    document.getElementById('dateTitle').textContent = `${parseInt(m)}월 ${parseInt(day)}일 ${week}요일`;
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('todayPill').style.display = (selectedDate === todayStr) ? 'inline-block' : 'none';
     const ml = document.getElementById('monthLink');
-    if (ml) ml.href = `month.html?year=${year}&month=${parseInt(month)}`;
+    if (ml) ml.href = `month.html?year=${y}&month=${parseInt(m)}`;
+  }
+
+  function reloadAll(){
+    renderDateInfo();
+    loadTodo(); loadTimetable(); loadSchool(); loadAcademy();
+    document.getElementById('assessmentInput').value = localStorage.getItem(assessmentKey) || '';
+    document.getElementById('naesinInput').value = localStorage.getItem(naesinKey) || '';
+    document.getElementById('specialInput').value = localStorage.getItem(specialKey) || '';
+    document.getElementById('memoArea').value = localStorage.getItem(memoKey) || '';
   }
 
   function changeDate(offset){
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + offset);
-    selectedDate = newDate.toISOString().split('T')[0];
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + offset);
+    selectedDate = d.toISOString().split('T')[0];
     updateKeys();
-    // update URL without reloading page
-    const newUrl = `${location.pathname}?date=${selectedDate}`;
-    history.replaceState(null, '', newUrl);
-    renderDateInfo();
-    timetableBody.innerHTML='';
-    todoBody.innerHTML='';
-    loadTimetable();
-    loadTodo();
-    renderAssessment();
-    loadMemo();
-    renderExtra();
-    // Load school and academy timetables for the selected date
-    loadSchool();
-    loadAcademy();
+    history.replaceState(null, '', `${location.pathname}?date=${selectedDate}`);
+    reloadAll();
   }
+  document.getElementById('prevBtn').addEventListener('click', ()=>changeDate(-1));
+  document.getElementById('nextBtn').addEventListener('click', ()=>changeDate(1));
 
-  document.getElementById('prevBtn').addEventListener('click', () => changeDate(-1));
-  document.getElementById('nextBtn').addEventListener('click', () => changeDate(1));
-  // toggle school timetable visibility
-  document.getElementById('schoolBtn').addEventListener('click', () => {
-    const sec = document.querySelector('#schoolTable').parentElement;
-    sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
-    if (sec.style.display !== 'none') loadSchool();
-  });
-  // toggle academy timetable visibility
-  document.getElementById('academyBtn').addEventListener('click', () => {
-    const sec = document.querySelector('#academyTable').parentElement;
-    sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
-    if (sec.style.display !== 'none') loadAcademy();
-  });
-
-  // ---------- 시간 포맷 (시:분) ----------
   function fmt(min){
-    const h = Math.floor(min/60)%24;
-    const m = min%60;
+    const h = Math.floor(min/60)%24, m = min%60;
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   }
 
-  // ---------- 수행평가 ----------
-  const assessmentInput = document.getElementById('assessmentInput');
-  function renderAssessment(){
-    assessmentInput.value = localStorage.getItem(assessmentKey) || '';
-  }
-  assessmentInput.addEventListener('blur',()=>{
-    localStorage.setItem(assessmentKey, assessmentInput.value);
-  });
-
-  // ---------- 내신보강 / 특강 ----------
-  const naesinInput = document.getElementById('naesinInput');
-  const specialInput = document.getElementById('specialInput');
-  function renderExtra(){
-    naesinInput.value = localStorage.getItem(naesinKey) || '';
-    specialInput.value = localStorage.getItem(specialKey) || '';
-  }
-  naesinInput.addEventListener('blur', ()=> localStorage.setItem(naesinKey, naesinInput.value));
-  specialInput.addEventListener('blur', ()=> localStorage.setItem(specialKey, specialInput.value));
-
-  // ---------- 개인 시간표 (블록) ----------
-  const timetableBody = document.querySelector('#timetable tbody');
-  function defaultTimetable(){
-  const blocks = [
-    {start:0, end:6*60, text:'잠자는 시간'},
-    {start:6*60, end:8*60, text:'자습·식사'},
-    {start:8*60, end:15*60+30, text:'학교'}
-  ];
-  // add hourly blocks for remaining time
-  for(let t=15*60+30; t<24*60; t+=60){
-    const end = Math.min(t+60, 24*60);
-    blocks.push({start:t, end:end, text:''});
-  }
-  return blocks;
-}
-  function loadTimetable(){
-    const data = localStorage.getItem(timetableKey);
-    if(data){
-      const rows = JSON.parse(data);
-      rows.forEach(r=>createRow(r.time, r.text));
-    } else {
-      defaultTimetable().forEach(b=>createRow(`${fmt(b.start)}-${fmt(b.end)}`, b.text));
-    }
-  }
-
-  function loadSchool(){
-    const data = localStorage.getItem(schoolKey);
-    const tbody = document.querySelector('#schoolTable tbody');
-    tbody.innerHTML='';
-    if(data){
-      const rows = JSON.parse(data);
-      rows.forEach(r=>createSchoolRow(r.time, r.text));
-    } else {
-      // default empty rows (e.g., 8am-5pm)
-      createSchoolRow('08:00-09:00','');
-    }
-  }
-
-  function saveSchool(){
-    const rows = [...document.querySelectorAll('#schoolTable tbody tr')].map(tr=>({
-      time: tr.children[0].textContent,
-      text: tr.children[1].textContent
-    }));
-    localStorage.setItem(schoolKey, JSON.stringify(rows));
-  }
-
-  function createSchoolRow(timeStr, text=''){
-    const tr = document.createElement('tr');
-    const tdTime = document.createElement('td');
-    tdTime.className='time';
-    tdTime.textContent=timeStr;
-    tdTime.contentEditable=true;
-    tdTime.addEventListener('blur', saveSchool);
-    const tdEdit = document.createElement('td');
-    tdEdit.className='editable';
-    tdEdit.contentEditable=true;
-    tdEdit.textContent=text;
-    tdEdit.addEventListener('blur', saveSchool);
-    tr.appendChild(tdTime);
-    tr.appendChild(tdEdit);
-    document.querySelector('#schoolTable tbody').appendChild(tr);
-  }
-
-  function loadAcademy(){
-    const data = localStorage.getItem(academyKey);
-    const tbody = document.querySelector('#academyTable tbody');
-    tbody.innerHTML='';
-    if(data){
-      const rows = JSON.parse(data);
-      rows.forEach(r=>createAcademyRow(r.time, r.text));
-    } else {
-      createAcademyRow('08:00-09:00','');
-    }
-  }
-
-  function saveAcademy(){
-    const rows = [...document.querySelectorAll('#academyTable tbody tr')].map(tr=>({
-      time: tr.children[0].textContent,
-      text: tr.children[1].textContent
-    }));
-    localStorage.setItem(academyKey, JSON.stringify(rows));
-  }
-
-  function createAcademyRow(timeStr, text=''){
-    const tr = document.createElement('tr');
-    const tdTime = document.createElement('td');
-    tdTime.className='time';
-    tdTime.textContent=timeStr;
-    tdTime.contentEditable=true;
-    tdTime.addEventListener('blur', saveAcademy);
-    const tdEdit = document.createElement('td');
-    tdEdit.className='editable';
-    tdEdit.contentEditable=true;
-    tdEdit.textContent=text;
-    tdEdit.addEventListener('blur', saveAcademy);
-    tr.appendChild(tdTime);
-    tr.appendChild(tdEdit);
-    document.querySelector('#academyTable tbody').appendChild(tr);
-  }
-  function createRow(timeStr, text=''){
-  const tr = document.createElement('tr');
-  const tdTime = document.createElement('td');
-  tdTime.className = 'time';
-  tdTime.textContent = timeStr;
-  tdTime.contentEditable = true;
-  tdTime.addEventListener('blur', function(){
-    const pattern = /^\d{2}:\d{2}-\d{2}:\d{2}$/;
-    if(!pattern.test(tdTime.textContent.trim())){
-      alert('시간 형식은 HH:MM-HH:MM 이어야 합니다.');
-      // revert to previous saved value if needed (fallback to original)
-      const rows = JSON.parse(localStorage.getItem(timetableKey)||'[]');
-      const index = Array.from(timetableBody.children).indexOf(tr);
-      if(rows[index]) tdTime.textContent = rows[index].time;
-    } else {
-      saveTimetable();
-    }
-  });
-  tdTime.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); tdTime.blur(); } });
-  // double‑click to split into 10‑minute slots
-  tdTime.addEventListener('dblclick',() => splitRow(tr));
-  const tdEdit = document.createElement('td');
-  tdEdit.className = 'editable';
-  tdEdit.contentEditable = true;
-  tdEdit.textContent = text;
-  tdEdit.addEventListener('blur', saveTimetable);
-  tdEdit.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); tdEdit.blur(); } });
-  tr.appendChild(tdTime);
-  tr.appendChild(tdEdit);
-  timetableBody.appendChild(tr);
-}
-  function saveTimetable(){
-    const rows = [...timetableBody.querySelectorAll('tr')].map(tr=>({
-      time: tr.children[0].textContent,
-      text: tr.children[1].textContent
-    }));
-    localStorage.setItem(timetableKey, JSON.stringify(rows));
-  }
-
-  // Split a row into 10‑minute slots
-  function splitRow(row){
-    const tdTime = row.children[0];
-    const tdEdit = row.children[1];
-    const timeRange = tdTime.textContent;
-    const [startStr, endStr] = timeRange.split('-');
-    const startMin = parseInt(startStr.split(':')[0]) * 60 + parseInt(startStr.split(':')[1]);
-    const endMin = parseInt(endStr.split(':')[0]) * 60 + parseInt(endStr.split(':')[1]);
-    const text = tdEdit.textContent;
-    // remove original row
-    row.remove();
-    for(let m = startMin; m < endMin; m += 10){
-      const segEnd = Math.min(m + 10, endMin);
-      createRow(`${fmt(m)}-${fmt(segEnd)}`, text);
-    }
-    saveTimetable();
-  }
-
-  // ---------- 투두리스트 ----------
-  const todoBody = document.querySelector('#todoTable tbody');
+  // ---------- 할 일 (체크리스트) ----------
+  const todoList = document.getElementById('todoList');
   function loadTodo(){
+    todoList.innerHTML = '';
     const data = localStorage.getItem(todoKey);
-    if(data){
-      const rows = JSON.parse(data);
-      rows.forEach(r=>addTodoRow(r.text, r.done, r.important));
-    } else {
-      for(let i=0;i<5;i++) addTodoRow('', false, false);
-    }
+    if (data){ JSON.parse(data).forEach(r=>addTodoRow(r.text, r.done, r.important)); }
+    else { for (let i=0;i<3;i++) addTodoRow('', false, false); }
     updateTodoPercent();
   }
-  function addTodoRow(text='', done=false, important=false){
-    const tr = document.createElement('tr');
-    if(important) tr.classList.add('todo-important');
-    const tdText = document.createElement('td');
-    tdText.className = 'editable';
-    tdText.contentEditable = true;
-    tdText.textContent = text;
-    tdText.addEventListener('blur', saveTodo);
-    tdText.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); tdText.blur(); } });
-    // 중요(별표) 토글
-    const tdStar = document.createElement('td');
-    const star = document.createElement('button');
-    star.className = 'star-btn' + (important ? ' on' : '');
-    star.type = 'button';
-    star.textContent = '★';
-    star.title = '중요 표시';
-    star.addEventListener('click', () => {
-      const on = star.classList.toggle('on');
-      tr.classList.toggle('todo-important', on);
-      saveTodo();
-    });
-    tdStar.appendChild(star);
-    const tdChk = document.createElement('td');
-    const chk = document.createElement('input');
-    chk.type = 'checkbox';
-    chk.checked = done;
-    chk.addEventListener('change',()=>{ if(chk.checked) tdText.classList.add('todo-done'); else tdText.classList.remove('todo-done'); saveTodo(); });
-    if(done) tdText.classList.add('todo-done');
-    tdChk.appendChild(chk);
-    tr.appendChild(tdText);
-    tr.appendChild(tdStar);
-    tr.appendChild(tdChk);
-    todoBody.appendChild(tr);
+  function addTodoRow(text='', done=false, important=false, focus=false){
+    const row = document.createElement('div');
+    row.className = 'todo' + (done?' done':'') + (important?' important':'');
+    const check = document.createElement('div'); check.className='check'; check.textContent='✓';
+    const txt = document.createElement('div'); txt.className='todo-text'; txt.contentEditable=true; txt.textContent=text; txt.dataset.ph='할 일 입력';
+    const star = document.createElement('div'); star.className='star'+(important?' on':''); star.textContent='★';
+    check.addEventListener('click', ()=>{ row.classList.toggle('done'); saveTodo(); });
+    star.addEventListener('click', ()=>{ const on=star.classList.toggle('on'); row.classList.toggle('important', on); saveTodo(); });
+    txt.addEventListener('blur', saveTodo);
+    txt.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); txt.blur(); } });
+    row.appendChild(check); row.appendChild(txt); row.appendChild(star);
+    todoList.appendChild(row);
+    if (focus) txt.focus();
   }
   function saveTodo(){
-    const rows = [...todoBody.querySelectorAll('tr')].map(tr=>({
-      text: tr.children[0].textContent,
-      important: tr.children[1].querySelector('.star-btn').classList.contains('on'),
-      done: tr.children[2].querySelector('input').checked
+    const rows = [...todoList.querySelectorAll('.todo')].map(r=>({
+      text: r.querySelector('.todo-text').textContent,
+      important: r.querySelector('.star').classList.contains('on'),
+      done: r.classList.contains('done')
     }));
     localStorage.setItem(todoKey, JSON.stringify(rows));
     updateTodoPercent();
+    showSaved();
   }
-
-  // 완료율(%) — 내용이 있는 할일 기준으로 계산해 옆 배지에 표시.
   function updateTodoPercent(){
-    const el = document.getElementById('todoPercent');
-    if(!el) return;
     let total=0, done=0;
-    [...todoBody.querySelectorAll('tr')].forEach(tr=>{
-      const text = tr.children[0].textContent.trim();
-      if(!text) return;
-      total++;
-      if(tr.children[2].querySelector('input').checked) done++;
+    [...todoList.querySelectorAll('.todo')].forEach(r=>{
+      const t = r.querySelector('.todo-text').textContent.trim();
+      if(!t) return; total++;
+      if(r.classList.contains('done')) done++;
     });
     const pct = total ? Math.round(done/total*100) : 0;
-    el.textContent = pct + '%';
-    el.title = `${done}/${total} 완료`;
-    el.style.background = pct===100 ? '#16A34A' : pct>0 ? '#DC2626' : '#9CA1AB';
+    document.getElementById('heroBig').textContent = `${done} / ${total} 완료`;
+    document.getElementById('ring').style.setProperty('--p', pct+'%');
+    document.getElementById('ringPct').textContent = pct+'%';
+    document.getElementById('todoCount').textContent = total ? `· ${total}개` : '';
+    document.getElementById('heroSub').textContent =
+      total===0 ? '할 일을 추가해 보세요' :
+      pct===100 ? '오늘 할 일 모두 완료! 🎉' :
+      pct>=60  ? '거의 다 왔어요 💪' :
+      pct>0    ? '하나씩 해볼까요?' : '오늘도 화이팅!';
   }
+  document.getElementById('addTodoBtn').addEventListener('click', ()=>addTodoRow('', false, false, true));
 
-  // ---------- 메모 ----------
-  const memoArea = document.getElementById('memoArea');
-  function loadMemo(){
-    memoArea.value = localStorage.getItem(memoKey) || '';
+  // ---------- 오늘 일정 (시간 블록) ----------
+  const tlList = document.getElementById('tlList');
+  function defaultTimetable(){
+    const blocks = [
+      {start:0, end:6*60, text:'잠자는 시간'},
+      {start:6*60, end:8*60, text:'자습·식사'},
+      {start:8*60, end:15*60+30, text:'학교'}
+    ];
+    for(let t=15*60+30; t<24*60; t+=60){ blocks.push({start:t, end:Math.min(t+60,24*60), text:''}); }
+    return blocks;
   }
-  memoArea.addEventListener('blur', () => {
-    localStorage.setItem(memoKey, memoArea.value);
-  });
+  function loadTimetable(){
+    tlList.innerHTML = '';
+    const data = localStorage.getItem(timetableKey);
+    if (data){ JSON.parse(data).forEach(r=>createRow(r.time, r.text)); }
+    else { defaultTimetable().forEach(b=>createRow(`${fmt(b.start)}-${fmt(b.end)}`, b.text)); }
+  }
+  function createRow(timeStr, text=''){
+    const row = document.createElement('div'); row.className='tl';
+    const time = document.createElement('div'); time.className='tl-time'; time.contentEditable=true; time.textContent=timeStr; time.dataset.ph='00:00';
+    const txt = document.createElement('div'); txt.className='tl-text'; txt.contentEditable=true; txt.textContent=text; txt.dataset.ph='일정 입력';
+    time.addEventListener('blur', ()=>{
+      const pattern = /^\d{1,2}:\d{2}(-\d{1,2}:\d{2})?$/;
+      if(time.textContent.trim() && !pattern.test(time.textContent.trim())){
+        alert('시간 형식은 HH:MM 또는 HH:MM-HH:MM 이어야 합니다.');
+        const rows = JSON.parse(localStorage.getItem(timetableKey)||'[]');
+        const idx = [...tlList.children].indexOf(row);
+        if(rows[idx]) time.textContent = rows[idx].time;
+        return;
+      }
+      saveTimetable();
+    });
+    time.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); time.blur(); } });
+    txt.addEventListener('blur', saveTimetable);
+    txt.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); txt.blur(); } });
+    row.appendChild(time); row.appendChild(txt); tlList.appendChild(row);
+  }
+  function saveTimetable(){
+    const rows = [...tlList.querySelectorAll('.tl')].map(r=>({
+      time: r.querySelector('.tl-time').textContent,
+      text: r.querySelector('.tl-text').textContent
+    }));
+    localStorage.setItem(timetableKey, JSON.stringify(rows));
+    showSaved();
+  }
+  document.getElementById('addTlBtn').addEventListener('click', ()=>{ createRow('', ''); saveTimetable(); });
+
+  // ---------- 학교 / 학원 (간단 리스트) ----------
+  function makeMiniList(listEl, storageKey){
+    function load(){
+      listEl.innerHTML = '';
+      const data = localStorage.getItem(storageKey);
+      if (data){ JSON.parse(data).forEach(r=>addRow(r.time, r.text)); }
+      else { addRow('08:00-09:00',''); }
+    }
+    function addRow(time='', text=''){
+      const row = document.createElement('div'); row.className='mini-row';
+      const t = document.createElement('div'); t.className='mini-time'; t.contentEditable=true; t.textContent=time; t.dataset.ph='시간';
+      const x = document.createElement('div'); x.className='mini-text'; x.contentEditable=true; x.textContent=text; x.dataset.ph='과목·내용';
+      t.addEventListener('blur', save); x.addEventListener('blur', save);
+      [t,x].forEach(el=>el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } }));
+      row.appendChild(t); row.appendChild(x); listEl.appendChild(row);
+    }
+    function save(){
+      const rows = [...listEl.querySelectorAll('.mini-row')].map(r=>({
+        time: r.querySelector('.mini-time').textContent,
+        text: r.querySelector('.mini-text').textContent
+      }));
+      localStorage.setItem(storageKey, JSON.stringify(rows));
+      showSaved();
+    }
+    return { load, addRow: ()=>{ addRow('',''); save(); } };
+  }
+  let schoolCtl, academyCtl;
+  function loadSchool(){ schoolCtl = makeMiniList(document.getElementById('schoolList'), schoolKey); schoolCtl.load(); }
+  function loadAcademy(){ academyCtl = makeMiniList(document.getElementById('academyList'), academyKey); academyCtl.load(); }
+  document.getElementById('addSchoolBtn').addEventListener('click', ()=>schoolCtl.addRow());
+  document.getElementById('addAcademyBtn').addEventListener('click', ()=>academyCtl.addRow());
+
+  // ---------- 텍스트 영역 (수행평가/내신/특강/메모) ----------
+  function bindArea(id, getKey){
+    const el = document.getElementById(id);
+    el.addEventListener('blur', ()=>{ localStorage.setItem(getKey(), el.value); });
+    el.addEventListener('input', showSaved);
+  }
+  bindArea('assessmentInput', ()=>assessmentKey);
+  bindArea('naesinInput', ()=>naesinKey);
+  bindArea('specialInput', ()=>specialKey);
+  bindArea('memoArea', ()=>memoKey);
 
   // ---------- 초기화 / 리셋 ----------
-  const clearBtn = document.getElementById('clearBtn');
-  const resetBtn = document.getElementById('resetBtn');
   function resetAll(){
-    localStorage.removeItem(assessmentKey);
-    localStorage.removeItem(timetableKey);
-    localStorage.removeItem(todoKey);
-    localStorage.removeItem(memoKey);
-    localStorage.removeItem(naesinKey);
-    localStorage.removeItem(specialKey);
-    // rebuild UI
-    timetableBody.innerHTML='';
-    loadTimetable();
-    todoBody.innerHTML='';
-    loadTodo();
-    renderAssessment();
-    loadMemo();
-    renderExtra();
+    [assessmentKey, timetableKey, todoKey, memoKey, naesinKey, specialKey, schoolKey, academyKey]
+      .forEach(k=>localStorage.removeItem(k));
+    reloadAll();
   }
-  clearBtn.addEventListener('click',()=>{ if(confirm('전체 초기화하시겠습니까?')) resetAll(); });
-  resetBtn.addEventListener('click',()=>{ resetAll(); });
+  document.getElementById('clearBtn').addEventListener('click', ()=>{ if(confirm('이 날의 모든 입력 내용을 지울까요?')) resetAll(); });
+  document.getElementById('resetBtn').addEventListener('click', resetAll);
 
-  // ---------- 투두 추가 ----------
-  document.getElementById('addTodoBtn').addEventListener('click',()=>addTodoRow());
+  // ---------- 다가오는 수행평가 배너 ----------
+  function renderUpcoming(){
+    const box = document.getElementById('upcomingList');
+    box.innerHTML = '';
+    if (typeof Assessments === 'undefined') return;
+    const items = Assessments.getUpcoming();
+    items.forEach(it=>{
+      const a = document.createElement('a');
+      a.className = 'banner';
+      a.href = 'day.html?date=' + it.dateStr;
+      const dd = it.dday === 0 ? 'D-DAY' : 'D-' + it.dday;
+      const md = it.dateStr.split('-');
+      a.innerHTML = `🔔 <span class="dd">${dd}</span> ${it.text} <span style="margin-left:auto;color:var(--text-mute);font-size:12px;white-space:nowrap;">${parseInt(md[1])}월 ${parseInt(md[2])}일</span>`;
+      a.style.justifyContent = 'flex-start';
+      box.appendChild(a);
+    });
+  }
 
   // ---------- 초기 실행 ----------
-  renderDateInfo();
-  renderAssessment();
-  renderExtra();
-  loadTimetable();
-  loadTodo();
-  loadMemo();
-  // hide school/academy sections initially
-  document.querySelector('#schoolTable').parentElement.style.display='none';
-  document.querySelector('#academyTable').parentElement.style.display='none';
+  reloadAll();
+  renderUpcoming();
+  if (typeof Assessments !== 'undefined') setTimeout(()=>Assessments.notifyUpcoming(), 500);
 </script>
 </body>
 </html>
