@@ -73,6 +73,9 @@
   .input-group input[type="text"] { width: 150px; }
   .input-group select { width: 130px; }
   .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--accent); }
+  .dob-selects { display: flex; gap: 6px; }
+  .dob-selects select { width: auto; flex: 1; min-width: 0; }
+  .dob-selects select#dobYear { flex: 1.3; }
   .subj-input-wrap { position: relative; }
   .subj-remove {
     position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; line-height: 14px;
@@ -272,7 +275,12 @@
     <div class="input-row">
       <div class="input-group">
         <label>생년월일</label>
-        <input type="date" id="dobInput">
+        <div class="dob-selects">
+          <select id="dobYear"></select>
+          <select id="dobMonth"></select>
+          <select id="dobDay"></select>
+        </div>
+        <input type="hidden" id="dobInput">
       </div>
       <div class="input-group">
         <label>태어난 시각 (선택)</label>
@@ -927,12 +935,57 @@
   const analyzeBtn = document.getElementById('analyzeBtn');
   const analysisResult = document.getElementById('analysisResult');
 
-  dobInput.value = localStorage.getItem('grade-dob') || '';
+  // 생년월일: 년/월/일 드롭다운
+  const dobYear = document.getElementById('dobYear');
+  const dobMonth = document.getElementById('dobMonth');
+  const dobDay = document.getElementById('dobDay');
+  const NOW_YEAR = new Date().getFullYear();
+  function fillOpts(sel, from, to, suffix, placeholder){
+    sel.innerHTML = '<option value="">' + placeholder + '</option>';
+    for (let v = from; (from <= to ? v <= to : v >= to); v += (from <= to ? 1 : -1)){
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v + suffix;
+      sel.appendChild(o);
+    }
+  }
+  fillOpts(dobYear, NOW_YEAR, 1950, '년', '년도');
+  fillOpts(dobMonth, 1, 12, '월', '월');
+  function daysInMonth(y, m){ return new Date(y, m, 0).getDate(); }
+  function refreshDays(){
+    const y = parseInt(dobYear.value), m = parseInt(dobMonth.value);
+    const max = (y && m) ? daysInMonth(y, m) : 31;
+    const prev = dobDay.value;
+    fillOpts(dobDay, 1, max, '일', '일');
+    if (prev && parseInt(prev) <= max) dobDay.value = prev;
+  }
+  function syncDob(){
+    refreshDays();
+    const y = dobYear.value, m = dobMonth.value, d = dobDay.value;
+    if (y && m && d){
+      dobInput.value = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    } else {
+      dobInput.value = '';
+    }
+    localStorage.setItem('grade-dob', dobInput.value);
+  }
+  // 저장된 값 복원
+  const savedDob = localStorage.getItem('grade-dob') || '';
+  dobInput.value = savedDob;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(savedDob)){
+    const [sy, sm, sd] = savedDob.split('-');
+    dobYear.value = parseInt(sy);
+    dobMonth.value = parseInt(sm);
+    refreshDays();
+    dobDay.value = parseInt(sd);
+  } else {
+    refreshDays();
+  }
+  [dobYear, dobMonth, dobDay].forEach(s => s.addEventListener('change', syncDob));
+
   mbtiInput.value = localStorage.getItem('grade-mbti') || '';
   birthTimeInput.value = localStorage.getItem('grade-birthtime') || '';
   levelInput.value = localStorage.getItem('grade-level') || 'auto';
   hsTypeInput.value = localStorage.getItem('grade-hstype') || '';
-  dobInput.addEventListener('change', () => localStorage.setItem('grade-dob', dobInput.value));
   mbtiInput.addEventListener('change', () => localStorage.setItem('grade-mbti', mbtiInput.value));
   birthTimeInput.addEventListener('change', () => localStorage.setItem('grade-birthtime', birthTimeInput.value));
   levelInput.addEventListener('change', () => localStorage.setItem('grade-level', levelInput.value));
