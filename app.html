@@ -156,6 +156,18 @@
   }
   .modal-close:hover { color: var(--text-main); }
 
+  /* 모바일: 탭하면 뜨는 큰 입력 바 */
+  .tt-editor { display: none; }
+  .tt-editor.show {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px; padding: 10px 12px;
+    background: #FFFBE6; border: 1px solid var(--accent); border-radius: 8px;
+    position: sticky; top: 0; z-index: 6;
+  }
+  .tt-editor .lbl { font-size: 13px; font-weight: 700; color: var(--accent-dark); white-space: nowrap; }
+  .tt-editor input { flex: 1; min-width: 0; font-size: 18px; padding: 9px 10px; border: 1px solid var(--line-strong); border-radius: 6px; outline: none; font-family: inherit; }
+  .tt-editor input:focus { border-color: var(--accent); }
+
   table.timetable {
     width: 100%;
     border-collapse: collapse;
@@ -619,6 +631,11 @@
       <button class="modal-close" id="timetableClose" title="닫기">×</button>
     </div>
 
+    <div class="tt-editor" id="ttEditor">
+      <span class="lbl" id="ttEditorLabel"></span>
+      <input type="text" id="ttEditorInput" placeholder="과목 입력" maxlength="20">
+    </div>
+
     <table class="timetable">
       <thead>
         <tr>
@@ -762,15 +779,46 @@
           localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
           showSaved();
         });
+        // 모바일: 칸을 탭하면 큰 입력 바로 적기 (격자는 한눈에 유지)
+        if (window.matchMedia('(max-width:600px)').matches) {
+          input.readOnly = true;
+          const openEd = () => openTTEditor(p, d, input);
+          input.addEventListener('focus', openEd);
+          input.addEventListener('click', openEd);
+        }
         td.appendChild(input);
         tr.appendChild(td);
       }
       timetableBody.appendChild(tr);
     }
   }
+  const ttEditor = document.getElementById('ttEditor');
+  const ttEditorLabel = document.getElementById('ttEditorLabel');
+  const ttEditorInput = document.getElementById('ttEditorInput');
+  let ttCur = null;
+  function openTTEditor(p, d, input) {
+    ttCur = { p, d, input };
+    ttEditorLabel.textContent = `${DAYS[d]}요일 ${p + 1}교시`;
+    ttEditorInput.value = input.value;
+    ttEditor.classList.add('show');
+    ttEditorInput.focus();
+    ttEditorInput.select();
+  }
+  ttEditorInput.addEventListener('input', () => {
+    if (!ttCur) return;
+    const { p, d, input } = ttCur;
+    input.value = ttEditorInput.value;
+    if (!timetableData[p]) timetableData[p] = ['', '', '', '', ''];
+    timetableData[p][d] = ttEditorInput.value;
+    localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
+    showSaved();
+  });
+  ttEditorInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); ttEditorInput.blur(); ttEditor.classList.remove('show'); } });
+
   renderTimetable();
 
   document.getElementById('timetableBtn').addEventListener('click', () => {
+    ttEditor.classList.remove('show');
     timetableModal.classList.add('show');
   });
   document.getElementById('timetableClose').addEventListener('click', () => {
