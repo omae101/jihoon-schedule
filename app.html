@@ -603,6 +603,13 @@
     2단계 · 월간 달력 — 수행평가, 시험 등 날짜별 일정 입력<br>
     3단계 · 일별 스케줄 — 시간표 + To-Do 리스트로 하루 계획
   </div>
+
+  <div style="text-align:center;margin-top:18px;">
+    <button id="backupBtn" class="timetable-btn" style="margin-left:0;"><span class="icon">📤</span> 백업 내보내기</button>
+    <button id="restoreBtn" class="timetable-btn"><span class="icon">📥</span> 복원 불러오기</button>
+    <input type="file" id="restoreFile" accept="application/json,.json" style="display:none;">
+    <p style="font-size:12px;color:var(--text-mute);margin-top:8px;line-height:1.6;">폰↔컴퓨터로 데이터를 옮길 때 사용하세요.<br>한 기기에서 <b>백업 내보내기</b> → 다른 기기에서 <b>복원 불러오기</b></p>
+  </div>
 </div>
 
 <div id="timetableModal" class="modal-overlay">
@@ -1022,6 +1029,45 @@
   renderUpcoming();
   // 페이지 열 때 한 번 알림 (오늘 한 번만, 항목별로)
   setTimeout(() => Assessments.notifyUpcoming(), 500);
+
+  // ===== 백업 / 복원 (폰↔컴퓨터 데이터 이동) =====
+  document.getElementById('backupBtn').addEventListener('click', () => {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); data[k] = localStorage.getItem(k); }
+    const payload = { _app: '한번에', _version: 1, _date: new Date().toISOString(), data };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `한번에-백업-${stamp}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showSaved();
+  });
+  const restoreFile = document.getElementById('restoreFile');
+  document.getElementById('restoreBtn').addEventListener('click', () => restoreFile.click());
+  restoreFile.addEventListener('change', () => {
+    const f = restoreFile.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const data = parsed && parsed.data ? parsed.data : parsed;
+        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('형식 오류');
+        if (!confirm('백업 파일의 내용으로 이 기기의 데이터를 덮어씁니다. 계속할까요?')) { restoreFile.value=''; return; }
+        Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+        alert('복원 완료! 페이지를 새로고침합니다.');
+        location.reload();
+      } catch (e) {
+        alert('백업 파일을 읽지 못했어요. 올바른 "한번에" 백업 파일(.json)인지 확인해 주세요.');
+      }
+      restoreFile.value = '';
+    };
+    reader.readAsText(f);
+  });
 </script>
 </body>
 </html>
