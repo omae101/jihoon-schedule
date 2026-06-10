@@ -298,6 +298,7 @@
     document.getElementById('naesinInput').value = localStorage.getItem(naesinKey) || '';
     document.getElementById('specialInput').value = localStorage.getItem(specialKey) || '';
     document.getElementById('memoArea').value = localStorage.getItem(memoKey) || '';
+    renderUpcoming();
   }
 
   function changeDate(offset){
@@ -473,7 +474,7 @@
     const box = document.getElementById('upcomingList');
     box.innerHTML = '';
     if (typeof Assessments === 'undefined') return;
-    const items = Assessments.getUpcoming();
+    const items = Assessments.getUpcoming(null, selectedDate);
     items.forEach(it=>{
       const a = document.createElement('a');
       a.className = 'banner';
@@ -488,7 +489,6 @@
 
   // ---------- 초기 실행 ----------
   reloadAll();
-  renderUpcoming();
   if (typeof Assessments !== 'undefined') setTimeout(()=>Assessments.notifyUpcoming(), 500);
 </script>
 </body>

@@ -25,9 +25,19 @@
     return Math.round(ms / 86400000);
   }
 
-  function getUpcoming(maxDays) {
+  function getUpcoming(maxDays, baseDate) {
     if (maxDays == null) maxDays = DAYS_AHEAD;
-    const today = startOfToday();
+    let today;
+    if (baseDate instanceof Date) {
+      today = new Date(baseDate.getTime());
+      today.setHours(0, 0, 0, 0);
+    } else if (typeof baseDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(baseDate)) {
+      const p = baseDate.split('-');
+      today = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+      today.setHours(0, 0, 0, 0);
+    } else {
+      today = startOfToday();
+    }
     const list = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
