@@ -111,6 +111,7 @@
     flex-direction: column; justify-content: center; gap: 4px;
   }
   .ocr-box:hover { border-color: var(--accent); color: var(--accent-dark); }
+  .ocr-box.drag { border-color: var(--accent); background: rgba(0,137,123,0.06); color: var(--accent-dark); }
 
   /* 범례 */
   .legend { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; font-size: 14px; }
@@ -272,7 +273,7 @@
       </div>
       <div class="ocr-box" id="ocrBox">
         <div>📷 <strong>성적표 사진</strong></div>
-        <div style="font-size:12px;">사진을 올리면 점수를 자동 인식 (OCR)</div>
+        <div style="font-size:12px;">끌어다 놓거나 클릭·붙여넣기(Ctrl+V) — 점수 자동 인식 (OCR)</div>
         <input type="file" id="ocrInput" accept="image/*" capture="environment" style="display:none;">
       </div>
     </div>
@@ -930,6 +931,25 @@
 
   ocrBox.addEventListener('click', () => ocrInput.click());
   ocrInput.addEventListener('change', e => { handleOcr(e.target.files[0]); e.target.value = ''; });
+  ocrBox.addEventListener('dragover', e => { e.preventDefault(); ocrBox.classList.add('drag'); });
+  ocrBox.addEventListener('dragleave', () => ocrBox.classList.remove('drag'));
+  ocrBox.addEventListener('drop', e => {
+    e.preventDefault();
+    ocrBox.classList.remove('drag');
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleOcr(f);
+  });
+  // 드롭 영역 밖에 떨어뜨려도 브라우저가 이미지를 새 탭으로 열지 않게 차단
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => e.preventDefault());
+  // 클립보드 이미지 붙여넣기(Ctrl+V)로도 성적표 인식
+  document.addEventListener('paste', e => {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (const it of items) {
+      if (it.type && it.type.indexOf('image') === 0) { handleOcr(it.getAsFile()); break; }
+    }
+  });
 
   // ================= 공부 성향 분석 =================
   const dobInput = document.getElementById('dobInput');
