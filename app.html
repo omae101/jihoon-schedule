@@ -110,6 +110,75 @@
     font-size: 18px;
   }
 
+  /* 상단바 + 햄버거 메뉴 */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .menu-btn {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-main);
+    flex: none;
+  }
+  .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .topbar-brand { font-size: 16px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; }
+
+  .drawer-overlay {
+    position: fixed; inset: 0;
+    background: rgba(30,30,40,0.45);
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.25s;
+    z-index: 1000;
+  }
+  .drawer-overlay.show { opacity: 1; visibility: visible; }
+  .drawer {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 270px; max-width: 80vw;
+    background: var(--surface);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    z-index: 1001;
+    padding: 14px 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .drawer.show { transform: translateX(0); }
+  .drawer-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 8px 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 8px;
+  }
+  .drawer-brand { font-size: 18px; font-weight: 800; color: var(--accent); }
+  .drawer-close {
+    background: none; border: none; font-size: 26px; line-height: 1;
+    color: var(--text-mute); cursor: pointer; padding: 0 4px;
+  }
+  .drawer-item {
+    display: flex; align-items: center; gap: 12px;
+    width: 100%;
+    padding: 13px 12px;
+    border: none; background: none;
+    border-radius: 10px;
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    color: var(--text-main); text-align: left;
+    text-decoration: none; cursor: pointer;
+  }
+  .drawer-item:hover, .drawer-item:active { background: var(--accent-soft); color: var(--accent-dark); }
+  .drawer-item .di-ic { font-size: 19px; width: 24px; text-align: center; flex: none; }
+  .drawer-divider { height: 1px; background: var(--line); margin: 8px 6px; }
+  .drawer-foot { font-size: 11.5px; color: var(--text-mute); padding: 12px 12px 4px; line-height: 1.5; }
+
   /* 시간표 모달 */
   .modal-overlay {
     display: none;
@@ -636,22 +705,19 @@
 </head>
 <body>
 <div class="container">
+  <div class="topbar">
+    <button id="menuBtn" class="menu-btn" title="메뉴" aria-label="메뉴">☰</button>
+    <span class="topbar-brand">한번에</span>
+  </div>
   <h1>
     <input type="text" id="ownerName" class="name-input" placeholder="이름" maxlength="10">
     <span class="name-suffix">의 <span id="yearDisplay">2026</span>년 계획표</span>
-    <button class="timetable-btn" id="timetableBtn" title="학교 시간표 보기">
-      <span class="icon">🏫</span> 학교
-    </button>
-    <button class="timetable-btn" id="academyBtn" title="학원 시간표 보기">
-      <span class="icon">🎒</span> 학원
-    </button>
   </h1>
   <div class="year-nav" style="text-align:center;margin-bottom:16px;">
     <button id="prevYear" title="이전 년도" style="padding:8px 14px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;">◀</button>
     <input id="yearInput" type="number" min="2000" max="2100" title="연도를 직접 입력하세요" style="width:96px;text-align:center;padding:8px 6px;font-size:18px;font-weight:700;color:#17181C;border:1px solid #C9CDD4;border-radius:8px;">
     <span style="font-size:18px;font-weight:700;color:#17181C;">년</span>
     <button id="nextYear" title="다음 년도" style="padding:8px 14px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;">▶</button>
-    <a href="grade.html" style="display:inline-block;padding:8px 20px;background:#E53935;color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-left:12px;">📊 성적 분석</a>
   </div>
 
   <div class="help-box" contenteditable="true" id="yearGoalBox" placeholder="올해 목표를 적어보세요...">올해 목표를 적어두세요.</div>
@@ -672,13 +738,28 @@
     <strong>연간</strong> → <strong>월간 달력</strong> → <strong>일별 스케줄</strong> 순서로 계획해요.
   </div>
 
-  <div style="text-align:center;margin-top:18px;">
-    <button id="backupBtn" class="timetable-btn" style="margin-left:0;"><span class="icon">📤</span> 백업 내보내기</button>
-    <button id="restoreBtn" class="timetable-btn"><span class="icon">📥</span> 복원 불러오기</button>
-    <input type="file" id="restoreFile" accept="application/json,.json" style="display:none;">
-    <p style="font-size:12px;color:var(--text-mute);margin-top:8px;line-height:1.6;">폰↔컴퓨터 데이터 이동용</p>
-  </div>
+  <input type="file" id="restoreFile" accept="application/json,.json" style="display:none;">
 </div>
+
+<!-- 사이드 메뉴 (햄버거) -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<nav class="drawer" id="drawer" aria-label="메뉴">
+  <div class="drawer-head">
+    <span class="drawer-brand">📅 한번에</span>
+    <button class="drawer-close" id="drawerClose" title="닫기" aria-label="닫기">×</button>
+  </div>
+  <a class="drawer-item" href="app.html"><span class="di-ic">🗂️</span><span>연간 계획</span></a>
+  <a class="drawer-item" id="navMonth" href="month.html"><span class="di-ic">🗓️</span><span>이번 달 달력</span></a>
+  <a class="drawer-item" id="navToday" href="day.html"><span class="di-ic">☀️</span><span>오늘 일정</span></a>
+  <a class="drawer-item" href="grade.html"><span class="di-ic">📊</span><span>성적 분석</span></a>
+  <div class="drawer-divider"></div>
+  <button class="drawer-item" id="timetableBtn"><span class="di-ic">🏫</span><span>학교 시간표</span></button>
+  <button class="drawer-item" id="academyBtn"><span class="di-ic">🎒</span><span>학원 시간표</span></button>
+  <div class="drawer-divider"></div>
+  <button class="drawer-item" id="backupBtn"><span class="di-ic">📤</span><span>백업 내보내기</span></button>
+  <button class="drawer-item" id="restoreBtn"><span class="di-ic">📥</span><span>복원 불러오기</span></button>
+  <p class="drawer-foot">백업은 폰↔컴퓨터 데이터 이동용이에요.</p>
+</nav>
 
 <div id="timetableModal" class="modal-overlay">
   <div class="modal-box">
@@ -1073,6 +1154,26 @@
   });
 
   renderYear();
+
+  // ===== 사이드 메뉴 (햄버거) =====
+  (function(){
+    const drawer = document.getElementById('drawer');
+    const overlay = document.getElementById('drawerOverlay');
+    const openBtn = document.getElementById('menuBtn');
+    const closeBtn = document.getElementById('drawerClose');
+    const open = () => { drawer.classList.add('show'); overlay.classList.add('show'); };
+    const close = () => { drawer.classList.remove('show'); overlay.classList.remove('show'); };
+    openBtn.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', close);
+    drawer.querySelectorAll('.drawer-item').forEach(it => it.addEventListener('click', close));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    // 오늘 일정 / 이번 달 달력 링크
+    const pad = n => String(n).padStart(2, '0');
+    const todayStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
+    const nt = document.getElementById('navToday'); if (nt) nt.href = 'day.html?date=' + todayStr;
+    const nm = document.getElementById('navMonth'); if (nm) nm.href = 'month.html?year=' + currentYear + '&month=' + currentMonth;
+  })();
 
   // ===== 다가오는 수행평가 + 브라우저 알림 =====
   const upcomingBox = document.getElementById('upcomingBox');
