@@ -2,26 +2,38 @@
 // 설정값은 '__theme_*' 키(profiles.js에서 자녀와 무관한 공용 키)로 저장.
 (function () {
   var LS = window.localStorage;
-  var DEF = { text: '#17181C', bg: '#F2F3F5', accent: '#0D9488', font: 'pretendard' };
+  // 파스텔 기본 톤
+  var DEF = { text: '#3A3B42', bg: '#F5F3EF', accent: '#3E9D90', font: 'pretendard' };
   var FONTS = {
-    pretendard: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif",
-    gothic: "'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif",
-    serif: "'Nanum Myeongjo', 'Batang', serif",
+    pretendard: "'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif",
+    gothic: "'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
+    serif: "'Nanum Myeongjo', 'Apple SD Gothic Neo', serif",
     rounded: "'Apple SD Gothic Neo', 'Pretendard', system-ui, sans-serif"
   };
 
   function get(k, d) { try { return LS.getItem('__theme_' + k) || d; } catch (e) { return d; } }
   function set(k, v) { try { LS.setItem('__theme_' + k, v); } catch (e) {} }
 
+  // 색 계산 헬퍼
+  function hx(c) { c = String(c).replace('#', ''); if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2]; return [parseInt(c.slice(0, 2), 16), parseInt(c.slice(2, 4), 16), parseInt(c.slice(4, 6), 16)]; }
+  function toHex(r) { return '#' + r.map(function (v) { v = Math.max(0, Math.min(255, Math.round(v))); return ('0' + v.toString(16)).slice(-2); }).join(''); }
+  function shade(hex, pct) { var c = hx(hex), f = pct / 100; return toHex(c.map(function (v) { return v + (pct < 0 ? v * f : (255 - v) * f); })); }
+  function mix(a, b, t) { var x = hx(a), y = hx(b); return toHex([0, 1, 2].map(function (i) { return x[i] * (1 - t) + y[i] * t; })); }
+
   function apply() {
     var text = get('text', DEF.text);
     var bg = get('bg', DEF.bg);
     var accent = get('accent', DEF.accent);
     var font = FONTS[get('font', DEF.font)] || FONTS.pretendard;
+    var dark = shade(accent, -18);
+    var soft = mix(accent, bg, 0.82); // 아주 연한 파스텔 배경용
     var css =
-      ':root{--bg:' + bg + ';--text-main:' + text + ';--text:' + text +
-      ';--accent:' + accent + ';--accent-dark:' + accent + ';--ink:' + text + ';}' +
-      'body{font-family:' + font + ';}';
+      ':root{' +
+      '--bg:' + bg + ' !important;--surface-soft:' + mix(bg, '#FFFFFF', 0.5) + ' !important;' +
+      '--text-main:' + text + ' !important;--text:' + text + ' !important;--ink:' + text + ' !important;' +
+      '--accent:' + accent + ' !important;--accent-dark:' + dark + ' !important;--accent-soft:' + soft + ' !important;' +
+      '}' +
+      'body{font-family:' + font + ' !important;}';
     var el = document.getElementById('__theme_css');
     if (!el) {
       el = document.createElement('style');
