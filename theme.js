@@ -5,11 +5,23 @@
   // 파스텔 기본 톤
   var DEF = { text: '#3A3B42', bg: '#F5F3EF', accent: '#3E9D90', font: 'pretendard' };
   var FONTS = {
-    pretendard: "'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif",
-    gothic: "'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
-    serif: "'Nanum Myeongjo', 'Apple SD Gothic Neo', serif",
-    rounded: "'Apple SD Gothic Neo', 'Pretendard', system-ui, sans-serif"
+    pretendard: { label: '기본 (깔끔)', stack: "'Pretendard','Apple SD Gothic Neo','Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif" },
+    gothic: { label: '고딕', stack: "'Apple SD Gothic Neo','Malgun Gothic',sans-serif" },
+    gowun: { label: '고운돋움 (모던)', stack: "'Gowun Dodum','Apple SD Gothic Neo',sans-serif", href: 'https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap' },
+    jua: { label: '주아 (동글동글) 🧒', stack: "'Jua','Apple SD Gothic Neo',sans-serif", href: 'https://fonts.googleapis.com/css2?family=Jua&display=swap' },
+    dohyeon: { label: '도현 (시원·굵게)', stack: "'Do Hyeon','Apple SD Gothic Neo',sans-serif", href: 'https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap' },
+    blackhan: { label: '검은고딕 (임팩트)', stack: "'Black Han Sans','Apple SD Gothic Neo',sans-serif", href: 'https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap' },
+    nanumpen: { label: '손글씨 (펜)', stack: "'Nanum Pen Script','Apple SD Gothic Neo',cursive", href: 'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap' },
+    serif: { label: '명조 (붓글씨 느낌)', stack: "'Nanum Myeongjo','Apple SD Gothic Neo',serif", href: 'https://fonts.googleapis.com/css2?family=Nanum+Myeongjo&display=swap' }
   };
+  var FONT_ORDER = ['pretendard', 'gothic', 'gowun', 'jua', 'dohyeon', 'blackhan', 'nanumpen', 'serif'];
+  function ensureFont(href) {
+    if (!href) return;
+    if (document.querySelector('link[data-fonthref="' + href + '"]')) return;
+    var l = document.createElement('link');
+    l.rel = 'stylesheet'; l.href = href; l.setAttribute('data-fonthref', href);
+    (document.head || document.documentElement).appendChild(l);
+  }
 
   function get(k, d) { try { return LS.getItem('__theme_' + k) || d; } catch (e) { return d; } }
   function set(k, v) { try { LS.setItem('__theme_' + k, v); } catch (e) {} }
@@ -24,7 +36,9 @@
     var text = get('text', DEF.text);
     var bg = get('bg', DEF.bg);
     var accent = get('accent', DEF.accent);
-    var font = FONTS[get('font', DEF.font)] || FONTS.pretendard;
+    var fdef = FONTS[get('font', DEF.font)] || FONTS.pretendard;
+    ensureFont(fdef.href);
+    var font = fdef.stack;
     var dark = shade(accent, -18);
     var soft = mix(accent, bg, 0.82); // 아주 연한 파스텔 배경용
     var css =
@@ -72,12 +86,7 @@
         '<div class="__st-row"><label>글씨 색</label><input type="color" id="__stText"></div>' +
         '<div class="__st-row"><label>바탕 색</label><input type="color" id="__stBg"></div>' +
         '<div class="__st-row"><label>제목·포인트 색</label><input type="color" id="__stAccent"></div>' +
-        '<div class="__st-row"><label>글씨 모양</label><select id="__stFont">' +
-          '<option value="pretendard">기본 (깔끔)</option>' +
-          '<option value="gothic">고딕</option>' +
-          '<option value="serif">명조 (붓글씨 느낌)</option>' +
-          '<option value="rounded">둥근 고딕</option>' +
-        '</select></div>' +
+        '<div class="__st-row"><label>글씨 모양</label><select id="__stFont"></select></div>' +
         '<div class="__st-row"><label>언어 / Language</label><select id="__stLang">' +
           '<option value="ko">한국어</option>' +
           '<option value="en">English (준비 중)</option>' +
@@ -93,6 +102,11 @@
     var bEl = document.getElementById('__stBg');
     var aEl = document.getElementById('__stAccent');
     var fEl = document.getElementById('__stFont');
+    FONT_ORDER.forEach(function (k) {
+      var o = document.createElement('option');
+      o.value = k; o.textContent = FONTS[k].label;
+      fEl.appendChild(o);
+    });
     var lEl = document.getElementById('__stLang');
 
     function fill() {
