@@ -44,53 +44,44 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
+    margin-bottom: 12px;
     gap: 8px;
-    background: var(--ink);
-    padding: 10px 14px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(17,20,27,0.18);
+    background: transparent;
+    padding: 0;
   }
   .nav-btn {
     background: var(--surface);
     color: var(--text-main);
     border: 1px solid var(--line-strong);
-    border-radius: 6px;
-    padding: 8px 16px;
+    border-radius: 8px;
+    padding: 7px 11px;
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12.5px;
+    font-weight: 600;
     text-decoration: none;
     display: inline-block;
+    white-space: nowrap;
     transition: all 0.15s;
   }
-  .nav-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn.home { background: var(--accent); color: white; border-color: var(--accent); }
+  .month-switch { display: flex; align-items: center; gap: 10px; }
+  .nav-arrow {
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface);
+    color: var(--text-main); text-decoration: none; font-size: 14px;
   }
-  .nav-btn.home {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-  .nav-btn.home:hover {
-    background: var(--accent-dark);
-    color: white;
-  }
+  .nav-arrow:hover { border-color: var(--accent); color: var(--accent); }
+  .hb-spacer { width: 56px; flex: none; }
   h1 {
     text-align: center;
     color: var(--text-main);
-    margin: 0 0 6px 0;
-    font-size: 34px;
-    font-weight: 700;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    white-space: nowrap;
   }
-  .subtitle {
-    text-align: center;
-    color: var(--text-sub);
-    margin-bottom: 20px;
-    font-size: 14px;
-  }
+  .subtitle { display: none; }
 
   .monthly-plan-box {
     margin-bottom: 20px;
@@ -399,15 +390,19 @@
   @media (max-width: 760px) {
     body { padding: 12px 6px; }
     .container { padding: 14px 10px; border-radius: 12px; }
-    h1 { font-size: 24px; }
-    .help-box, .legend-info { font-size: 12px; padding: 10px 12px; }
+    h1 { font-size: 18px; }
+    .help-box, .legend-info { font-size: 12px; padding: 9px 12px; }
     table.calendar th { padding: 6px 2px; font-size: 12px; }
-    table.calendar td { height: 72px; }
+    table.calendar td { height: 74px; }
     .day-cell { padding: 3px 3px 2px; gap: 2px; }
     .day-number { font-size: 13px; padding: 0 4px; }
     .day-chip { font-size: 9px; padding: 1px 4px; }
     .dday-badge { font-size: 8px; padding: 1px 4px; }
-    .nav-btn, .btn { padding: 10px 12px; font-size: 13px; }
+    .nav-btn { padding: 7px 9px; font-size: 12px; }
+    .nav-arrow { width: 32px; height: 32px; font-size: 13px; }
+    .hb-spacer { width: 44px; }
+    .month-switch { gap: 6px; }
+    .btn { padding: 9px 12px; font-size: 13px; }
     .subject-toolbar .btn { padding: 8px 12px; }
   }
 </style>
@@ -424,42 +419,27 @@
 <body>
 <div class="container">
   <div class="header-bar">
-    <a id="yearLink" href="app.html" class="nav-btn home">연간 계획</a>
-    <a id="prevMonthBtn" href="#" class="nav-btn">◀ 이전달</a>
-    <a id="nextMonthBtn" href="#" class="nav-btn">다음달 ▶</a>
+    <a id="yearLink" href="app.html" class="nav-btn home">📅 연간</a>
+    <div class="month-switch">
+      <a id="prevMonthBtn" href="#" class="nav-arrow" title="이전달">◀</a>
+      <h1 id="monthTitle">월간</h1>
+      <a id="nextMonthBtn" href="#" class="nav-arrow" title="다음달">▶</a>
+    </div>
+    <span class="hb-spacer"></span>
   </div>
-<div class="subject-toolbar">
-  <button class="btn subject-btn" id="koreanBtn">국어</button>
-  <button class="btn subject-btn" id="mathBtn">수학</button>
-  <button class="btn subject-btn" id="englishBtn">영어</button>
-  <button class="btn subject-btn" id="scienceBtn">과학</button>
-  <button class="btn subject-btn" id="socialBtn">사회</button>
-</div>
-<!-- Subject panels -->
-<div id="subjectInputs" class="subject-inputs">
-  <div id="koreanPanel" class="subject-panel hidden">
-    <h3>국어 교재</h3>
-    <textarea id="koreanArea" placeholder="국어 교재를 적어보세요"></textarea>
+
+  <table class="calendar">
+    <thead>
+      <tr>
+        <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th class="sun">일</th>
+      </tr>
+    </thead>
+    <tbody id="calendarBody"></tbody>
+  </table>
+
+  <div class="help-box">
+    <strong>날짜 칸을 누르면</strong> 그날 화면에서 수행평가·일정을 입력해요. 일정은 달력에 <strong>칩</strong>으로 보이고, 수행평가는 3일 전부터 D-day가 떠요.
   </div>
-  <div id="mathPanel" class="subject-panel hidden">
-    <h3>수학 교재</h3>
-    <textarea id="mathArea" placeholder="수학 교재를 적어보세요"></textarea>
-  </div>
-  <div id="englishPanel" class="subject-panel hidden">
-    <h3>영어 교재</h3>
-    <textarea id="englishArea" placeholder="영어 교재를 적어보세요"></textarea>
-  </div>
-  <div id="sciencePanel" class="subject-panel hidden">
-    <h3>과학 교재</h3>
-    <textarea id="scienceArea" placeholder="과학 교재를 적어보세요"></textarea>
-  </div>
-  <div id="socialPanel" class="subject-panel hidden">
-    <h3>사회 교재</h3>
-    <textarea id="socialArea" placeholder="사회 교재를 적어보세요"></textarea>
-  </div>
-</div>
-  <h1 id="monthTitle">월간 스케줄표</h1>
-  <p class="subtitle">날짜를 클릭하면 그 날의 자세한 스케줄을 볼 수 있어요</p>
 
   <div class="monthly-plan-box">
     <h3 id="monthPlanTitle">이번 달 목표</h3>
@@ -473,8 +453,19 @@
     </div>
   </div>
 
-  <div class="help-box">
-    <strong>날짜 칸을 누르면</strong> 그날 화면에서 수행평가·일정을 입력해요. 입력한 일정은 달력에 <strong>칩</strong>으로 한눈에 보여요. (수행평가는 3일 전부터 D-day 표시)
+  <div class="subject-toolbar">
+    <button class="btn subject-btn" id="koreanBtn">국어</button>
+    <button class="btn subject-btn" id="mathBtn">수학</button>
+    <button class="btn subject-btn" id="englishBtn">영어</button>
+    <button class="btn subject-btn" id="scienceBtn">과학</button>
+    <button class="btn subject-btn" id="socialBtn">사회</button>
+  </div>
+  <div id="subjectInputs" class="subject-inputs">
+    <div id="koreanPanel" class="subject-panel hidden"><h3>국어 교재</h3><textarea id="koreanArea" placeholder="국어 교재를 적어보세요"></textarea></div>
+    <div id="mathPanel" class="subject-panel hidden"><h3>수학 교재</h3><textarea id="mathArea" placeholder="수학 교재를 적어보세요"></textarea></div>
+    <div id="englishPanel" class="subject-panel hidden"><h3>영어 교재</h3><textarea id="englishArea" placeholder="영어 교재를 적어보세요"></textarea></div>
+    <div id="sciencePanel" class="subject-panel hidden"><h3>과학 교재</h3><textarea id="scienceArea" placeholder="과학 교재를 적어보세요"></textarea></div>
+    <div id="socialPanel" class="subject-panel hidden"><h3>사회 교재</h3><textarea id="socialArea" placeholder="사회 교재를 적어보세요"></textarea></div>
   </div>
 
   <div class="toolbar">
@@ -482,23 +473,8 @@
     <button class="btn" onclick="resetCalendar()">수행평가 초기화</button>
   </div>
 
-  <table class="calendar">
-    <thead>
-      <tr>
-        <th>월</th>
-        <th>화</th>
-        <th>수</th>
-        <th>목</th>
-        <th>금</th>
-        <th>토</th>
-        <th class="sun">일</th>
-      </tr>
-    </thead>
-    <tbody id="calendarBody"></tbody>
-  </table>
-
   <div class="legend-info">
-    수행평가, 시험, 학원 발표 등 중요한 일정을 적어두면 한눈에 볼 수 있어요. 오늘 날짜는 진한 색으로 표시됩니다.
+    수행평가·시험·학원 발표 등 중요한 일정을 적어두면 한눈에 볼 수 있어요. 오늘 날짜는 진한 색으로 표시됩니다.
   </div>
 </div>
 
@@ -518,9 +494,7 @@
 
   document.getElementById('yearLink').href = `app.html?year=${YEAR}`;
 
-  const ownerName = localStorage.getItem('jihoon-owner-name') || '';
-  const namePrefix = ownerName ? `${ownerName}의 ` : '';
-  document.getElementById('monthTitle').textContent = `${namePrefix}${YEAR}년 ${MONTH}월`;
+  document.getElementById('monthTitle').textContent = `${YEAR}년 ${MONTH}월`;
   document.getElementById('monthPlanTitle').textContent = `${MONTH}월 목표`;
   document.title = `한번에 · ${YEAR}년 ${MONTH}월`;
 
