@@ -576,13 +576,20 @@
   @media (max-width: 600px) {
     body { padding: 16px 10px; }
     .container { padding: 20px 14px; border-radius: 12px; }
-    h1 { font-size: 20px; gap: 5px; margin-bottom: 4px; }
-    .name-input { font-size: 20px; min-width: 64px; }
-    .name-suffix { font-size: 20px; }
-    .name-input::placeholder { font-size: 17px; }
+    h1 { font-size: 18px; gap: 5px; margin-bottom: 4px; }
+    .name-input { font-size: 18px; min-width: 56px; max-width: 130px; }
+    .name-suffix { font-size: 18px; }
+    .name-input::placeholder { font-size: 15px; }
+    /* 연도 네비게이션: 작고 컴팩트하게 (인라인 스타일 덮어쓰기) */
+    .year-nav { margin-bottom: 10px !important; }
+    .year-nav #yearInput { font-size: 15px !important; width: 64px !important; padding: 5px 4px !important; }
+    .year-nav #prevYear, .year-nav #nextYear { font-size: 13px !important; padding: 5px 9px !important; }
+    .year-nav span { font-size: 14px !important; }
+    .year-nav a { font-size: 12px !important; padding: 6px 12px !important; margin-left: 8px !important; }
     /* 시간표 버튼: 작고 깔끔하게 */
     .timetable-btn { margin-left: 0; padding: 6px 10px; font-size: 12px; gap: 4px; }
     .timetable-btn .icon { font-size: 14px; }
+    .alarm-btn { font-size: 12px; padding: 5px 10px; }
     /* 설명글: 한눈에 들어오게 축소 */
     .subtitle { font-size: 12px; margin-bottom: 14px; }
     .help-box { font-size: 12.5px; padding: 10px 14px; margin-bottom: 16px; }
@@ -639,7 +646,7 @@
       <span class="icon">🎒</span> 학원
     </button>
   </h1>
-  <div style="text-align:center;margin-bottom:16px;">
+  <div class="year-nav" style="text-align:center;margin-bottom:16px;">
     <button id="prevYear" title="이전 년도" style="padding:8px 14px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;">◀</button>
     <input id="yearInput" type="number" min="2000" max="2100" title="연도를 직접 입력하세요" style="width:96px;text-align:center;padding:8px 6px;font-size:18px;font-weight:700;color:#17181C;border:1px solid #C9CDD4;border-radius:8px;">
     <span style="font-size:18px;font-weight:700;color:#17181C;">년</span>
