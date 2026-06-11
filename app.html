@@ -415,14 +415,37 @@
   .months-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 14px;
   }
   @media (max-width: 1100px) {
-    .months-grid { grid-template-columns: repeat(2, 1fr); }
+    .months-grid { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 600px) {
     .months-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   }
+  /* 미니 월 달력 (연간 한눈에) */
+  .mini-month {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 10px 8px; transition: all .15s;
+  }
+  .mini-month:hover { border-color: var(--accent); box-shadow: 0 3px 12px rgba(0,0,0,.06); }
+  .mini-month.current { border: 2px solid var(--accent); background: #EFF8F7; }
+  .mini-h { text-align: center; font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+  .mini-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+  .mini-wd { font-size: 9px; text-align: center; color: var(--text-mute); padding-bottom: 2px; }
+  .mini-wd.sun { color: #E06C6C; } .mini-wd.sat { color: #5B8DEF; }
+  .mini-d {
+    font-size: 10px; color: var(--text-sub); position: relative;
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  }
+  .mini-d.sun { color: #E06C6C; } .mini-d.sat { color: #5B8DEF; }
+  .mini-d.today { background: var(--accent); color: #fff; border-radius: 50%; font-weight: 700; }
+  .mini-d.has::after {
+    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
+  }
+  .mini-d.today.has::after { background: #fff; }
 
   .month-card {
     background: var(--surface);
@@ -1115,6 +1138,19 @@
     return c;
   }
 
+  // 그 달에 수행평가가 있는 '일(day)' 집합 (미니 달력 점 표시용)
+  function monthAssessmentDays(y, m) {
+    const prefix = `jihoon-assessment-${y}-${String(m).padStart(2,'0')}-`;
+    const set = new Set();
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(prefix) && (localStorage.getItem(k) || '').trim()) {
+        set.add(parseInt(k.slice(prefix.length), 10));
+      }
+    }
+    return set;
+  }
+
   function renderYear() {
     document.getElementById('yearDisplay').textContent = YEAR;
     document.getElementById('yearInput').value = YEAR;
@@ -1127,55 +1163,36 @@
 
     grid.innerHTML = '';
 
-    for (let m = 1; m <= 12; m++) {
-      const card = document.createElement('div');
-      card.className = 'month-card';
+    const WD = ['일', '월', '화', '수', '목', '금', '토'];
+    const todayDate = today.getDate();
 
-      let statusText = '';
-      if (currentYear === YEAR && currentMonth === m) {
-        card.classList.add('current');
-        statusText = '이번 달';
-      } else if (currentYear > YEAR || (currentYear === YEAR && currentMonth > m)) {
-        statusText = '지난 달';
+    for (let m = 1; m <= 12; m++) {
+      const isCurrent = (currentYear === YEAR && currentMonth === m);
+      const mini = document.createElement('a');
+      mini.className = 'mini-month' + (isCurrent ? ' current' : '');
+      mini.href = `month.html?year=${YEAR}&month=${m}`;
+      mini.title = `${m}월 달력 보기`;
+
+      const days = monthAssessmentDays(YEAR, m);
+      const firstDow = new Date(YEAR, m - 1, 1).getDay(); // 0=일
+      const lastDate = new Date(YEAR, m, 0).getDate();
+
+      let cells = '';
+      WD.forEach((w, i) => {
+        cells += `<span class="mini-wd${i === 0 ? ' sun' : i === 6 ? ' sat' : ''}">${w}</span>`;
+      });
+      for (let b = 0; b < firstDow; b++) cells += '<span class="mini-d"></span>';
+      for (let d = 1; d <= lastDate; d++) {
+        const dow = (firstDow + d - 1) % 7;
+        const cls = ['mini-d'];
+        if (dow === 0) cls.push('sun'); else if (dow === 6) cls.push('sat');
+        if (isCurrent && d === todayDate) cls.push('today');
+        if (days.has(d)) cls.push('has');
+        cells += `<span class="${cls.join(' ')}">${d}</span>`;
       }
 
-      const aCount = monthAssessmentCount(YEAR, m);
-      const flag = aCount > 0 ? `<span class="month-flag">📌 ${aCount}</span>` : '';
-      const key = `jihoon-monthly-plan-${YEAR}-${m}`;
-      const goalVal = localStorage.getItem(key) || '';
-      const statusHtml = statusText ? `<div class="month-status">${statusText}</div>` : '';
-      const dot = goalVal.trim() ? '<span class="goal-dot" title="작성한 목표 있음"></span>' : '';
-      card.innerHTML = `
-        <div class="month-header">
-          <a class="month-link" href="month.html?year=${YEAR}&month=${m}" title="${m}월 달력 보기">${m}월</a>
-          <span class="month-year">${YEAR}${flag}</span>
-        </div>
-        ${statusHtml}
-        <div class="month-meta">${dot}<span class="chev">▾</span></div>
-        <div class="plan-label">월간 목표</div>
-        <textarea class="plan-textarea" data-month="${m}" placeholder=""></textarea>
-      `;
-      grid.appendChild(card);
-
-      const ta = card.querySelector('.plan-textarea');
-      ta.value = goalVal;
-      ta.addEventListener('input', () => {
-        localStorage.setItem(key, ta.value);
-        const meta = card.querySelector('.month-meta');
-        let gd = meta.querySelector('.goal-dot');
-        if (ta.value.trim() && !gd) {
-          meta.insertAdjacentHTML('afterbegin', '<span class="goal-dot" title="작성한 목표 있음"></span>');
-        } else if (!ta.value.trim() && gd) {
-          gd.remove();
-        }
-        showSaved();
-      });
-
-      // 카드를 누르면 월간 목표 펼침/접힘 (월 숫자 링크·입력창 제외)
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.month-link') || e.target.closest('.plan-textarea')) return;
-        card.classList.toggle('expanded');
-      });
+      mini.innerHTML = `<div class="mini-h">${m}월</div><div class="mini-grid">${cells}</div>`;
+      grid.appendChild(mini);
     }
   }
 
