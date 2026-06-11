@@ -9,7 +9,8 @@
   var CUR = '__cur_profile'; // 현재 자녀 id (전역)
   var SEP = '::';
 
-  function isGlobal(k) { return k === LIST || k === CUR; }
+  // 프로필 관리 키(LIST/CUR)와 '__'로 시작하는 키(테마 등 앱 전체 설정)는 자녀별로 분리하지 않음
+  function isGlobal(k) { return k === LIST || k === CUR || k.indexOf('__') === 0; }
 
   function readList() {
     try { var v = JSON.parse(real.getItem(LIST) || 'null'); return Array.isArray(v) ? v : null; }

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script src="/profiles.js"></script>
+<script src="/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2026년 계획표</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
@@ -777,6 +778,7 @@
   <button class="drawer-item" id="backupBtn"><span class="di-ic">📤</span><span>백업 내보내기</span></button>
   <button class="drawer-item" id="restoreBtn"><span class="di-ic">📥</span><span>복원 불러오기</span></button>
   <div class="drawer-divider"></div>
+  <button class="drawer-item" id="settingsBtn"><span class="di-ic">⚙️</span><span>화면 설정</span></button>
   <button class="drawer-item" id="helpBtn"><span class="di-ic">❓</span><span>사용법</span></button>
   <div class="drawer-divider"></div>
   <button class="drawer-item drawer-reset" id="drResetBtn"><span class="di-ic">🧹</span><span>이 자녀 데이터 초기화</span></button>
@@ -1210,6 +1212,8 @@
     closeBtn.addEventListener('click', close);
     overlay.addEventListener('click', close);
     drawer.querySelectorAll('.drawer-item').forEach(it => it.addEventListener('click', close));
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) settingsBtn.addEventListener('click', () => { if (window.Settings) window.Settings.open(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     // 오늘 일정 / 이번 달 달력 링크
     const pad = n => String(n).padStart(2, '0');

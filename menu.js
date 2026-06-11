@@ -69,6 +69,7 @@
     +   '<a class="hbo-item" href="app.html?open=school"><span class="hbo-ic">🏫</span><span>학교 시간표</span></a>'
     +   '<a class="hbo-item" href="app.html?open=academy"><span class="hbo-ic">🎒</span><span>학원 시간표</span></a>'
     +   '<div class="hbo-divider"></div>'
+    +   '<button class="hbo-item" id="hboSettingsBtn"><span class="hbo-ic">⚙️</span><span>화면 설정</span></button>'
     +   '<button class="hbo-item" id="hboHelpBtn"><span class="hbo-ic">❓</span><span>사용법</span></button>'
     +   '<div class="hbo-divider"></div>'
     +   '<button class="hbo-item hbo-reset" id="hboReset"><span class="hbo-ic">🧹</span><span>이 자녀 데이터 초기화</span></button>'
@@ -93,6 +94,8 @@
   document.getElementById('hboMenuBtn').addEventListener('click', open);
   document.getElementById('hboClose').addEventListener('click', close);
   overlay.addEventListener('click', close);
+  var setBtn = document.getElementById('hboSettingsBtn');
+  if (setBtn) setBtn.addEventListener('click', function () { close(); if (window.Settings) window.Settings.open(); });
   document.getElementById('hboHelpBtn').addEventListener('click', function () { close(); help.classList.add('on'); });
   document.getElementById('hboHelpClose').addEventListener('click', function () { help.classList.remove('on'); });
   document.getElementById('hboHelpDone').addEventListener('click', function () { help.classList.remove('on'); });
