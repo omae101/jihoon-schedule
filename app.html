@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<script src="/profiles.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2026년 계획표</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
@@ -178,6 +179,14 @@
   .drawer-item .di-ic { font-size: 19px; width: 24px; text-align: center; flex: none; }
   .drawer-divider { height: 1px; background: var(--line); margin: 8px 6px; }
   .drawer-foot { font-size: 11.5px; color: var(--text-mute); padding: 12px 12px 4px; line-height: 1.5; }
+  .drawer-profiles { padding: 2px 4px 10px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+  .drawer-plabel { font-size: 11px; font-weight: 700; color: var(--text-mute); padding: 2px 8px; }
+  .drawer-pchips { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px 0; }
+  .drawer-chip { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; font-family: inherit; }
+  .drawer-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .drawer-addchild { margin: 8px 8px 0; font-size: 12.5px; color: var(--accent); background: none; border: 1px dashed var(--accent); border-radius: 8px; padding: 7px 10px; cursor: pointer; font-family: inherit; width: calc(100% - 16px); }
+  .drawer-delchild { margin: 6px 8px 0; font-size: 12px; color: #C62828; background: none; border: none; cursor: pointer; font-family: inherit; width: calc(100% - 16px); text-align: left; padding: 4px 2px; }
+  .drawer-reset span { color: #C62828; }
 
   /* 사용법 안내 */
   .help-guide { display: flex; flex-direction: column; gap: 16px; }
@@ -751,6 +760,12 @@
     <span class="drawer-brand">📅 한번에</span>
     <button class="drawer-close" id="drawerClose" title="닫기" aria-label="닫기">×</button>
   </div>
+  <div class="drawer-profiles">
+    <div class="drawer-plabel">자녀 (이름을 누르면 전환)</div>
+    <div class="drawer-pchips" id="drPChips"></div>
+    <button class="drawer-addchild" id="drAddChild">+ 자녀 추가</button>
+    <button class="drawer-delchild" id="drDelChild" style="display:none;">🗑 현재 자녀 삭제</button>
+  </div>
   <a class="drawer-item" href="app.html"><span class="di-ic">🗂️</span><span>연간 계획</span></a>
   <a class="drawer-item" id="navMonth" href="month.html"><span class="di-ic">🗓️</span><span>이번 달 달력</span></a>
   <a class="drawer-item" id="navToday" href="day.html"><span class="di-ic">☀️</span><span>오늘 일정</span></a>
@@ -763,6 +778,8 @@
   <button class="drawer-item" id="restoreBtn"><span class="di-ic">📥</span><span>복원 불러오기</span></button>
   <div class="drawer-divider"></div>
   <button class="drawer-item" id="helpBtn"><span class="di-ic">❓</span><span>사용법</span></button>
+  <div class="drawer-divider"></div>
+  <button class="drawer-item drawer-reset" id="drResetBtn"><span class="di-ic">🧹</span><span>이 자녀 데이터 초기화</span></button>
   <p class="drawer-foot">백업은 폰↔컴퓨터 데이터 이동용이에요.</p>
 </nav>
 
@@ -1210,6 +1227,42 @@
     const op = new URLSearchParams(location.search).get('open');
     if (op === 'school') document.getElementById('timetableModal').classList.add('show');
     else if (op === 'academy') document.getElementById('academyModal').classList.add('show');
+
+    // 자녀 프로필 + 초기화
+    if (window.Profiles) {
+      const chips = document.getElementById('drPChips');
+      const delBtn = document.getElementById('drDelChild');
+      const renderChips = () => {
+        if (!chips) return;
+        chips.innerHTML = '';
+        const cur = Profiles.currentId();
+        const list = Profiles.list();
+        list.forEach((p) => {
+          const b = document.createElement('button');
+          b.className = 'drawer-chip' + (p.id === cur ? ' on' : '');
+          b.textContent = p.name;
+          b.addEventListener('click', () => {
+            if (p.id === cur) {
+              const nn = prompt('자녀 이름 변경', p.name);
+              if (nn !== null && nn.trim()) { Profiles.rename(p.id, nn); renderChips(); }
+            } else { Profiles.switchTo(p.id); }
+          });
+          chips.appendChild(b);
+        });
+        if (delBtn) delBtn.style.display = list.length > 1 ? '' : 'none';
+      };
+      renderChips();
+      const addc = document.getElementById('drAddChild');
+      if (addc) addc.addEventListener('click', () => { const n = prompt('추가할 자녀 이름'); if (n && n.trim()) Profiles.add(n); });
+      if (delBtn) delBtn.addEventListener('click', () => {
+        const c = Profiles.current();
+        if (c && confirm('"' + c.name + '" 자녀를 삭제할까요?\n이 자녀의 모든 데이터가 지워지고 되돌릴 수 없어요.')) Profiles.remove(c.id);
+      });
+    }
+    const drReset = document.getElementById('drResetBtn');
+    if (drReset) drReset.addEventListener('click', () => {
+      if (window.Profiles && confirm('현재 자녀의 모든 데이터(일정·할 일·성적 등)를 지울까요?\n되돌릴 수 없어요.')) Profiles.resetCurrent();
+    });
   })();
 
   // ===== 다가오는 수행평가 + 브라우저 알림 =====

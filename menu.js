@@ -25,6 +25,14 @@
     + '.hbo-item:hover,.hbo-item:active{background:#CCFBF1;color:#0B7A70;}'
     + '.hbo-ic{font-size:19px;width:24px;text-align:center;flex:none;}'
     + '.hbo-divider{height:1px;background:#E2E4E9;margin:8px 6px;}'
+    + '.hbo-profiles{padding:2px 4px 10px;border-bottom:1px solid #E2E4E9;margin-bottom:6px;}'
+    + '.hbo-plabel{font-size:11px;font-weight:700;color:#9CA1AB;padding:2px 8px;}'
+    + '.hbo-pchips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 8px 0;}'
+    + '.hbo-chip{display:inline-flex;align-items:center;border:1px solid #C9CDD4;background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:#17181C;cursor:pointer;font-family:inherit;}'
+    + '.hbo-chip.on{background:#0D9488;border-color:#0D9488;color:#fff;}'
+    + '.hbo-addchild{margin:8px 8px 0;font-size:12.5px;color:#0D9488;background:none;border:1px dashed #0D9488;border-radius:8px;padding:7px 10px;cursor:pointer;font-family:inherit;width:calc(100% - 16px);}'
+    + '.hbo-delchild{margin:6px 8px 0;font-size:12px;color:#C62828;background:none;border:none;cursor:pointer;font-family:inherit;width:calc(100% - 16px);text-align:left;padding:4px 2px;}'
+    + '.hbo-reset span{color:#C62828;}'
     + '.hbo-help{display:none;position:fixed;inset:0;background:rgba(30,30,40,.5);z-index:1002;justify-content:center;align-items:center;padding:20px;}'
     + '.hbo-help.on{display:flex;}'
     + '.hbo-help-box{background:#fff;border-radius:14px;padding:22px 18px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);font-family:inherit;}'
@@ -52,6 +60,7 @@
     + '<div class="hbo-overlay" id="hboOverlay"></div>'
     + '<nav class="hbo-drawer" id="hboDrawer" aria-label="메뉴">'
     +   '<div class="hbo-head"><span class="hbo-dbrand">📅 한번에</span><button class="hbo-close" id="hboClose" aria-label="닫기">×</button></div>'
+    +   '<div class="hbo-profiles"><div class="hbo-plabel">자녀 (이름을 누르면 전환)</div><div class="hbo-pchips" id="hboPChips"></div><button class="hbo-addchild" id="hboAddChild">+ 자녀 추가</button><button class="hbo-delchild" id="hboDelChild" style="display:none;">🗑 현재 자녀 삭제</button></div>'
     +   '<a class="hbo-item" href="app.html"><span class="hbo-ic">🗂️</span><span>연간 계획</span></a>'
     +   '<a class="hbo-item" href="month.html?year=' + YEAR_NOW + '&month=' + MONTH_NOW + '"><span class="hbo-ic">🗓️</span><span>이번 달 달력</span></a>'
     +   '<a class="hbo-item" href="day.html?date=' + TODAY_STR + '"><span class="hbo-ic">☀️</span><span>오늘 일정</span></a>'
@@ -61,6 +70,8 @@
     +   '<a class="hbo-item" href="app.html?open=academy"><span class="hbo-ic">🎒</span><span>학원 시간표</span></a>'
     +   '<div class="hbo-divider"></div>'
     +   '<button class="hbo-item" id="hboHelpBtn"><span class="hbo-ic">❓</span><span>사용법</span></button>'
+    +   '<div class="hbo-divider"></div>'
+    +   '<button class="hbo-item hbo-reset" id="hboReset"><span class="hbo-ic">🧹</span><span>이 자녀 데이터 초기화</span></button>'
     + '</nav>'
     + '<div class="hbo-help" id="hboHelp"><div class="hbo-help-box">'
     +   '<div class="hbo-help-head"><b>❓ 사용법</b><button class="hbo-close" id="hboHelpClose" aria-label="닫기">×</button></div>'
@@ -87,4 +98,40 @@
   document.getElementById('hboHelpDone').addEventListener('click', function () { help.classList.remove('on'); });
   help.addEventListener('click', function (e) { if (e.target === help) help.classList.remove('on'); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); help.classList.remove('on'); } });
+
+  // 자녀 프로필 + 초기화
+  if (window.Profiles) {
+    var chips = document.getElementById('hboPChips');
+    var delBtn = document.getElementById('hboDelChild');
+    function renderChips() {
+      if (!chips) return;
+      chips.innerHTML = '';
+      var cur = Profiles.currentId();
+      var list = Profiles.list();
+      list.forEach(function (p) {
+        var b = document.createElement('button');
+        b.className = 'hbo-chip' + (p.id === cur ? ' on' : '');
+        b.textContent = p.name;
+        b.addEventListener('click', function () {
+          if (p.id === cur) {
+            var nn = prompt('자녀 이름 변경', p.name);
+            if (nn !== null && nn.trim()) { Profiles.rename(p.id, nn); renderChips(); }
+          } else { Profiles.switchTo(p.id); }
+        });
+        chips.appendChild(b);
+      });
+      if (delBtn) delBtn.style.display = list.length > 1 ? '' : 'none';
+    }
+    renderChips();
+    var addc = document.getElementById('hboAddChild');
+    if (addc) addc.addEventListener('click', function () { var n = prompt('추가할 자녀 이름'); if (n && n.trim()) Profiles.add(n); });
+    if (delBtn) delBtn.addEventListener('click', function () {
+      var c = Profiles.current();
+      if (c && confirm('"' + c.name + '" 자녀를 삭제할까요?\n이 자녀의 모든 데이터가 지워지고 되돌릴 수 없어요.')) Profiles.remove(c.id);
+    });
+  }
+  var reset = document.getElementById('hboReset');
+  if (reset) reset.addEventListener('click', function () {
+    if (window.Profiles && confirm('현재 자녀의 모든 데이터(일정·할 일·성적 등)를 지울까요?\n되돌릴 수 없어요.')) Profiles.resetCurrent();
+  });
 })();
