@@ -172,12 +172,12 @@
     color: var(--text-mute); cursor: pointer; padding: 0 4px;
   }
   .drawer-item {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 11px;
     width: 100%;
-    padding: 13px 12px;
+    padding: 12px 12px;
     border: none; background: none;
     border-radius: 10px;
-    font-family: inherit; font-size: 15px; font-weight: 600;
+    font-family: inherit; font-size: 14px; font-weight: 600;
     color: var(--text-main); text-align: left;
     text-decoration: none; cursor: pointer;
   }
@@ -728,16 +728,13 @@
     .academy-input::placeholder { font-size: 10px; }
     .timetable-hint { font-size: 11px; margin-top: 8px; }
     .modal-btn { padding: 7px 12px; font-size: 12px; }
-    /* 스마트폰: 12개월이 한 화면에 들어오도록 컴팩트 타일 */
-    .month-card { padding: 10px 8px; }
-    .month-header { margin-bottom: 4px; }
-    .month-link { font-size: 20px; }
-    .month-year { font-size: 10px; }
-    .month-flag { font-size: 10px; margin-left: 3px; }
-    .month-status { font-size: 10px; padding: 1px 7px; margin-bottom: 0; }
-    .month-meta { margin-top: 4px; }
-    /* 펼치면 입력하기 편하게 한 줄 전체 차지 */
-    .month-card.expanded { grid-column: 1 / -1; }
+    /* 스마트폰: 미니 월 달력이 3열로 안 넘치게 컴팩트 */
+    .months-grid { gap: 6px; }
+    .mini-month { padding: 8px 5px; border-radius: 10px; }
+    .mini-h { font-size: 12px; margin-bottom: 4px; }
+    .mini-wd { font-size: 8px; }
+    .mini-d { font-size: 9px; }
+    .h1, h1 { font-size: 18px; }
   }
 </style>
 <link rel="manifest" href="/app.webmanifest">

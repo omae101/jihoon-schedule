@@ -30,7 +30,7 @@
     + '.hbo-head{display:flex;align-items:center;justify-content:space-between;padding:6px 8px 14px;border-bottom:1px solid #E2E4E9;margin-bottom:8px;}'
     + '.hbo-dbrand{font-size:18px;font-weight:800;color:#0D9488;}'
     + '.hbo-close{background:none;border:none;font-size:26px;line-height:1;color:#9CA1AB;cursor:pointer;padding:0 4px;}'
-    + '.hbo-item{display:flex;align-items:center;gap:12px;width:100%;padding:13px 12px;border:none;background:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:600;color:#17181C;text-align:left;text-decoration:none;cursor:pointer;}'
+    + '.hbo-item{display:flex;align-items:center;gap:11px;width:100%;padding:12px 12px;border:none;background:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;color:#17181C;text-align:left;text-decoration:none;cursor:pointer;}'
     + '.hbo-item:hover,.hbo-item:active{background:#CCFBF1;color:#0B7A70;}'
     + '.hbo-ic{font-size:19px;width:24px;text-align:center;flex:none;}'
     + '.hbo-divider{height:1px;background:#E2E4E9;margin:8px 6px;}'

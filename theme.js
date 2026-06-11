@@ -47,7 +47,9 @@
       '--text-main:' + text + ' !important;--text:' + text + ' !important;--ink:' + text + ' !important;' +
       '--accent:' + accent + ' !important;--accent-dark:' + dark + ' !important;--accent-soft:' + soft + ' !important;' +
       '}' +
-      'body{font-family:' + font + ' !important;}';
+      'body{font-family:' + font + ' !important;}' +
+      // 달력·숫자·제목·표·입력칸 등 '구조'는 어떤 글씨체를 골라도 항상 깔끔한 기본 글씨로 (레이아웃 깨짐 방지)
+      'table,th,td,.mini-month,.mini-h,.mini-wd,.mini-d,.day-number,.day-top,.nav-arrow,.month-switch,h1,h2,h3,input,select,.year-nav,.day-chip{font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif !important;}';
     var el = document.getElementById('__theme_css');
     if (!el) {
       el = document.createElement('style');
