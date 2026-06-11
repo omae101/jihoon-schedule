@@ -405,6 +405,18 @@
     .btn { padding: 9px 12px; font-size: 13px; }
     .subject-toolbar .btn { padding: 8px 12px; }
   }
+  /* 날짜 빠른 편집창 */
+  .edit-overlay { display: none; position: fixed; inset: 0; background: rgba(30,30,40,.5); z-index: 1100; justify-content: center; align-items: center; padding: 20px; }
+  .edit-overlay.on { display: flex; }
+  .edit-box { background: #fff; border-radius: 14px; padding: 18px; max-width: 380px; width: 100%; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+  .edit-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .edit-head b { font-size: 16px; color: var(--text-main); }
+  .edit-x { background: none; border: none; font-size: 26px; color: var(--text-mute); cursor: pointer; line-height: 1; }
+  #editArea { width: 100%; min-height: 120px; border: 1px solid var(--line-strong); border-radius: 10px; padding: 11px 12px; font-family: inherit; font-size: 14px; line-height: 1.5; resize: vertical; outline: none; color: var(--text-main); }
+  #editArea:focus { border-color: var(--accent); }
+  .edit-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .edit-btn { flex: 1; text-align: center; padding: 11px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-main); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
+  .edit-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 </style>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <link rel="manifest" href="/app.webmanifest">
@@ -438,7 +450,7 @@
   </table>
 
   <div class="help-box">
-    <strong>날짜 칸을 누르면</strong> 그날 화면에서 수행평가·일정을 입력해요. 일정은 달력에 <strong>칩</strong>으로 보이고, 수행평가는 3일 전부터 D-day가 떠요.
+    <strong>날짜 칸을 누르면</strong> 바로 입력창이 떠서 일정을 적을 수 있어요. 적은 일정은 달력에 <strong>칩</strong>으로 보이고(줄바꿈=여러 칩), 수행평가는 3일 전부터 D-day가 떠요.
   </div>
 
   <div class="monthly-plan-box">
@@ -475,6 +487,18 @@
 
   <div class="legend-info">
     수행평가·시험·학원 발표 등 중요한 일정을 적어두면 한눈에 볼 수 있어요. 오늘 날짜는 진한 색으로 표시됩니다.
+  </div>
+</div>
+
+<!-- 날짜 칸 빠른 편집 -->
+<div id="dayEditModal" class="edit-overlay">
+  <div class="edit-box">
+    <div class="edit-head"><b id="editTitle">일정 입력</b><button class="edit-x" id="editClose" aria-label="닫기">×</button></div>
+    <textarea id="editArea" placeholder="수행평가·시험·학원 일정 등을 적어요.&#10;줄을 바꾸면 여러 칩으로 나뉘어 보여요."></textarea>
+    <div class="edit-actions">
+      <a id="editDayLink" class="edit-btn">📅 그날 화면</a>
+      <button class="edit-btn primary" id="editSave">저장</button>
+    </div>
   </div>
 </div>
 
@@ -553,6 +577,58 @@
 
   const tbody = document.getElementById('calendarBody');
   let day = 1, weekIdx = 0;
+  const cellByDate = {};
+
+  // 한 날짜 칸의 내용(날짜 숫자 + 칩)을 채운다 (편집 후 다시 그릴 때도 사용)
+  function fillCell(cell, dateStr) {
+    cell.innerHTML = '';
+    const parts = dateStr.split('-');
+    const dayNum = parseInt(parts[2], 10);
+    const dObj = new Date(+parts[0], +parts[1] - 1, +parts[2]); dObj.setHours(0, 0, 0, 0);
+    const isSun = dObj.getDay() === 0;
+    const isTodayCell = (dateStr === todayStr);
+
+    const top = document.createElement('div');
+    top.className = 'day-top';
+    const num = document.createElement('span');
+    num.className = 'day-number' + (isSun ? ' sun' : '') + (isTodayCell ? ' today' : '');
+    num.textContent = dayNum;
+    top.appendChild(num);
+
+    const saved = (localStorage.getItem(`jihoon-assessment-${dateStr}`) || '').trim();
+    if (saved) {
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      const diff = Math.round((dObj - t) / 86400000);
+      const up = diff >= 0 && diff <= 3;
+      if (up) {
+        const badge = document.createElement('span');
+        badge.className = 'dday-badge';
+        badge.textContent = diff === 0 ? 'D-DAY' : 'D-' + diff;
+        badge.style.background = diff === 0 ? '#C62828' : diff === 1 ? '#E53935' : diff === 2 ? '#F57C00' : '#FB8C00';
+        top.appendChild(badge);
+      }
+      cell.appendChild(top);
+      const lines = saved.split('\n').map(s => s.trim()).filter(Boolean);
+      const chips = document.createElement('div');
+      chips.className = 'day-chips';
+      const MAXC = 3;
+      lines.slice(0, MAXC).forEach(line => {
+        const chip = document.createElement('span');
+        chip.className = 'day-chip' + (up ? ' up' : '');
+        chip.textContent = line;
+        chips.appendChild(chip);
+      });
+      if (lines.length > MAXC) {
+        const more = document.createElement('span');
+        more.className = 'day-more';
+        more.textContent = '+' + (lines.length - MAXC) + '개 더';
+        chips.appendChild(more);
+      }
+      cell.appendChild(chips);
+    } else {
+      cell.appendChild(top);
+    }
+  }
 
   while (day <= lastDate) {
     const tr = document.createElement('tr');
@@ -568,57 +644,14 @@
         const isToday = (dateStr === todayStr);
         const isSun = (col === 6);
 
-        // 칸 전체가 그날로 가는 링크 (편집은 일별 화면에서)
-        const cell = document.createElement('a');
+        // 칸을 누르면 바로 그 자리에서 입력 (작은 편집창)
+        const cell = document.createElement('div');
         cell.className = 'day-cell';
         if (isToday) cell.classList.add('today-cell');
-        cell.href = `day.html?date=${dateStr}`;
-        cell.title = `${MONTH}월 ${currentDay}일 — 누르면 편집`;
-
-        const top = document.createElement('div');
-        top.className = 'day-top';
-        const num = document.createElement('span');
-        num.className = 'day-number';
-        if (isSun) num.classList.add('sun');
-        if (isToday) num.classList.add('today');
-        num.textContent = currentDay;
-        top.appendChild(num);
-
-        const saved = (localStorage.getItem(`jihoon-assessment-${dateStr}`) || '').trim();
-        if (saved) {
-          const t = new Date(); t.setHours(0,0,0,0);
-          const d = new Date(YEAR, MONTH - 1, currentDay); d.setHours(0,0,0,0);
-          const diff = Math.round((d - t) / 86400000);
-          const up = diff >= 0 && diff <= 3;
-          if (up) {
-            const badge = document.createElement('span');
-            badge.className = 'dday-badge';
-            badge.textContent = diff === 0 ? 'D-DAY' : 'D-' + diff;
-            badge.style.background = diff === 0 ? '#C62828'
-              : diff === 1 ? '#E53935' : diff === 2 ? '#F57C00' : '#FB8C00';
-            top.appendChild(badge);
-          }
-          cell.appendChild(top);
-          const lines = saved.split('\n').map(s => s.trim()).filter(Boolean);
-          const chips = document.createElement('div');
-          chips.className = 'day-chips';
-          const MAXC = 3;
-          lines.slice(0, MAXC).forEach(line => {
-            const chip = document.createElement('span');
-            chip.className = 'day-chip' + (up ? ' up' : '');
-            chip.textContent = line;
-            chips.appendChild(chip);
-          });
-          if (lines.length > MAXC) {
-            const more = document.createElement('span');
-            more.className = 'day-more';
-            more.textContent = '+' + (lines.length - MAXC) + '개 더';
-            chips.appendChild(more);
-          }
-          cell.appendChild(chips);
-        } else {
-          cell.appendChild(top);
-        }
+        cell.title = `${MONTH}월 ${currentDay}일 — 눌러서 입력`;
+        fillCell(cell, dateStr);
+        cellByDate[dateStr] = cell;
+        cell.addEventListener('click', () => openEditor(dateStr, currentDay));
 
         td.appendChild(cell);
         day++;
@@ -628,6 +661,37 @@
     tbody.appendChild(tr);
     weekIdx++;
   }
+
+  // ===== 날짜 칸 빠른 편집 =====
+  let editDate = null;
+  const editModal = document.getElementById('dayEditModal');
+  const editArea = document.getElementById('editArea');
+  const editTitle = document.getElementById('editTitle');
+  const editDayLink = document.getElementById('editDayLink');
+
+  function openEditor(dateStr, dayNum) {
+    editDate = dateStr;
+    editTitle.textContent = `${MONTH}월 ${dayNum}일 일정`;
+    editArea.value = localStorage.getItem(`jihoon-assessment-${dateStr}`) || '';
+    editDayLink.href = `day.html?date=${dateStr}`;
+    editModal.classList.add('on');
+    setTimeout(() => editArea.focus(), 50);
+  }
+  function closeEditor() { editModal.classList.remove('on'); }
+  function saveEditor() {
+    if (editDate === null) return;
+    const v = editArea.value;
+    if (v.trim()) localStorage.setItem(`jihoon-assessment-${editDate}`, v);
+    else localStorage.removeItem(`jihoon-assessment-${editDate}`);
+    if (cellByDate[editDate]) fillCell(cellByDate[editDate], editDate);
+    showSaved();
+    closeEditor();
+  }
+  document.getElementById('editSave').addEventListener('click', saveEditor);
+  document.getElementById('editClose').addEventListener('click', closeEditor);
+  editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditor(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeEditor(); });
+  editArea.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveEditor(); } });
 
   const subjects = ['korean', 'math', 'english', 'science', 'social'];
   subjects.forEach(sub => {
