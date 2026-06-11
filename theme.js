@@ -62,6 +62,7 @@
   function buildModal() {
     if (document.getElementById('__stModal')) return;
     var css = ''
+      + '.__st-ov,.__st-ov *{font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif !important;}'
       + '.__st-ov{display:none;position:fixed;inset:0;background:rgba(30,30,40,.5);z-index:1003;justify-content:center;align-items:center;padding:20px;}'
       + '.__st-ov.on{display:flex;}'
       + '.__st-box{background:#fff;border-radius:14px;padding:20px 18px;max-width:380px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.25);font-family:inherit;}'

@@ -133,6 +133,11 @@
   }
   .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
   .topbar-brand { font-size: 16px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; }
+  /* 메뉴·모달은 항상 깔끔한 글씨 (고른 글씨체는 내용에만 적용) */
+  .topbar, .drawer, .drawer *, .modal-box, .modal-box * {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif !important;
+  }
+  .drawer-item { line-height: 1.2; }
 
   .drawer-overlay {
     position: fixed; inset: 0;
