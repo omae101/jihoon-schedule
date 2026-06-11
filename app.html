@@ -1206,6 +1206,10 @@
     document.getElementById('helpClose').addEventListener('click', hide);
     document.getElementById('helpDone').addEventListener('click', hide);
     helpModal.addEventListener('click', e => { if (e.target === helpModal) hide(); });
+    // 다른 화면 메뉴에서 학교/학원 시간표로 들어온 경우 해당 모달 자동 열기
+    const op = new URLSearchParams(location.search).get('open');
+    if (op === 'school') document.getElementById('timetableModal').classList.add('show');
+    else if (op === 'academy') document.getElementById('academyModal').classList.add('show');
   })();
 
   // ===== 다가오는 수행평가 + 브라우저 알림 =====
