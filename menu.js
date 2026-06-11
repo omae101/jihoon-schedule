@@ -16,6 +16,13 @@
     + '.hbo-brand{font-size:16px;font-weight:700;color:#0D9488;letter-spacing:-.3px;}'
     + '.hbo-topbar,.hbo-drawer,.hbo-help,.hbo-help *{font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif !important;}'
     + '.hbo-item{line-height:1.2;}'
+    + '.hbo-rem-count{margin-left:auto;background:#E06C6C;color:#fff;font-size:11px;font-weight:700;border-radius:10px;padding:0 7px;min-width:18px;text-align:center;display:none;}'
+    + '.hbo-rem-on{width:100%;padding:11px;border:none;border-radius:9px;background:#0D9488;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:inherit;}'
+    + '.hbo-rem-item{display:flex;align-items:center;gap:9px;padding:9px 2px;border-bottom:1px solid #EEE;text-decoration:none;color:#17181C;}'
+    + '.hbo-rem-dd{font-size:11px;font-weight:800;color:#fff;border-radius:8px;padding:2px 8px;flex:none;}'
+    + '.hbo-rem-txt{font-size:13.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'
+    + '.hbo-rem-date{font-size:11px;color:#9CA1AB;flex:none;}'
+    + '.hbo-rem-empty{color:#9CA1AB;font-size:13px;padding:16px 4px;text-align:center;line-height:1.6;}'
     + '.hbo-overlay{position:fixed;inset:0;background:rgba(30,30,40,.45);opacity:0;visibility:hidden;transition:opacity .25s;z-index:1000;}'
     + '.hbo-overlay.on{opacity:1;visibility:visible;}'
     + '.hbo-drawer{position:fixed;top:0;left:0;bottom:0;width:270px;max-width:80vw;background:#fff;box-shadow:4px 0 24px rgba(0,0,0,.18);transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:1001;padding:14px 12px;overflow-y:auto;-webkit-overflow-scrolling:touch;}'
@@ -67,6 +74,7 @@
     +   '<a class="hbo-item" href="month.html?year=' + YEAR_NOW + '&month=' + MONTH_NOW + '"><span class="hbo-ic">🗓️</span><span>이번 달 달력</span></a>'
     +   '<a class="hbo-item" href="day.html?date=' + TODAY_STR + '"><span class="hbo-ic">☀️</span><span>오늘 일정</span></a>'
     +   '<a class="hbo-item" href="grade.html"><span class="hbo-ic">📊</span><span>성적 분석</span></a>'
+    +   '<button class="hbo-item" id="hboRemBtn"><span class="hbo-ic">🔔</span><span>리마인더</span><span class="hbo-rem-count" id="hboRemCount"></span></button>'
     +   '<div class="hbo-divider"></div>'
     +   '<a class="hbo-item" href="app.html?open=school"><span class="hbo-ic">🏫</span><span>학교 시간표</span></a>'
     +   '<a class="hbo-item" href="app.html?open=academy"><span class="hbo-ic">🎒</span><span>학원 시간표</span></a>'
@@ -86,6 +94,11 @@
     +   '<div class="hbo-hrow"><span class="hbo-hic">📲</span><div><b>홈화면 추가 / 알림</b><p>"홈화면 추가"로 앱처럼 쓰고, 알림을 켜면 다가온 수행평가를 알려줘요.</p></div></div>'
     +   '<div class="hbo-hrow"><span class="hbo-hic">💾</span><div><b>백업 / 복원</b><p>데이터는 이 기기에만 저장돼요. 폰↔컴퓨터로 옮길 땐 연간 계획 화면에서 백업/복원하세요.</p></div></div>'
     +   '<button class="hbo-help-done" id="hboHelpDone">확인</button>'
+    + '</div></div>'
+    + '<div class="hbo-help" id="hboRem"><div class="hbo-help-box">'
+    +   '<div class="hbo-help-head"><b>🔔 리마인더</b><button class="hbo-close" id="hboRemClose" aria-label="닫기">×</button></div>'
+    +   '<div id="hboRemBody"></div>'
+    +   '<button class="hbo-help-done" id="hboRemDone">확인</button>'
     + '</div></div>';
   while (holder.firstChild) document.body.appendChild(holder.firstChild);
 
@@ -103,7 +116,67 @@
   document.getElementById('hboHelpClose').addEventListener('click', function () { help.classList.remove('on'); });
   document.getElementById('hboHelpDone').addEventListener('click', function () { help.classList.remove('on'); });
   help.addEventListener('click', function (e) { if (e.target === help) help.classList.remove('on'); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); help.classList.remove('on'); } });
+  // 리마인더 (다가오는 수행평가·일정)
+  var rem = document.getElementById('hboRem');
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]; }); }
+  function startOfToday() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+  function ddColor(d) { return d === 0 ? '#C62828' : d === 1 ? '#E53935' : d === 2 ? '#F57C00' : d <= 3 ? '#FB8C00' : '#0D9488'; }
+  function upcomingReminders(maxDays) {
+    var today = startOfToday(), out = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      var m = k && k.match(/^jihoon-assessment-(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) continue;
+      var txt = (localStorage.getItem(k) || '').trim();
+      if (!txt) continue;
+      var d = new Date(+m[1], +m[2] - 1, +m[3]); d.setHours(0, 0, 0, 0);
+      var diff = Math.round((d - today) / 86400000);
+      if (diff < 0 || diff > maxDays) continue;
+      txt.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (line) {
+        out.push({ date: d, dateStr: m[1] + '-' + m[2] + '-' + m[3], diff: diff, text: line });
+      });
+    }
+    out.sort(function (a, b) { return a.date - b.date; });
+    return out;
+  }
+  function renderReminders() {
+    var items = upcomingReminders(14);
+    var cnt = document.getElementById('hboRemCount');
+    if (cnt) {
+      var near = items.filter(function (it) { return it.diff <= 3; }).length;
+      if (near > 0) { cnt.textContent = near; cnt.style.display = ''; } else cnt.style.display = 'none';
+    }
+    var body = document.getElementById('hboRemBody');
+    if (!body) return;
+    var html = '';
+    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+      html += '<button class="hbo-rem-on" id="hboRemOn">🔔 브라우저 알림 켜기</button>';
+    }
+    if (!items.length) {
+      html += '<div class="hbo-rem-empty">2주 안에 예정된 수행평가·일정이 없어요.<br>월간 달력에서 날짜를 눌러 입력해 보세요.</div>';
+    } else {
+      items.forEach(function (it) {
+        var dd = it.diff === 0 ? 'D-DAY' : 'D-' + it.diff;
+        var md = it.dateStr.split('-');
+        html += '<a class="hbo-rem-item" href="day.html?date=' + it.dateStr + '">'
+          + '<span class="hbo-rem-dd" style="background:' + ddColor(it.diff) + '">' + dd + '</span>'
+          + '<span class="hbo-rem-txt">' + esc(it.text) + '</span>'
+          + '<span class="hbo-rem-date">' + parseInt(md[1]) + '.' + parseInt(md[2]) + '</span></a>';
+      });
+    }
+    body.innerHTML = html;
+    var onBtn = document.getElementById('hboRemOn');
+    if (onBtn) onBtn.addEventListener('click', function () {
+      if ('Notification' in window) Notification.requestPermission().then(function () { renderReminders(); });
+    });
+  }
+  document.getElementById('hboRemBtn').addEventListener('click', function () { close(); renderReminders(); rem.classList.add('on'); });
+  document.getElementById('hboRemClose').addEventListener('click', function () { rem.classList.remove('on'); });
+  document.getElementById('hboRemDone').addEventListener('click', function () { rem.classList.remove('on'); });
+  rem.addEventListener('click', function (e) { if (e.target === rem) rem.classList.remove('on'); });
+  renderReminders(); // 메뉴 배지 갱신
+
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); help.classList.remove('on'); rem.classList.remove('on'); } });
 
   // 자녀 프로필 + 초기화
   if (window.Profiles) {

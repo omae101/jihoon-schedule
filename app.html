@@ -799,6 +799,7 @@
   <a class="drawer-item" id="navMonth" href="month.html"><span class="di-ic">🗓️</span><span>이번 달 달력</span></a>
   <a class="drawer-item" id="navToday" href="day.html"><span class="di-ic">☀️</span><span>오늘 일정</span></a>
   <a class="drawer-item" href="grade.html"><span class="di-ic">📊</span><span>성적 분석</span></a>
+  <button class="drawer-item" id="navReminder"><span class="di-ic">🔔</span><span>리마인더</span></button>
   <div class="drawer-divider"></div>
   <button class="drawer-item" id="timetableBtn"><span class="di-ic">🏫</span><span>학교 시간표</span></button>
   <button class="drawer-item" id="academyBtn"><span class="di-ic">🎒</span><span>학원 시간표</span></button>
@@ -1237,6 +1238,16 @@
     drawer.querySelectorAll('.drawer-item').forEach(it => it.addEventListener('click', close));
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) settingsBtn.addEventListener('click', () => { if (window.Settings) window.Settings.open(); });
+    const navRem = document.getElementById('navReminder');
+    if (navRem) navRem.addEventListener('click', () => {
+      const box = document.getElementById('upcomingBox');
+      if (box) {
+        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        box.style.transition = 'box-shadow .3s';
+        box.style.boxShadow = '0 0 0 3px var(--accent)';
+        setTimeout(() => { box.style.boxShadow = ''; }, 1400);
+      }
+    });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     // 오늘 일정 / 이번 달 달력 링크
     const pad = n => String(n).padStart(2, '0');
