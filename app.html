@@ -401,6 +401,10 @@
     margin-bottom: 28px;
     font-size: 15px;
   }
+  .goal-icons { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .goal-icons-label { font-size: 12px; color: var(--text-mute); font-weight: 600; margin-right: 2px; }
+  .goal-ic { font-size: 18px; line-height: 1; padding: 5px 7px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); cursor: pointer; transition: all .12s; }
+  .goal-ic:hover { border-color: var(--accent); transform: translateY(-1px); }
   .help-box {
     background: var(--surface-soft);
     padding: 14px 20px;
@@ -737,6 +741,17 @@
     <button id="nextYear" title="다음 년도" style="padding:8px 14px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;">▶</button>
   </div>
 
+  <div class="goal-icons" id="goalIcons" title="목표 앞에 아이콘을 넣어보세요">
+    <span class="goal-icons-label">목표 아이콘:</span>
+    <button type="button" class="goal-ic" data-emoji="🎓">🎓</button>
+    <button type="button" class="goal-ic" data-emoji="🏛️">🏛️</button>
+    <button type="button" class="goal-ic" data-emoji="🏅">🏅</button>
+    <button type="button" class="goal-ic" data-emoji="🥇">🥇</button>
+    <button type="button" class="goal-ic" data-emoji="🏆">🏆</button>
+    <button type="button" class="goal-ic" data-emoji="📜">📜</button>
+    <button type="button" class="goal-ic" data-emoji="📚">📚</button>
+    <button type="button" class="goal-ic" data-emoji="⭐">⭐</button>
+  </div>
   <div class="help-box" contenteditable="true" id="yearGoalBox" placeholder="올해 목표를 적어보세요...">올해 목표를 적어두세요.</div>
 
   <div class="upcoming-box" id="upcomingBox">
@@ -909,6 +924,19 @@
   yearGoalBox.addEventListener('input', () => {
     localStorage.setItem(YEAR_GOAL_KEY, yearGoalBox.innerHTML);
     showSaved();
+  });
+
+  // 목표 아이콘: 누르면 목표 박스 맨 앞에 삽입
+  const goalIcons = document.getElementById('goalIcons');
+  if (goalIcons) goalIcons.addEventListener('click', (e) => {
+    const btn = e.target.closest('.goal-ic');
+    if (!btn) return;
+    const cur = yearGoalBox.textContent.trim();
+    // 아직 안내문구만 있으면 비우고 시작
+    if (cur === '올해 목표를 적어두세요.' || cur === '') yearGoalBox.innerHTML = '';
+    yearGoalBox.innerHTML = btn.dataset.emoji + ' ' + yearGoalBox.innerHTML;
+    yearGoalBox.dispatchEvent(new Event('input'));
+    yearGoalBox.focus();
   });
 
   // ===== 학교 시간표 모달 =====
