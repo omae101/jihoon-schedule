@@ -206,78 +206,53 @@
   table.calendar td {
     border: 1px solid var(--line);
     padding: 0;
-    height: 120px;
+    height: 86px;
     vertical-align: top;
     background: var(--surface);
   }
   table.calendar td.empty-day { background: var(--bg); }
+  /* 날짜 칸 = 클릭하면 그날로 이동. 일정은 칩으로 보기 전용 */
   .day-cell {
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 6px;
-  }
-  .day-number {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-main);
+    gap: 3px;
+    padding: 5px 5px 4px;
     text-decoration: none;
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 4px;
-    transition: all 0.15s;
-    align-self: flex-start;
+    color: inherit;
+    overflow: hidden;
     cursor: pointer;
-    border: 1px dashed transparent;
   }
-  .day-number:hover {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-  .day-number.today {
-    background: var(--accent);
-    color: white;
+  .day-cell:hover { background: var(--accent-soft); }
+  .day-cell.today-cell { background: #EFF8F7; }
+  .day-top { display: flex; align-items: center; gap: 5px; }
+  .day-number {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+    border-radius: 6px;
+    padding: 1px 6px;
+    line-height: 1.35;
   }
   .day-number.sun { color: var(--weekend); }
-  .day-number.today.sun { color: white; }
-
-  .assessment-input {
-    flex: 1;
-    width: 100%;
-    margin-top: 4px;
-    padding: 4px 6px;
-    border: 1px solid transparent;
-    border-radius: 3px;
-    background: var(--bg);
-    font-family: inherit;
-    font-size: 12px;
-    resize: none;
-    color: var(--text-main);
-    outline: none;
-    line-height: 1.4;
-  }
+  .day-number.today { background: var(--accent); color: #fff; }
+  .day-number.today.sun { color: #fff; }
   .dday-badge {
-    align-self: flex-start;
-    margin-top: 4px;
-    padding: 2px 7px;
-    border-radius: 10px;
+    padding: 1px 6px;
+    border-radius: 9px;
     color: #fff;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
   }
-  .day-cell.has-upcoming .assessment-input {
-    background: #FFF8E1;
-    border-color: #FFE082;
+  .day-chips { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+  .day-chip {
+    font-size: 10.5px; line-height: 1.3; padding: 2px 5px; border-radius: 5px;
+    background: #E9EBF3; color: #3C3F54;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .assessment-input:focus {
-    border-color: var(--accent);
-    background: var(--surface);
-  }
-  .assessment-input::placeholder {
-    color: var(--text-mute);
-  }
+  .day-chip.up { background: #FFE3D6; color: #B5462A; }
+  .day-more { font-size: 9.5px; color: var(--text-mute); padding-left: 4px; }
 
   .saved-indicator {
     position: fixed;
@@ -427,10 +402,11 @@
     h1 { font-size: 24px; }
     .help-box, .legend-info { font-size: 12px; padding: 10px 12px; }
     table.calendar th { padding: 6px 2px; font-size: 12px; }
-    table.calendar td { height: 80px; }
-    .day-cell { padding: 3px; }
-    .day-number { font-size: 14px; padding: 1px 6px; }
-    .assessment-input { font-size: 11px; margin-top: 2px; padding: 2px 3px; }
+    table.calendar td { height: 72px; }
+    .day-cell { padding: 3px 3px 2px; gap: 2px; }
+    .day-number { font-size: 13px; padding: 0 4px; }
+    .day-chip { font-size: 9px; padding: 1px 4px; }
+    .dday-badge { font-size: 8px; padding: 1px 4px; }
     .nav-btn, .btn { padding: 10px 12px; font-size: 13px; }
     .subject-toolbar .btn { padding: 8px 12px; }
   }
@@ -498,7 +474,7 @@
   </div>
 
   <div class="help-box">
-    각 칸의 <strong>흰 박스에 수행평가</strong>를 입력하세요. 왼쪽 위 <strong>날짜 숫자</strong>를 클릭하면 그 날의 일별 스케줄로 이동합니다.
+    <strong>날짜 칸을 누르면</strong> 그날 화면에서 수행평가·일정을 입력해요. 입력한 일정은 달력에 <strong>칩</strong>으로 한눈에 보여요. (수행평가는 3일 전부터 D-day 표시)
   </div>
 
   <div class="toolbar">
@@ -618,55 +594,57 @@
         const isToday = (dateStr === todayStr);
         const isSun = (col === 6);
 
-        const cell = document.createElement('div');
+        // 칸 전체가 그날로 가는 링크 (편집은 일별 화면에서)
+        const cell = document.createElement('a');
         cell.className = 'day-cell';
+        if (isToday) cell.classList.add('today-cell');
+        cell.href = `day.html?date=${dateStr}`;
+        cell.title = `${MONTH}월 ${currentDay}일 — 누르면 편집`;
 
-        const link = document.createElement('a');
-        link.className = 'day-number';
-        if (isSun) link.classList.add('sun');
-        if (isToday) link.classList.add('today');
-        link.href = `day.html?date=${dateStr}`;
-        link.textContent = currentDay;
-        link.title = `${MONTH}월 ${currentDay}일 스케줄`;
-        cell.appendChild(link);
+        const top = document.createElement('div');
+        top.className = 'day-top';
+        const num = document.createElement('span');
+        num.className = 'day-number';
+        if (isSun) num.classList.add('sun');
+        if (isToday) num.classList.add('today');
+        num.textContent = currentDay;
+        top.appendChild(num);
 
-        const textarea = document.createElement('textarea');
-        textarea.className = 'assessment-input';
-        textarea.placeholder = '수행평가...';
-        textarea.dataset.date = dateStr;
-        const saved = localStorage.getItem(`jihoon-assessment-${dateStr}`);
-        if (saved) textarea.value = saved;
-
-        const updateDdayBadge = () => {
-          const existing = cell.querySelector('.dday-badge');
-          if (existing) existing.remove();
-          cell.classList.remove('has-upcoming');
-          const txt = (textarea.value || '').trim();
-          if (!txt) return;
+        const saved = (localStorage.getItem(`jihoon-assessment-${dateStr}`) || '').trim();
+        if (saved) {
           const t = new Date(); t.setHours(0,0,0,0);
           const d = new Date(YEAR, MONTH - 1, currentDay); d.setHours(0,0,0,0);
           const diff = Math.round((d - t) / 86400000);
-          if (diff < 0 || diff > 3) return;
-          const badge = document.createElement('span');
-          badge.className = 'dday-badge';
-          badge.textContent = diff === 0 ? 'D-DAY' : 'D-' + diff;
-          badge.style.background = diff === 0 ? '#C62828'
-            : diff === 1 ? '#E53935'
-            : diff === 2 ? '#F57C00' : '#FB8C00';
-          cell.insertBefore(badge, textarea);
-          cell.classList.add('has-upcoming');
-        };
-
-        textarea.addEventListener('input', () => {
-          localStorage.setItem(`jihoon-assessment-${dateStr}`, textarea.value);
-          updateDdayBadge();
-          showSaved();
-        });
-        ['mousedown','click','focus','pointerdown','touchstart'].forEach(ev => {
-          textarea.addEventListener(ev, (e) => e.stopPropagation());
-        });
-        cell.appendChild(textarea);
-        updateDdayBadge();
+          const up = diff >= 0 && diff <= 3;
+          if (up) {
+            const badge = document.createElement('span');
+            badge.className = 'dday-badge';
+            badge.textContent = diff === 0 ? 'D-DAY' : 'D-' + diff;
+            badge.style.background = diff === 0 ? '#C62828'
+              : diff === 1 ? '#E53935' : diff === 2 ? '#F57C00' : '#FB8C00';
+            top.appendChild(badge);
+          }
+          cell.appendChild(top);
+          const lines = saved.split('\n').map(s => s.trim()).filter(Boolean);
+          const chips = document.createElement('div');
+          chips.className = 'day-chips';
+          const MAXC = 3;
+          lines.slice(0, MAXC).forEach(line => {
+            const chip = document.createElement('span');
+            chip.className = 'day-chip' + (up ? ' up' : '');
+            chip.textContent = line;
+            chips.appendChild(chip);
+          });
+          if (lines.length > MAXC) {
+            const more = document.createElement('span');
+            more.className = 'day-more';
+            more.textContent = '+' + (lines.length - MAXC) + '개 더';
+            chips.appendChild(more);
+          }
+          cell.appendChild(chips);
+        } else {
+          cell.appendChild(top);
+        }
 
         td.appendChild(cell);
         day++;
@@ -703,18 +681,17 @@
 
   function resetCalendar() {
     if (confirm(`${MONTH}월의 모든 수행평가 입력 내용을 지울까요?`)) {
-      document.querySelectorAll('.assessment-input').forEach(ta => {
-        localStorage.removeItem(`jihoon-assessment-${ta.dataset.date}`);
-        ta.value = '';
-        const parent = ta.parentElement;
-        const badge = parent && parent.querySelector('.dday-badge');
-        if (badge) badge.remove();
-        if (parent) parent.classList.remove('has-upcoming');
-      });
+      const prefix = `jihoon-assessment-${YEAR}-${String(MONTH).padStart(2,'0')}-`;
+      const del = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.indexOf(prefix) === 0) del.push(k);
+      }
+      del.forEach(k => localStorage.removeItem(k));
       subjects.forEach(sub => {
         localStorage.removeItem(`jihoon-textbook-${sub}-${YEAR}-${MONTH}`);
-        document.getElementById(`${sub}Area`).value = '';
       });
+      location.reload();
     }
   }
 
