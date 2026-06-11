@@ -131,6 +131,8 @@
   .mini-row + .mini-row { border-top: 1px solid var(--line); }
   .mini-time { flex: none; min-width: 88px; font-size: 12px; color: var(--text-mute); font-weight: 600; outline: none; white-space: nowrap; }
   .mini-text { flex: 1; font-size: 14px; outline: none; min-height: 20px; }
+  .mini-empty { padding: 11px 12px; font-size: 12.5px; color: var(--text-mute); line-height: 1.5; }
+  .auto-hint { margin: 10px 2px 0; font-size: 11.5px; color: var(--text-mute); line-height: 1.55; }
 
   .banner { background: #FFF8E1; border: 1px solid #FFE9A8; border-radius: 14px; padding: 12px 16px; margin-top: 14px; font-size: 13.5px; color: #8A6D1A; display: flex; align-items: center; gap: 9px; text-decoration: none; }
   .banner .dd { font-weight: 800; color: var(--danger); }
@@ -211,10 +213,9 @@
     <div class="fold-body">
       <div class="sub-label">🏫 학교 시간표</div>
       <div class="mini-list" id="schoolList"></div>
-      <div class="add-row" id="addSchoolBtn" style="padding:8px 4px;">＋ 줄 추가</div>
       <div class="sub-label">🎓 학원 시간표</div>
       <div class="mini-list" id="academyList"></div>
-      <div class="add-row" id="addAcademyBtn" style="padding:8px 4px;">＋ 줄 추가</div>
+      <p class="auto-hint">시간표는 메인 화면의 🏫 학교 시간표 · 🎒 학원 시간표에서 입력하면 요일에 맞춰 자동으로 떠요.</p>
     </div>
   </div>
 
@@ -434,37 +435,63 @@
   }
   document.getElementById('addTlBtn').addEventListener('click', ()=>{ createRow('', ''); saveTimetable(); });
 
-  // ---------- 학교 / 학원 (간단 리스트) ----------
-  function makeMiniList(listEl, storageKey){
-    function load(){
-      listEl.innerHTML = '';
-      const data = localStorage.getItem(storageKey);
-      if (data){ JSON.parse(data).forEach(r=>addRow(r.time, r.text)); }
-      else { addRow('08:00-09:00',''); }
-    }
-    function addRow(time='', text=''){
-      const row = document.createElement('div'); row.className='mini-row';
-      const t = document.createElement('div'); t.className='mini-time'; t.contentEditable=true; t.textContent=time; t.dataset.ph='시간';
-      const x = document.createElement('div'); x.className='mini-text'; x.contentEditable=true; x.textContent=text; x.dataset.ph='과목·내용';
-      t.addEventListener('blur', save); x.addEventListener('blur', save);
-      [t,x].forEach(el=>el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } }));
-      row.appendChild(t); row.appendChild(x); listEl.appendChild(row);
-    }
-    function save(){
-      const rows = [...listEl.querySelectorAll('.mini-row')].map(r=>({
-        time: r.querySelector('.mini-time').textContent,
-        text: r.querySelector('.mini-text').textContent
-      }));
-      localStorage.setItem(storageKey, JSON.stringify(rows));
-      showSaved();
-    }
-    return { load, addRow: ()=>{ addRow('',''); save(); } };
+  // ---------- 학교 / 학원 시간표 (주간 시간표에서 요일별 자동 표시) ----------
+  const WD_CHARS = ['일','월','화','수','목','금','토'];
+  function readJSON(key){ try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch(e){ return null; } }
+  function autoRow(label, text){
+    const row = document.createElement('div'); row.className='mini-row';
+    const t = document.createElement('div'); t.className='mini-time'; t.textContent=label;
+    const x = document.createElement('div'); x.className='mini-text'; x.textContent=text;
+    row.appendChild(t); row.appendChild(x);
+    return row;
   }
-  let schoolCtl, academyCtl;
-  function loadSchool(){ schoolCtl = makeMiniList(document.getElementById('schoolList'), schoolKey); schoolCtl.load(); }
-  function loadAcademy(){ academyCtl = makeMiniList(document.getElementById('academyList'), academyKey); academyCtl.load(); }
-  document.getElementById('addSchoolBtn').addEventListener('click', ()=>schoolCtl.addRow());
-  document.getElementById('addAcademyBtn').addEventListener('click', ()=>academyCtl.addRow());
+  function legacyRows(key){
+    const data = readJSON(key);
+    if (!Array.isArray(data)) return [];
+    return data.map(r=>({label:(r.time||'').trim(), text:(r.text||'').trim()})).filter(r=>r.label||r.text);
+  }
+  // 학교: jihoon-school-timetable = 교시(행) × 요일(월~금, 열) 과목
+  function loadSchool(){
+    const el = document.getElementById('schoolList');
+    el.innerHTML = '';
+    const wd = new Date(selectedDate).getDay();           // 0일 ~ 6토
+    const data = readJSON('jihoon-school-timetable');
+    const rows = [];
+    if (wd >= 1 && wd <= 5 && Array.isArray(data)){
+      const col = wd - 1;                                  // 월=0 ... 금=4
+      data.forEach((p, i)=>{
+        const subj = (p && p[col] ? String(p[col]) : '').trim();
+        if (subj) rows.push({ label:(i+1)+'교시', text:subj });
+      });
+    }
+    if (rows.length){ rows.forEach(r=>el.appendChild(autoRow(r.label, r.text))); return; }
+    const leg = legacyRows(schoolKey);
+    if (leg.length){ leg.forEach(r=>el.appendChild(autoRow(r.label, r.text))); return; }
+    el.innerHTML = (wd === 0 || wd === 6)
+      ? '<div class="mini-empty">주말 — 학교 수업 없음</div>'
+      : '<div class="mini-empty">메인 화면 🏫 학교 시간표에 과목을 입력하면 자동으로 떠요.</div>';
+  }
+  // 학원: jihoon-academy-schedule = [{time:"월,수,금 4~6시", name, subject}]
+  function loadAcademy(){
+    const el = document.getElementById('academyList');
+    el.innerHTML = '';
+    const ch = WD_CHARS[new Date(selectedDate).getDay()];
+    const data = readJSON('jihoon-academy-schedule');
+    const rows = [];
+    if (Array.isArray(data)){
+      data.forEach(r=>{
+        const time = (r.time||'').trim(), name = (r.name||'').trim(), subject = (r.subject||'').trim();
+        if (!time && !name && !subject) return;
+        if (time && time.indexOf(ch) === -1) return;       // 이 요일에 해당 안 됨
+        const timeOnly = time.replace(/[월화수목금토일]/g,'').replace(/,/g,' ').replace(/\s+/g,' ').trim();
+        rows.push({ label: timeOnly || time || '시간', text: [name, subject].filter(Boolean).join(' · ') });
+      });
+    }
+    if (rows.length){ rows.forEach(r=>el.appendChild(autoRow(r.label, r.text))); return; }
+    const leg = legacyRows(academyKey);
+    if (leg.length){ leg.forEach(r=>el.appendChild(autoRow(r.label, r.text))); return; }
+    el.innerHTML = '<div class="mini-empty">메인 화면 🎒 학원 시간표에 요일(예: 월,수,금)과 함께 입력하면 자동으로 떠요.</div>';
+  }
 
   // ---------- 텍스트 영역 (수행평가/내신/특강/메모) ----------
   function bindArea(id, getKey){
