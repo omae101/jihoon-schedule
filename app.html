@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2026년 계획표</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
   :root {
     --bg: #F2F3F5;
@@ -22,7 +23,7 @@
   }
   * { box-sizing: border-box; }
   body {
-    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
     background: var(--bg);
     margin: 0;
     padding: 30px 20px;
@@ -575,11 +576,37 @@
   @media (max-width: 600px) {
     body { padding: 16px 10px; }
     .container { padding: 20px 14px; border-radius: 12px; }
-    h1 { font-size: 24px; gap: 6px; }
-    .name-input { font-size: 24px; }
-    .name-suffix { font-size: 24px; }
-    .name-input::placeholder { font-size: 20px; }
-    .timetable-btn { margin-left: 0; padding: 8px 12px; }
+    h1 { font-size: 20px; gap: 5px; margin-bottom: 4px; }
+    .name-input { font-size: 20px; min-width: 64px; }
+    .name-suffix { font-size: 20px; }
+    .name-input::placeholder { font-size: 17px; }
+    /* 시간표 버튼: 작고 깔끔하게 */
+    .timetable-btn { margin-left: 0; padding: 6px 10px; font-size: 12px; gap: 4px; }
+    .timetable-btn .icon { font-size: 14px; }
+    /* 설명글: 한눈에 들어오게 축소 */
+    .subtitle { font-size: 12px; margin-bottom: 14px; }
+    .help-box { font-size: 12.5px; padding: 10px 14px; margin-bottom: 16px; }
+    .footer-info { font-size: 12px; padding: 12px 14px; margin-top: 18px; }
+    .upcoming-box { padding: 12px 14px; }
+    .upcoming-title { font-size: 13px; }
+    /* 시간표 모달: 폰에서 꽉 차게, 표는 작은 글씨로 한눈에 */
+    .modal-box { padding: 18px 14px; }
+    .modal-title { font-size: 16px; }
+    table.timetable th { padding: 5px 2px; font-size: 11px; }
+    table.timetable th.period-col { width: 38px; }
+    table.timetable td { height: 38px; }
+    table.timetable td.period-label { font-size: 11px; }
+    .subject-input { font-size: 11.5px; padding: 2px; }
+    .subject-input::placeholder { font-size: 10px; }
+    table.academy-table th { padding: 6px 3px; font-size: 11px; }
+    table.academy-table th.col-num { width: 26px; }
+    table.academy-table th.col-time { width: 78px; }
+    table.academy-table td { padding: 2px 3px; }
+    table.academy-table td.num-cell { font-size: 11px; }
+    .academy-input { font-size: 11.5px; padding: 5px 4px; }
+    .academy-input::placeholder { font-size: 10px; }
+    .timetable-hint { font-size: 11px; margin-top: 8px; }
+    .modal-btn { padding: 7px 12px; font-size: 12px; }
     /* 스마트폰: 12개월이 한 화면에 들어오도록 컴팩트 타일 */
     .month-card { padding: 10px 8px; }
     .month-header { margin-bottom: 4px; }
@@ -606,13 +633,13 @@
     <input type="text" id="ownerName" class="name-input" placeholder="이름" maxlength="10">
     <span class="name-suffix">의 <span id="yearDisplay">2026</span>년 계획표</span>
     <button class="timetable-btn" id="timetableBtn" title="학교 시간표 보기">
-      <span class="icon">🏫</span> 학교 시간표
+      <span class="icon">🏫</span> 학교
     </button>
     <button class="timetable-btn" id="academyBtn" title="학원 시간표 보기">
-      <span class="icon">🎒</span> 학원 시간표
+      <span class="icon">🎒</span> 학원
     </button>
   </h1>
-  <p class="subtitle">달 이름(예: 3월)을 누르면 달력 · 카드를 누르면 월간 목표가 펼쳐져요</p>
+  <p class="subtitle">달 이름 = 달력 · 카드 = 월간 목표</p>
   <div style="text-align:center;margin-bottom:16px;">
     <button id="prevYear" title="이전 년도" style="padding:8px 14px;background:#fff;border:1px solid #C9CDD4;border-radius:8px;font-size:16px;cursor:pointer;font-weight:600;">◀</button>
     <input id="yearInput" type="number" min="2000" max="2100" title="연도를 직접 입력하세요" style="width:96px;text-align:center;padding:8px 6px;font-size:18px;font-weight:700;color:#17181C;border:1px solid #C9CDD4;border-radius:8px;">
@@ -621,7 +648,7 @@
     <a href="grade.html" style="display:inline-block;padding:8px 20px;background:#E53935;color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-left:12px;">📊 성적 분석</a>
   </div>
 
-  <div class="help-box" contenteditable="true" id="yearGoalBox" placeholder="년간 목표를 적어보세요..."><strong>월간 목표</strong>를 적어두세요. 큰 글씨의 <strong>월 이름을 클릭</strong>하면 해당 월의 달력이 열립니다.</div>
+  <div class="help-box" contenteditable="true" id="yearGoalBox" placeholder="올해 목표를 적어보세요...">올해 목표를 적어두세요.</div>
 
   <div class="upcoming-box" id="upcomingBox">
     <div class="upcoming-head">
@@ -630,23 +657,20 @@
       <button class="alarm-btn" id="pwaInstallBtn" style="display:none;">📲 홈화면 추가</button>
     </div>
     <ul class="upcoming-list" id="upcomingList"></ul>
-    <p class="upcoming-empty" id="upcomingEmpty" style="display:none;">3일 이내 수행평가가 없어요. 월간 달력에서 입력하면 여기에 표시됩니다.</p>
+    <p class="upcoming-empty" id="upcomingEmpty" style="display:none;">3일 이내 수행평가가 없어요.</p>
   </div>
 
   <div class="months-grid" id="monthsGrid"></div>
 
   <div class="footer-info">
-    <strong>계획표 구조</strong><br>
-    1단계 · 연간 계획 (이 페이지) — 매 달의 큰 목표 설정<br>
-    2단계 · 월간 달력 — 수행평가, 시험 등 날짜별 일정 입력<br>
-    3단계 · 일별 스케줄 — 시간표 + To-Do 리스트로 하루 계획
+    <strong>연간</strong> → <strong>월간 달력</strong> → <strong>일별 스케줄</strong> 순서로 계획해요.
   </div>
 
   <div style="text-align:center;margin-top:18px;">
     <button id="backupBtn" class="timetable-btn" style="margin-left:0;"><span class="icon">📤</span> 백업 내보내기</button>
     <button id="restoreBtn" class="timetable-btn"><span class="icon">📥</span> 복원 불러오기</button>
     <input type="file" id="restoreFile" accept="application/json,.json" style="display:none;">
-    <p style="font-size:12px;color:var(--text-mute);margin-top:8px;line-height:1.6;">폰↔컴퓨터로 데이터를 옮길 때 사용하세요.<br>한 기기에서 <b>백업 내보내기</b> → 다른 기기에서 <b>복원 불러오기</b></p>
+    <p style="font-size:12px;color:var(--text-mute);margin-top:8px;line-height:1.6;">폰↔컴퓨터 데이터 이동용</p>
   </div>
 </div>
 
@@ -676,7 +700,7 @@
       <tbody id="timetableBody"></tbody>
     </table>
 
-    <p class="timetable-hint">각 칸에 과목을 입력하세요. 방향키(↑ ↓ ← →)로 칸을 이동할 수 있어요. 자동 저장됩니다.</p>
+    <p class="timetable-hint">각 칸에 과목 입력 · 방향키로 이동 · 자동 저장돼요.</p>
 
     <div class="timetable-actions">
       <button class="modal-btn" id="timetableReset">초기화</button>
@@ -704,7 +728,7 @@
       <tbody id="academyBody"></tbody>
     </table>
 
-    <p class="timetable-hint">각 칸을 클릭해서 입력하세요. 자동 저장됩니다. 줄 위에 마우스 올리면 오른쪽에 삭제 버튼이 나타나요.</p>
+    <p class="timetable-hint">각 칸을 눌러 입력 · 자동 저장돼요. (요일을 꼭 적으면 일일계획표에 자동으로 떠요)</p>
 
     <div class="timetable-actions">
       <button class="modal-btn" id="academyAddRow">+ 줄 추가</button>
@@ -965,7 +989,7 @@
 
     const goalKey = `year-goal-${YEAR}`;
     const goal = localStorage.getItem(goalKey);
-    yearGoalBox.innerHTML = goal !== null ? goal : '<strong>월간 목표</strong>를 적어두세요. 큰 글씨의 <strong>월 이름을 클릭</strong>하면 해당 월의 달력이 열립니다.';
+    yearGoalBox.innerHTML = goal !== null ? goal : '올해 목표를 적어두세요.';
     yearGoalBox.oninput = () => { localStorage.setItem(goalKey, yearGoalBox.innerHTML); showSaved(); };
 
     grid.innerHTML = '';
