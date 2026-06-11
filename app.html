@@ -179,13 +179,20 @@
   .drawer-divider { height: 1px; background: var(--line); margin: 8px 6px; }
   .drawer-foot { font-size: 11.5px; color: var(--text-mute); padding: 12px 12px 4px; line-height: 1.5; }
 
+  /* 사용법 안내 */
+  .help-guide { display: flex; flex-direction: column; gap: 16px; }
+  .help-row { display: flex; gap: 12px; align-items: flex-start; }
+  .help-ic { font-size: 22px; flex: none; width: 28px; text-align: center; }
+  .help-row b { font-size: 14.5px; color: var(--text-main); }
+  .help-row p { margin: 3px 0 0; font-size: 13px; color: var(--text-sub); line-height: 1.55; }
+
   /* 시간표 모달 */
   .modal-overlay {
     display: none;
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(62,39,35,0.5);
-    z-index: 999;
+    z-index: 1002;
     justify-content: center;
     align-items: center;
     padding: 20px;
@@ -734,10 +741,6 @@
 
   <div class="months-grid" id="monthsGrid"></div>
 
-  <div class="footer-info">
-    <strong>연간</strong> → <strong>월간 달력</strong> → <strong>일별 스케줄</strong> 순서로 계획해요.
-  </div>
-
   <input type="file" id="restoreFile" accept="application/json,.json" style="display:none;">
 </div>
 
@@ -758,6 +761,8 @@
   <div class="drawer-divider"></div>
   <button class="drawer-item" id="backupBtn"><span class="di-ic">📤</span><span>백업 내보내기</span></button>
   <button class="drawer-item" id="restoreBtn"><span class="di-ic">📥</span><span>복원 불러오기</span></button>
+  <div class="drawer-divider"></div>
+  <button class="drawer-item" id="helpBtn"><span class="di-ic">❓</span><span>사용법</span></button>
   <p class="drawer-foot">백업은 폰↔컴퓨터 데이터 이동용이에요.</p>
 </nav>
 
@@ -821,6 +826,27 @@
       <button class="modal-btn" id="academyAddRow">+ 줄 추가</button>
       <button class="modal-btn" id="academyReset">초기화</button>
       <button class="modal-btn primary" id="academyDone">완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- 사용법 -->
+<div id="helpModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title">❓ 사용법</h2>
+      <button class="modal-close" id="helpClose" title="닫기">×</button>
+    </div>
+    <div class="help-guide">
+      <div class="help-row"><span class="help-ic">🗂️</span><div><b>3단계 구조</b><p>연간 계획 → 월간 달력 → 일별 스케줄 순서로 계획해요.</p></div></div>
+      <div class="help-row"><span class="help-ic">✍️</span><div><b>수행평가·시험</b><p>월간 달력에서 날짜를 눌러 입력하면, <b>3일 전부터 D-day 알림</b>이 자동으로 떠요.</p></div></div>
+      <div class="help-row"><span class="help-ic">🏫</span><div><b>시간표 자동 연동</b><p>메뉴의 학교·학원 시간표에 <b>요일과 함께</b> 입력하면(예: 월,수,금), 일일계획표에 그 요일에 자동으로 떠요.</p></div></div>
+      <div class="help-row"><span class="help-ic">📊</span><div><b>성적·성향 분석</b><p>성적표와 사주·MBTI를 바탕으로 우리 아이 공부 성향을 분석해요.</p></div></div>
+      <div class="help-row"><span class="help-ic">📲</span><div><b>홈화면 추가 / 알림</b><p>"홈화면 추가"로 앱처럼 쓰고, 알림을 켜면 다가온 수행평가를 알려줘요.</p></div></div>
+      <div class="help-row"><span class="help-ic">💾</span><div><b>백업 / 복원</b><p>데이터는 이 기기에만 저장돼요. 폰↔컴퓨터로 옮길 땐 백업 내보내기 → 복원 불러오기.</p></div></div>
+    </div>
+    <div class="timetable-actions">
+      <button class="modal-btn primary" id="helpDone">확인</button>
     </div>
   </div>
 </div>
@@ -1107,7 +1133,7 @@
         ${statusHtml}
         <div class="month-meta">${dot}<span class="chev">▾</span></div>
         <div class="plan-label">월간 목표</div>
-        <textarea class="plan-textarea" data-month="${m}" placeholder="이 달의 큰 목표나 일정을 적어보세요..."></textarea>
+        <textarea class="plan-textarea" data-month="${m}" placeholder=""></textarea>
       `;
       grid.appendChild(card);
 
@@ -1173,6 +1199,13 @@
     const todayStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
     const nt = document.getElementById('navToday'); if (nt) nt.href = 'day.html?date=' + todayStr;
     const nm = document.getElementById('navMonth'); if (nm) nm.href = 'month.html?year=' + currentYear + '&month=' + currentMonth;
+    // 사용법 모달
+    const helpModal = document.getElementById('helpModal');
+    const hide = () => helpModal.classList.remove('show');
+    document.getElementById('helpBtn').addEventListener('click', () => helpModal.classList.add('show'));
+    document.getElementById('helpClose').addEventListener('click', hide);
+    document.getElementById('helpDone').addEventListener('click', hide);
+    helpModal.addEventListener('click', e => { if (e.target === helpModal) hide(); });
   })();
 
   // ===== 다가오는 수행평가 + 브라우저 알림 =====
