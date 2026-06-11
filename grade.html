@@ -114,6 +114,24 @@
   }
   .ocr-box:hover { border-color: var(--accent); color: var(--accent-dark); }
   .ocr-box.drag { border-color: var(--accent); background: rgba(0,137,123,0.06); color: var(--accent-dark); }
+  .ai-box {
+    min-width: 200px; border: 2px dashed #C9A227; border-radius: 10px;
+    padding: 18px; text-align: center; color: var(--text-sub); cursor: pointer;
+    background: #FFFDF5; transition: all .15s; font-size: 13px; display: flex;
+    flex-direction: column; justify-content: center; gap: 4px;
+  }
+  .ai-box:hover { border-color: #B8860B; }
+  .ai-box.drag { border-color: #B8860B; background: #FFF8E1; }
+  .pro-badge { display:inline-block; background:#C9A227; color:#fff; font-size:10px; font-weight:700; padding:1px 7px; border-radius:8px; vertical-align:middle; }
+  .ai-result { margin-top:16px; border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--surface); font-size:13.5px; line-height:1.6; }
+  .ai-result h4 { margin:0 0 6px; font-size:15px; color:var(--text-main); }
+  .ai-result .ai-sub { margin:14px 0 6px; font-size:13px; font-weight:700; color:var(--accent-dark); }
+  .ai-result table { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
+  .ai-result th, .ai-result td { border:1px solid var(--line); padding:6px 8px; text-align:center; }
+  .ai-result th { background:var(--surface-soft); }
+  .ai-result ul { margin:4px 0 0; padding-left:18px; }
+  .ai-result li { margin:2px 0; }
+  .ai-loading { text-align:center; color:var(--text-sub); padding:14px; }
 
   /* 범례 */
   .legend { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; font-size: 14px; }
@@ -274,11 +292,17 @@
         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple style="display:none;">
       </div>
       <div class="ocr-box" id="ocrBox">
-        <div>📷 <strong>성적표 사진</strong></div>
+        <div>📷 <strong>성적표 사진</strong> <span style="font-size:11px;color:var(--text-mute);">(무료·간단)</span></div>
         <div style="font-size:12px;">끌어다 놓거나 클릭·붙여넣기(Ctrl+V) — 점수 자동 인식 (OCR)</div>
         <input type="file" id="ocrInput" accept="image/*" capture="environment" style="display:none;">
       </div>
+      <div class="ai-box" id="aiBox">
+        <div>🤖 <strong>AI 정밀분석</strong> <span class="pro-badge">유료</span></div>
+        <div style="font-size:12px;">성적표·생활기록부 등 어떤 이미지든 올리면 AI가 읽고 자세히 분석해요</div>
+        <input type="file" id="aiInput" accept="image/*" style="display:none;">
+      </div>
     </div>
+    <div id="aiResult" class="ai-result" style="display:none;"></div>
   </div>
 
   <div class="input-section">
@@ -951,6 +975,104 @@
     for (const it of items) {
       if (it.type && it.type.indexOf('image') === 0) { handleOcr(it.getAsFile()); break; }
     }
+  });
+
+  // ================= AI 정밀분석 (유료) =================
+  const aiBox = document.getElementById('aiBox');
+  const aiInput = document.getElementById('aiInput');
+  const aiResult = document.getElementById('aiResult');
+
+  // 테스트용: grade.html?premium=1 로 한번 열면 이 기기에서 유료 잠금 해제
+  if (new URLSearchParams(location.search).get('premium') === '1') {
+    try { localStorage.setItem('__premium', '1'); } catch (e) {}
+  }
+  function isPremium() {
+    try { return localStorage.getItem('__premium') === '1'; } catch (e) { return false; }
+  }
+  function showPaywall() {
+    alert('🤖 AI 정밀분석은 유료(프리미엄) 기능이에요.\n\n' +
+      '성적표를 AI가 읽어 과목별 강·약점과 학습 경향까지 자세히 분석해 줘요.\n' +
+      '· 1회 990원 (5회 묶음 3,900원)\n\n' +
+      '결제 기능은 준비 중이에요. 곧 열릴게요!');
+  }
+
+  // 이미지를 적당히 줄여 base64로 (비용·전송량 절감)
+  function fileToBase64(file, maxDim) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        const scale = Math.min(1, maxDim / Math.max(w, h));
+        w = Math.round(w * scale); h = Math.round(h * scale);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        const dataUrl = c.toDataURL('image/jpeg', 0.85);
+        resolve({ data: dataUrl.split(',')[1], mediaType: 'image/jpeg' });
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 읽지 못했어요.')); };
+      img.src = url;
+    });
+  }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+  function renderAi(r) {
+    if (!r) { aiResult.innerHTML = '<div class="ai-loading">분석 결과를 읽지 못했어요. 다시 시도해 주세요.</div>'; aiResult.style.display = 'block'; return; }
+    let html = '<h4>🤖 AI 정밀분석' + (r.docType ? ' · ' + esc(r.docType) : '') + '</h4>';
+    if (r.summary) html += '<p>' + esc(r.summary) + '</p>';
+    if (Array.isArray(r.subjects) && r.subjects.length) {
+      html += '<table><tr><th>과목</th><th>점수</th><th>등급</th><th>비고</th></tr>';
+      r.subjects.forEach(s => {
+        html += '<tr><td>' + esc(s.name) + '</td><td>' + esc(s.score) + '</td><td>' + esc(s.grade) + '</td><td>' + esc(s.note) + '</td></tr>';
+      });
+      html += '</table>';
+    }
+    function listBlock(title, arr) {
+      if (!Array.isArray(arr) || !arr.length) return '';
+      return '<div class="ai-sub">' + title + '</div><ul>' + arr.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+    }
+    html += listBlock('💪 강점', r.strengths);
+    html += listBlock('📌 보완점', r.weaknesses);
+    html += listBlock('🔎 경향·패턴', r.patterns);
+    if (r.advice) html += '<div class="ai-sub">🎯 조언</div><p>' + esc(r.advice) + '</p>';
+    aiResult.innerHTML = html;
+    aiResult.style.display = 'block';
+  }
+
+  async function handleAi(file) {
+    if (!file) return;
+    if (!isPremium()) { showPaywall(); return; }
+    aiResult.style.display = 'block';
+    aiResult.innerHTML = '<div class="ai-loading">🤖 AI가 이미지를 읽고 분석 중이에요… (10~20초)</div>';
+    try {
+      const img = await fileToBase64(file, 1568);
+      const resp = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ image: img.data, mediaType: img.mediaType })
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        aiResult.innerHTML = '<div class="ai-loading">분석에 실패했어요: ' + esc(data.error || resp.status) + '</div>';
+        return;
+      }
+      renderAi(data.result);
+    } catch (e) {
+      aiResult.innerHTML = '<div class="ai-loading">오류가 났어요: ' + esc(e.message) + '</div>';
+    }
+  }
+
+  aiBox.addEventListener('click', () => { if (!isPremium()) { showPaywall(); return; } aiInput.click(); });
+  aiInput.addEventListener('change', e => { handleAi(e.target.files[0]); e.target.value = ''; });
+  aiBox.addEventListener('dragover', e => { e.preventDefault(); aiBox.classList.add('drag'); });
+  aiBox.addEventListener('dragleave', () => aiBox.classList.remove('drag'));
+  aiBox.addEventListener('drop', e => {
+    e.preventDefault(); aiBox.classList.remove('drag');
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleAi(f);
   });
 
   // ================= 공부 성향 분석 =================
