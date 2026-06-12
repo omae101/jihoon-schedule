@@ -28,13 +28,19 @@
       '10-05': '대체공휴일'
     }
   };
+  // 기념일(빨간날 아님 — 학교·관공서는 정상 운영). 라벨만 표시.
+  var OBSERVANCE = {
+    '05-01': '근로자의 날'
+  };
+  // get() -> {name, red} | null   (red:true = 공휴일/빨간날, red:false = 기념일)
   function get(dateStr) {
     if (!dateStr) return null;
     var p = String(dateStr).split('-');
     if (p.length < 3) return null;
     var y = p[0], md = p[1] + '-' + p[2];
-    if (BYYEAR[y] && BYYEAR[y][md]) return BYYEAR[y][md];
-    if (FIXED[md]) return FIXED[md];
+    if (BYYEAR[y] && BYYEAR[y][md]) return { name: BYYEAR[y][md], red: true };
+    if (FIXED[md]) return { name: FIXED[md], red: true };
+    if (OBSERVANCE[md]) return { name: OBSERVANCE[md], red: false };
     return null;
   }
   global.Holidays = { get: get, is: function (d) { return !!get(d); } };

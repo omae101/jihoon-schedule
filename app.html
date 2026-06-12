@@ -1192,10 +1192,10 @@
         const ds = `${YEAR}-${pad2(m)}-${pad2(d)}`;
         const holi = window.Holidays ? Holidays.get(ds) : null;
         const cls = ['mini-d'];
-        if (holi || realDow === 0) cls.push('sun'); else if (realDow === 6) cls.push('sat');
+        if ((holi && holi.red) || realDow === 0) cls.push('sun'); else if (realDow === 6) cls.push('sat');
         if (isCurrent && d === todayDate) cls.push('today');
         if (days.has(d)) cls.push('has');
-        cells += `<span class="${cls.join(' ')}"${holi ? ` title="${holi}"` : ''}>${d}</span>`;
+        cells += `<span class="${cls.join(' ')}"${holi ? ` title="${holi.name}"` : ''}>${d}</span>`;
       }
 
       mini.innerHTML = `<div class="mini-h">${m}월</div><div class="mini-grid">${cells}</div>`;

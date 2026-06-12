@@ -245,6 +245,7 @@
   }
   .day-chip.up { background: #FFE3D6; color: #B5462A; }
   .day-chip.holi-chip { background: #FCE3E3; color: #C62828; font-weight: 700; }
+  .day-chip.obs-chip { background: #ECEFF3; color: #5A6270; font-weight: 600; }
   .day-more { font-size: 9.5px; color: var(--text-mute); padding-left: 4px; }
 
   .saved-indicator {
@@ -590,11 +591,12 @@
     const isSun = dObj.getDay() === 0;
     const isTodayCell = (dateStr === todayStr);
     const holi = window.Holidays ? Holidays.get(dateStr) : null;
+    const holiRed = !!(holi && holi.red);
 
     const top = document.createElement('div');
     top.className = 'day-top';
     const num = document.createElement('span');
-    num.className = 'day-number' + ((isSun || holi) ? ' sun' : '') + (isTodayCell ? ' today' : '');
+    num.className = 'day-number' + ((isSun || holiRed) ? ' sun' : '') + (isTodayCell ? ' today' : '');
     num.textContent = dayNum;
     top.appendChild(num);
 
@@ -621,8 +623,8 @@
       chips.className = 'day-chips';
       if (holi) {
         const hc = document.createElement('span');
-        hc.className = 'day-chip holi-chip';
-        hc.textContent = holi;
+        hc.className = 'day-chip ' + (holi.red ? 'holi-chip' : 'obs-chip');
+        hc.textContent = holi.name;
         chips.appendChild(hc);
       }
       const MAXC = holi ? 2 : 3;
