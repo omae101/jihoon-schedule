@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한번에 · 인스타 카드뉴스</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  :root{--teal:#0D9488;--teal-d:#0B7A70;--cream:#F6F1E7;--ink:#2E2F36;--sub:#6b6f78;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;}
+  body{background:#E7E2D6;padding:18px;}
+  .guide{max-width:1080px;margin:0 auto 18px;background:#fff;border-radius:12px;padding:14px 18px;color:#444;font-size:14px;line-height:1.6;}
+  .guide b{color:var(--teal);}
+  .deck{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px;}
+  .slide{width:100%;aspect-ratio:1/1;border-radius:18px;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:9%;color:var(--ink);}
+  .slide .num{position:absolute;top:5%;right:6%;font-size:2.4vw;font-weight:700;opacity:.5;}
+  .slide .logo{position:absolute;bottom:5.5%;left:0;right:0;font-size:2.6vw;font-weight:800;color:var(--teal);}
+  .slide.dark .logo{color:#fff;}
+  .slide .brand-pin{font-size:2.6vw;font-weight:800;color:var(--teal);margin-bottom:3%;}
+  .slide h1{font-size:6.6vw;font-weight:800;line-height:1.28;letter-spacing:-0.5px;}
+  .slide h1 .hl{color:var(--teal);}
+  .slide p{font-size:3.7vw;color:var(--sub);margin-top:3.5%;line-height:1.55;font-weight:600;}
+  .slide .swipe{position:absolute;bottom:13%;font-size:3.3vw;color:var(--teal);font-weight:700;}
+  .list{font-size:4.8vw;font-weight:700;line-height:1.9;color:var(--ink);}
+  .list span{display:inline-block;background:#fff;border-radius:12px;padding:1.4% 4%;margin:1.1%;box-shadow:0 3px 10px rgba(0,0,0,.05);}
+  /* 배경들 */
+  .bg-cream{background:linear-gradient(160deg,#FFFDF8,var(--cream));}
+  .bg-mint{background:linear-gradient(160deg,#EAF7F4,#D7EEE9);}
+  .bg-teal{background:linear-gradient(150deg,var(--teal),var(--teal-d));color:#fff;}
+  .bg-teal h1,.bg-teal .list span{color:#fff;}
+  .bg-teal .list span{background:rgba(255,255,255,.16);box-shadow:none;}
+  .bg-teal p{color:#E3F4F1;}
+  .feat{font-size:9vw;margin-bottom:4%;}
+  @media(min-width:1120px){
+    .slide .num{font-size:26px;} .slide .logo,.slide .brand-pin{font-size:28px;}
+    .slide h1{font-size:71px;} .slide p{font-size:40px;} .slide .swipe{font-size:35px;}
+    .list{font-size:52px;} .feat{font-size:96px;}
+  }
+</style>
+</head>
+<body>
+<div class="guide">
+  📲 <b>사용법</b>: 아래 카드를 <b>하나씩 캡처</b>해서 인스타에 올리세요. (폰에서 이 페이지를 열면 카드가 화면 폭에 딱 맞아 캡처하기 좋아요.) 마음에 들면 캡션은 아래 채팅의 문구를 복붙하세요.
+</div>
+
+<div class="deck">
+
+  <!-- 1 표지 -->
+  <div class="slide bg-cream">
+    <div class="num">1/6</div>
+    <h1>엄마 머릿속에만 있는<br><span class="hl">우리 아이 일정</span> 🙃</h1>
+    <p>학교 · 학원 · 보강 · 설명회…<br>다 기억하고 계신가요?</p>
+    <div class="swipe">넘겨보세요 →</div>
+    <div class="logo">📚 한번에</div>
+  </div>
+
+  <!-- 2 문제 -->
+  <div class="slide bg-mint">
+    <div class="num">2/6</div>
+    <h1>흩어져 있으면<br><span class="hl">꼭 빠뜨려요</span></h1>
+    <div class="list" style="margin-top:5%;">
+      <span>수행평가</span><span>시험</span><span>학원 시간표</span><span>보강·특강</span><span>설명회</span><span>학원 등록일</span>
+    </div>
+    <div class="logo">📚 한번에</div>
+  </div>
+
+  <!-- 3 해결 -->
+  <div class="slide bg-teal dark">
+    <div class="num">3/6</div>
+    <div class="brand-pin" style="color:#fff;">📚 한번에</div>
+    <h1>이제 한 화면에<br>모았어요</h1>
+    <p style="color:#E3F4F1;">연간 · 월간 · 일간을 한 번에</p>
+  </div>
+
+  <!-- 4 기능 D-day -->
+  <div class="slide bg-cream">
+    <div class="num">4/6</div>
+    <div class="feat">🔔</div>
+    <h1>수행평가 <span class="hl">D-day</span> 알림</h1>
+    <p>중요한 평가를 3일 전부터<br>미리 알려줘요. 이제 안 놓쳐요.</p>
+    <div class="logo">📚 한번에</div>
+  </div>
+
+  <!-- 5 기능 자동/설명회 -->
+  <div class="slide bg-mint">
+    <div class="num">5/6</div>
+    <div class="feat">🏫📋</div>
+    <h1>시간표는 <span class="hl">자동</span>,<br>설명회·등록일도 <span class="hl">알림</span></h1>
+    <p>한 번만 적어두면<br>알아서 챙겨줘요.</p>
+    <div class="logo">📚 한번에</div>
+  </div>
+
+  <!-- 6 CTA -->
+  <div class="slide bg-teal dark">
+    <div class="num">6/6</div>
+    <h1>가입 없이 <span style="color:#FFE08A;">무료</span></h1>
+    <p style="color:#E3F4F1;">지금 프로필 링크에서<br>바로 시작하세요 👆</p>
+    <div class="logo">📚 한번에 · 학생 일정·성적 관리</div>
+  </div>
+
+</div>
+</body>
+</html>
