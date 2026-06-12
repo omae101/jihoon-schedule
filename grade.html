@@ -1283,6 +1283,26 @@
     if(blended) desc+=' (실제 생활 패턴까지 반영한 결과예요.)';
     return {isM,near,blended,label:near?'균형형':(isM?'아침형':'밤형'),desc};
   }
+  // MBTI 유형별 학습 스타일 (참고 자료 기반)
+  const MBTI_STYLE = {
+    ISTJ:'집단학습보다 혼자 하는 학습이 효율적인',
+    ISTP:'행동은 자유롭고 논리적인 사고로 문제를 해결하는',
+    ESTP:'직접 체험하는 활동으로 빠르게 습득하는',
+    ESTJ:'건전하고 실용적인',
+    ISFJ:'순서와 차례가 분명할 때 안정적으로 공부하는',
+    ISFP:'개인적인 흥미를 느끼는 것이 무엇보다 중요한',
+    ESFP:'시간 관리와 자기 통제에 특히 노력이 필요한',
+    ESFJ:'지금-여기의 현실적 유용성에 민감한',
+    INFJ:'자신만의 방식으로 관심 영역을 깊이 탐구하는',
+    INFP:'인간관계와 의미를 중요하게 여기는 자율적인',
+    ENFP:'형식에 얽매이지 않고 자기만의 방법으로 문제를 푸는',
+    ENFJ:'목표 지향적이고 조직적인',
+    INTJ:'혁신적·독창적이며 특별한 과정과 결과를 선호하는',
+    INTP:'전체적인 개념을 꿰뚫는 통찰력이 강한',
+    ENTP:'자유분방·독립적이고 지적 도전을 즐기는',
+    ENTJ:'새로운 자료로 자신만의 공부법을 찾아내는'
+  };
+  function mbtiStyleLine(mbti){const t=mbti.toUpperCase();return MBTI_STYLE[t]?`${MBTI_STYLE[t]} 학습자예요.`:'';}
   function mbtiOneLine(mbti){const t=mbti.toUpperCase();
     return `${t[0]==='I'?'혼자 깊이 파고들 때':'함께 토론하며 배울 때'} 이해가 빠르고, ${t[3]==='J'?'계획대로 실천하는 성실함이 강점입니다.':'유연하지만 마감 관리가 필요한 면이 있습니다.'}`;}
   function mbtiStudyTip(mbti){const t=mbti.toUpperCase();
@@ -1334,7 +1354,7 @@
         :(r.gsig?'':' 성적을 입력하면 수시·정시 적합도까지 더 정확히 분석해 드립니다.');
       P.push(`고등은 대입을 염두에 둔 분석이 필요합니다.${d}${gye}${ht}`);
     }
-    if(r.mbti&&r.mbti.length===4) P.push(`MBTI ${r.mbti}는 ${mbtiOneLine(r.mbti)} ${mbtiStudyTip(r.mbti)}`);
+    if(r.mbti&&r.mbti.length===4) P.push(`MBTI ${r.mbti.toUpperCase()}는 ${mbtiStyleLine(r.mbti)} ${mbtiOneLine(r.mbti)} ${mbtiStudyTip(r.mbti)}`);
     P.push(`종합하면 ${t1}을(를) 무기로 삼고 ${low}은(는) 작은 목표로 나눠 채우는 것이 가장 빠른 성장 경로입니다.`);
     return P.join(' ');
   }
