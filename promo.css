@@ -26,6 +26,7 @@ body{background:#E7E2D6;padding:18px;}
 .dlbtn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
 .dlbtn:active{background:var(--teal-d);}
 .dlall{display:block;max-width:1080px;margin:0 auto 16px;background:#2E2F36;color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;}
+.section-title{max-width:1080px;margin:30px auto 12px;font-size:18px;font-weight:800;color:#2E2F36;border-left:5px solid var(--teal);padding-left:12px;}
 @media(min-width:1120px){
   .slide .num{font-size:26px;} .slide .logo,.slide .brand-pin{font-size:28px;}
   .slide h1{font-size:71px;} .slide p{font-size:40px;} .slide .swipe{font-size:35px;}
