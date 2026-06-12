@@ -1,0 +1,33 @@
+/* 한번에 인스타 카드뉴스 공용 스타일 */
+:root{--teal:#0D9488;--teal-d:#0B7A70;--cream:#F6F1E7;--ink:#2E2F36;--sub:#6b6f78;}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;}
+body{background:#E7E2D6;padding:18px;}
+.guide{max-width:1080px;margin:0 auto 14px;background:#fff;border-radius:12px;padding:14px 18px;color:#444;font-size:14px;line-height:1.6;}
+.guide b{color:var(--teal);}
+.promo-nav{max-width:1080px;margin:0 auto 14px;text-align:center;font-size:13px;}
+.promo-nav a{color:var(--teal);text-decoration:none;font-weight:700;margin:0 6px;}
+.deck{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px;}
+.slide{width:100%;aspect-ratio:1/1;border-radius:18px;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:9%;color:var(--ink);}
+.slide .num{position:absolute;top:5%;right:6%;font-size:2.4vw;font-weight:700;opacity:.5;}
+.slide .logo{position:absolute;bottom:5.5%;left:0;right:0;font-size:2.6vw;font-weight:800;color:var(--teal);}
+.slide.dark .logo{color:#fff;}
+.slide .brand-pin{font-size:2.6vw;font-weight:800;color:var(--teal);margin-bottom:3%;}
+.slide h1{font-size:6.6vw;font-weight:800;line-height:1.28;letter-spacing:-0.5px;}
+.slide h1 .hl{color:var(--teal);}
+.slide p{font-size:3.7vw;color:var(--sub);margin-top:3.5%;line-height:1.55;font-weight:600;}
+.slide .swipe{position:absolute;bottom:13%;font-size:3.3vw;color:var(--teal);font-weight:700;}
+.slide .big-num{font-size:14vw;font-weight:800;color:var(--teal);line-height:1;margin-bottom:3%;}
+.feat{font-size:9vw;margin-bottom:4%;}
+.bg-cream{background:linear-gradient(160deg,#FFFDF8,var(--cream));}
+.bg-mint{background:linear-gradient(160deg,#EAF7F4,#D7EEE9);}
+.bg-teal{background:linear-gradient(150deg,var(--teal),var(--teal-d));color:#fff;}
+.bg-teal h1{color:#fff;} .bg-teal p{color:#E3F4F1;}
+.dlbar{max-width:1080px;margin:-8px auto 0;text-align:center;}
+.dlbtn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.dlbtn:active{background:var(--teal-d);}
+.dlall{display:block;max-width:1080px;margin:0 auto 16px;background:#2E2F36;color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;}
+@media(min-width:1120px){
+  .slide .num{font-size:26px;} .slide .logo,.slide .brand-pin{font-size:28px;}
+  .slide h1{font-size:71px;} .slide p{font-size:40px;} .slide .swipe{font-size:35px;}
+  .feat{font-size:96px;} .slide .big-num{font-size:150px;}
+}
