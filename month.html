@@ -416,8 +416,14 @@
   .edit-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   .edit-head b { font-size: 16px; color: var(--text-main); }
   .edit-x { background: none; border: none; font-size: 26px; color: var(--text-mute); cursor: pointer; line-height: 1; }
-  #editArea { width: 100%; min-height: 120px; border: 1px solid var(--line-strong); border-radius: 10px; padding: 11px 12px; font-family: inherit; font-size: 14px; line-height: 1.5; resize: vertical; outline: none; color: var(--text-main); }
-  #editArea:focus { border-color: var(--accent); }
+  .edit-rows { display: flex; flex-direction: column; gap: 8px; max-height: 46vh; overflow-y: auto; }
+  .ev-row { display: flex; align-items: center; gap: 8px; }
+  .ev-color { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; padding: 0; }
+  .ev-text { flex: 1; min-width: 0; border: 1px solid var(--line-strong); border-radius: 9px; padding: 10px 11px; font-family: inherit; font-size: 14px; outline: none; color: var(--text-main); background: #fff; }
+  .ev-text:focus { border-color: var(--accent); }
+  .ev-del { flex: none; background: none; border: none; color: #C62828; font-size: 20px; cursor: pointer; line-height: 1; padding: 0 2px; }
+  .edit-hint { font-size: 11.5px; color: var(--text-mute); margin: 8px 2px 0; }
+  .edit-addrow { margin-top: 10px; width: 100%; background: none; border: 1px dashed var(--accent); color: var(--accent); border-radius: 9px; padding: 10px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .edit-actions { display: flex; gap: 8px; margin-top: 12px; }
   .edit-btn { flex: 1; text-align: center; padding: 11px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-main); font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: inherit; }
   .edit-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -498,7 +504,9 @@
 <div id="dayEditModal" class="edit-overlay">
   <div class="edit-box">
     <div class="edit-head"><b id="editTitle">일정 입력</b><button class="edit-x" id="editClose" aria-label="닫기">×</button></div>
-    <textarea id="editArea" placeholder="수행평가·시험·학원 일정 등을 적어요.&#10;줄을 바꾸면 여러 칩으로 나뉘어 보여요."></textarea>
+    <div id="editRows" class="edit-rows"></div>
+    <button id="editAddRow" class="edit-addrow">+ 일정 추가</button>
+    <p class="edit-hint">왼쪽 <b>색 동그라미</b>를 누르면 일정별로 색이 바뀌어요.</p>
     <div class="edit-actions">
       <a id="editDayLink" class="edit-btn">📅 그날 화면</a>
       <button class="edit-btn primary" id="editSave">저장</button>
@@ -583,6 +591,22 @@
   let day = 1, weekIdx = 0;
   const cellByDate = {};
 
+  // 일정별 색 팔레트
+  const EV_COLORS = {
+    gray:   { bg: '#E9EBF3', fg: '#3C3F54' },
+    red:    { bg: '#FCE3E3', fg: '#C62828' },
+    orange: { bg: '#FFE7D2', fg: '#B5560E' },
+    yellow: { bg: '#FBF1C9', fg: '#8A6D00' },
+    green:  { bg: '#DCF3E3', fg: '#1E7A45' },
+    blue:   { bg: '#DCE7FB', fg: '#2B5FB5' },
+    purple: { bg: '#ECE0FA', fg: '#6B3FA0' }
+  };
+  const EV_ORDER = ['gray', 'red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+  function readEvColors(dateStr) {
+    try { const v = JSON.parse(localStorage.getItem(`jihoon-evcolor-${dateStr}`) || '[]'); return Array.isArray(v) ? v : []; }
+    catch (e) { return []; }
+  }
+
   // 한 날짜 칸의 내용(날짜 숫자 + 칩)을 채운다 (편집 후 다시 그릴 때도 사용)
   function fillCell(cell, dateStr) {
     cell.innerHTML = '';
@@ -628,10 +652,13 @@
         hc.textContent = holi.name;
         chips.appendChild(hc);
       }
+      const evColors = readEvColors(dateStr);
       const MAXC = holi ? 2 : 3;
-      lines.slice(0, MAXC).forEach(line => {
+      lines.slice(0, MAXC).forEach((line, idx) => {
         const chip = document.createElement('span');
-        chip.className = 'day-chip' + (up ? ' up' : '');
+        chip.className = 'day-chip';
+        const c = EV_COLORS[evColors[idx]] || (up ? { bg: '#FFE3D6', fg: '#B5462A' } : EV_COLORS.gray);
+        chip.style.background = c.bg; chip.style.color = c.fg;
         chip.textContent = line;
         chips.appendChild(chip);
       });
@@ -677,36 +704,76 @@
     weekIdx++;
   }
 
-  // ===== 날짜 칸 빠른 편집 =====
+  // ===== 날짜 칸 빠른 편집 (일정별 색 선택) =====
   let editDate = null;
   const editModal = document.getElementById('dayEditModal');
-  const editArea = document.getElementById('editArea');
+  const editRows = document.getElementById('editRows');
   const editTitle = document.getElementById('editTitle');
   const editDayLink = document.getElementById('editDayLink');
 
+  function setDot(btn, key) {
+    if (!EV_COLORS[key]) key = 'gray';
+    btn.dataset.color = key;
+    btn.style.background = EV_COLORS[key].bg;
+    btn.style.borderColor = EV_COLORS[key].fg;
+    btn.title = '색 바꾸기 (탭)';
+  }
+  function addRow(text, color) {
+    const row = document.createElement('div'); row.className = 'ev-row';
+    const dot = document.createElement('button'); dot.type = 'button'; dot.className = 'ev-color';
+    setDot(dot, color || 'gray');
+    dot.addEventListener('click', function () {
+      const next = EV_ORDER[(EV_ORDER.indexOf(dot.dataset.color) + 1) % EV_ORDER.length];
+      setDot(dot, next);
+    });
+    const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'ev-text';
+    inp.placeholder = '일정 내용 (예: 수학 수행평가)'; inp.value = text || '';
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveEditor(); } });
+    const del = document.createElement('button'); del.type = 'button'; del.className = 'ev-del'; del.textContent = '×';
+    del.addEventListener('click', function () { row.remove(); });
+    row.appendChild(dot); row.appendChild(inp); row.appendChild(del);
+    editRows.appendChild(row);
+    return inp;
+  }
   function openEditor(dateStr, dayNum) {
     editDate = dateStr;
     editTitle.textContent = `${MONTH}월 ${dayNum}일 일정`;
-    editArea.value = localStorage.getItem(`jihoon-assessment-${dateStr}`) || '';
     editDayLink.href = `day.html?date=${dateStr}`;
+    editRows.innerHTML = '';
+    const text = (localStorage.getItem(`jihoon-assessment-${dateStr}`) || '');
+    const lines = text.split('\n').map(s => s.trim()).filter(Boolean);
+    const colors = readEvColors(dateStr);
+    if (lines.length) lines.forEach((l, i) => addRow(l, colors[i] || 'gray'));
+    else addRow('', 'gray');
     editModal.classList.add('on');
-    setTimeout(() => editArea.focus(), 50);
+    setTimeout(() => { const f = editRows.querySelector('.ev-text'); if (f) f.focus(); }, 50);
   }
   function closeEditor() { editModal.classList.remove('on'); }
   function saveEditor() {
     if (editDate === null) return;
-    const v = editArea.value;
-    if (v.trim()) localStorage.setItem(`jihoon-assessment-${editDate}`, v);
-    else localStorage.removeItem(`jihoon-assessment-${editDate}`);
+    const texts = [], colors = [];
+    editRows.querySelectorAll('.ev-row').forEach(function (r) {
+      const t = r.querySelector('.ev-text').value.trim();
+      if (!t) return;
+      texts.push(t);
+      colors.push(r.querySelector('.ev-color').dataset.color || 'gray');
+    });
+    if (texts.length) {
+      localStorage.setItem(`jihoon-assessment-${editDate}`, texts.join('\n'));
+      localStorage.setItem(`jihoon-evcolor-${editDate}`, JSON.stringify(colors));
+    } else {
+      localStorage.removeItem(`jihoon-assessment-${editDate}`);
+      localStorage.removeItem(`jihoon-evcolor-${editDate}`);
+    }
     if (cellByDate[editDate]) fillCell(cellByDate[editDate], editDate);
     showSaved();
     closeEditor();
   }
+  document.getElementById('editAddRow').addEventListener('click', function () { const inp = addRow('', 'gray'); if (inp) inp.focus(); });
   document.getElementById('editSave').addEventListener('click', saveEditor);
   document.getElementById('editClose').addEventListener('click', closeEditor);
   editModal.addEventListener('click', (e) => { if (e.target === editModal) closeEditor(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeEditor(); });
-  editArea.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveEditor(); } });
 
   const subjects = ['korean', 'math', 'english', 'science', 'social'];
   subjects.forEach(sub => {
@@ -734,11 +801,11 @@
 
   function resetCalendar() {
     if (confirm(`${MONTH}월의 모든 수행평가 입력 내용을 지울까요?`)) {
-      const prefix = `jihoon-assessment-${YEAR}-${String(MONTH).padStart(2,'0')}-`;
+      const ym = `${YEAR}-${String(MONTH).padStart(2,'0')}-`;
       const del = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && k.indexOf(prefix) === 0) del.push(k);
+        if (k && (k.indexOf(`jihoon-assessment-${ym}`) === 0 || k.indexOf(`jihoon-evcolor-${ym}`) === 0)) del.push(k);
       }
       del.forEach(k => localStorage.removeItem(k));
       subjects.forEach(sub => {
