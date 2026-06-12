@@ -5,6 +5,7 @@
 <script src="/profiles.js"></script>
 <script src="/theme.js"></script>
 <script src="/holidays.js"></script>
+<script src="/academy-events.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>2026년 계획표</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
@@ -767,12 +768,12 @@
 
   <div class="upcoming-box" id="upcomingBox">
     <div class="upcoming-head">
-      <h3 class="upcoming-title">🔔 다가오는 수행평가 <span style="font-weight:500;color:var(--text-sub);font-size:12px;">(3일 이내)</span></h3>
+      <h3 class="upcoming-title">🔔 다가오는 일정 <span style="font-weight:500;color:var(--text-sub);font-size:12px;">(3일 이내)</span></h3>
       <button class="alarm-btn" id="alarmBtn">알림 켜기</button>
       <button class="alarm-btn" id="pwaInstallBtn" style="display:none;">📲 홈화면 추가</button>
     </div>
     <ul class="upcoming-list" id="upcomingList"></ul>
-    <p class="upcoming-empty" id="upcomingEmpty" style="display:none;">3일 이내 수행평가가 없어요.</p>
+    <p class="upcoming-empty" id="upcomingEmpty" style="display:none;">3일 이내 다가오는 일정이 없어요.</p>
   </div>
 
   <div class="months-grid" id="monthsGrid"></div>
@@ -801,6 +802,7 @@
   <div class="drawer-divider"></div>
   <button class="drawer-item" id="timetableBtn"><span class="di-ic">🏫</span><span>학교 시간표</span></button>
   <button class="drawer-item" id="academyBtn"><span class="di-ic">🎒</span><span>학원 시간표</span></button>
+  <button class="drawer-item" id="aevBtn"><span class="di-ic">📋</span><span>설명회·등록일</span></button>
   <div class="drawer-divider"></div>
   <button class="drawer-item" id="backupBtn"><span class="di-ic">📤</span><span>백업 내보내기</span></button>
   <button class="drawer-item" id="restoreBtn"><span class="di-ic">📥</span><span>복원 불러오기</span></button>
@@ -1239,6 +1241,8 @@
     drawer.querySelectorAll('.drawer-item').forEach(it => it.addEventListener('click', close));
     const settingsBtn = document.getElementById('settingsBtn');
     if (settingsBtn) settingsBtn.addEventListener('click', () => { if (window.Settings) window.Settings.open(); });
+    const aevBtn = document.getElementById('aevBtn');
+    if (aevBtn) aevBtn.addEventListener('click', () => { if (window.AcademyEvents) window.AcademyEvents.open(); });
     const navRem = document.getElementById('navReminder');
     if (navRem) navRem.addEventListener('click', () => {
       const box = document.getElementById('upcomingBox');
@@ -1316,7 +1320,30 @@
   }
 
   function renderUpcoming() {
-    const items = Assessments.getUpcoming();
+    const MAX = 3;
+    const today0 = new Date(); today0.setHours(0, 0, 0, 0);
+    const items = [];
+    // 수행평가
+    Assessments.getUpcoming(MAX).forEach((it) => items.push({ dateStr: it.dateStr, text: it.text, dday: it.dday, icon: '✍️' }));
+    // 보강·특강 (extra_) — 일별 입력
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      const m = k && k.match(/^extra_(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) continue;
+      const txt = (localStorage.getItem(k) || '').trim();
+      if (!txt) continue;
+      const d = new Date(+m[1], +m[2] - 1, +m[3]); d.setHours(0, 0, 0, 0);
+      const diff = Math.round((d - today0) / 86400000);
+      if (diff < 0 || diff > MAX) continue;
+      txt.split('\n').map(s => s.trim()).filter(Boolean).forEach(line =>
+        items.push({ dateStr: `${m[1]}-${m[2]}-${m[3]}`, text: line, dday: diff, icon: '📚' }));
+    }
+    // 설명회·등록일
+    if (window.AcademyEvents) {
+      AcademyEvents.getUpcoming(MAX).forEach((e) => items.push({ dateStr: e.dateStr, text: e.text, dday: e.diff, icon: '📋' }));
+    }
+    items.sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+
     upcomingList.innerHTML = '';
     if (!items.length) {
       upcomingEmpty.style.display = 'block';
@@ -1329,11 +1356,10 @@
       const a = document.createElement('a');
       a.className = 'upcoming-item';
       a.href = 'day.html?date=' + it.dateStr;
-      const badge = Assessments.buildBadge(it.dday);
-      a.appendChild(badge);
+      a.appendChild(Assessments.buildBadge(it.dday));
       const text = document.createElement('span');
       text.className = 'upcoming-text';
-      text.textContent = it.text;
+      text.textContent = (it.icon ? it.icon + ' ' : '') + it.text;
       a.appendChild(text);
       const date = document.createElement('span');
       date.className = 'upcoming-date';

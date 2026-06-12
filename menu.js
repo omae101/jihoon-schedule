@@ -78,6 +78,7 @@
     +   '<div class="hbo-divider"></div>'
     +   '<a class="hbo-item" href="app.html?open=school"><span class="hbo-ic">🏫</span><span>학교 시간표</span></a>'
     +   '<a class="hbo-item" href="app.html?open=academy"><span class="hbo-ic">🎒</span><span>학원 시간표</span></a>'
+    +   '<button class="hbo-item" id="hboAevBtn"><span class="hbo-ic">📋</span><span>설명회·등록일</span></button>'
     +   '<div class="hbo-divider"></div>'
     +   '<button class="hbo-item" id="hboSettingsBtn"><span class="hbo-ic">⚙️</span><span>화면 설정</span></button>'
     +   '<button class="hbo-item" id="hboHelpBtn"><span class="hbo-ic">❓</span><span>사용법</span></button>'
@@ -112,6 +113,8 @@
   overlay.addEventListener('click', close);
   var setBtn = document.getElementById('hboSettingsBtn');
   if (setBtn) setBtn.addEventListener('click', function () { close(); if (window.Settings) window.Settings.open(); });
+  var aevBtn = document.getElementById('hboAevBtn');
+  if (aevBtn) aevBtn.addEventListener('click', function () { close(); if (window.AcademyEvents) window.AcademyEvents.open(); });
   document.getElementById('hboHelpBtn').addEventListener('click', function () { close(); help.classList.add('on'); });
   document.getElementById('hboHelpClose').addEventListener('click', function () { help.classList.remove('on'); });
   document.getElementById('hboHelpDone').addEventListener('click', function () { help.classList.remove('on'); });
@@ -121,11 +124,12 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]; }); }
   function startOfToday() { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
   function ddColor(d) { return d === 0 ? '#C62828' : d === 1 ? '#E53935' : d === 2 ? '#F57C00' : d <= 3 ? '#FB8C00' : '#0D9488'; }
-  function upcomingReminders(maxDays) {
+  function scanDated(prefix, maxDays, icon) {
     var today = startOfToday(), out = [];
+    var re = new RegExp('^' + prefix.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '(\\d{4})-(\\d{2})-(\\d{2})$');
     for (var i = 0; i < localStorage.length; i++) {
       var k = localStorage.key(i);
-      var m = k && k.match(/^jihoon-assessment-(\d{4})-(\d{2})-(\d{2})$/);
+      var m = k && k.match(re);
       if (!m) continue;
       var txt = (localStorage.getItem(k) || '').trim();
       if (!txt) continue;
@@ -133,14 +137,19 @@
       var diff = Math.round((d - today) / 86400000);
       if (diff < 0 || diff > maxDays) continue;
       txt.split('\n').map(function (s) { return s.trim(); }).filter(Boolean).forEach(function (line) {
-        out.push({ date: d, dateStr: m[1] + '-' + m[2] + '-' + m[3], diff: diff, text: line });
+        out.push({ date: d, dateStr: m[1] + '-' + m[2] + '-' + m[3], diff: diff, text: line, icon: icon });
       });
     }
-    out.sort(function (a, b) { return a.date - b.date; });
     return out;
   }
   function renderReminders() {
-    var items = upcomingReminders(14);
+    var items = scanDated('jihoon-assessment-', 14, '✍️').concat(scanDated('extra_', 14, '📚'));
+    if (window.AcademyEvents) {
+      window.AcademyEvents.getUpcoming(14).forEach(function (e) {
+        items.push({ date: e.date, dateStr: e.dateStr, diff: e.diff, text: e.text, icon: '📋' });
+      });
+    }
+    items.sort(function (a, b) { return a.date - b.date; });
     var cnt = document.getElementById('hboRemCount');
     if (cnt) {
       var near = items.filter(function (it) { return it.diff <= 3; }).length;
@@ -160,7 +169,7 @@
         var md = it.dateStr.split('-');
         html += '<a class="hbo-rem-item" href="day.html?date=' + it.dateStr + '">'
           + '<span class="hbo-rem-dd" style="background:' + ddColor(it.diff) + '">' + dd + '</span>'
-          + '<span class="hbo-rem-txt">' + esc(it.text) + '</span>'
+          + '<span class="hbo-rem-txt">' + (it.icon ? it.icon + ' ' : '') + esc(it.text) + '</span>'
           + '<span class="hbo-rem-date">' + parseInt(md[1]) + '.' + parseInt(md[2]) + '</span></a>';
       });
     }
