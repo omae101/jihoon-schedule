@@ -73,7 +73,7 @@
     +   '<a class="hbo-item" href="app.html"><span class="hbo-ic">🗂️</span><span>연간 계획</span></a>'
     +   '<a class="hbo-item" href="month.html?year=' + YEAR_NOW + '&month=' + MONTH_NOW + '"><span class="hbo-ic">🗓️</span><span>이번 달 달력</span></a>'
     +   '<a class="hbo-item" href="day.html?date=' + TODAY_STR + '"><span class="hbo-ic">☀️</span><span>오늘 일정</span></a>'
-    +   '<a class="hbo-item" href="grade.html"><span class="hbo-ic">📊</span><span>성적 분석</span></a>'
+    +   '<a class="hbo-item" href="grade.html"><span class="hbo-ic">📊</span><span>성적 분석 <small style="color:#9CA1AB;font-weight:600;">(사주·MBTI)</small></span></a>'
     +   '<button class="hbo-item" id="hboRemBtn"><span class="hbo-ic">🔔</span><span>리마인더</span><span class="hbo-rem-count" id="hboRemCount"></span></button>'
     +   '<div class="hbo-divider"></div>'
     +   '<a class="hbo-item" href="app.html?open=school"><span class="hbo-ic">🏫</span><span>학교 시간표</span></a>'
