@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <script src="/profiles.js"></script>
 <script src="/theme.js"></script>
+<script src="/holidays.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>월간 스케줄표</title>
 <style>
@@ -243,6 +244,7 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .day-chip.up { background: #FFE3D6; color: #B5462A; }
+  .day-chip.holi-chip { background: #FCE3E3; color: #C62828; font-weight: 700; }
   .day-more { font-size: 9.5px; color: var(--text-mute); padding-left: 4px; }
 
   .saved-indicator {
@@ -587,19 +589,23 @@
     const dObj = new Date(+parts[0], +parts[1] - 1, +parts[2]); dObj.setHours(0, 0, 0, 0);
     const isSun = dObj.getDay() === 0;
     const isTodayCell = (dateStr === todayStr);
+    const holi = window.Holidays ? Holidays.get(dateStr) : null;
 
     const top = document.createElement('div');
     top.className = 'day-top';
     const num = document.createElement('span');
-    num.className = 'day-number' + (isSun ? ' sun' : '') + (isTodayCell ? ' today' : '');
+    num.className = 'day-number' + ((isSun || holi) ? ' sun' : '') + (isTodayCell ? ' today' : '');
     num.textContent = dayNum;
     top.appendChild(num);
 
     const saved = (localStorage.getItem(`jihoon-assessment-${dateStr}`) || '').trim();
+    const lines = saved ? saved.split('\n').map(s => s.trim()).filter(Boolean) : [];
+
+    let up = false;
     if (saved) {
       const t = new Date(); t.setHours(0, 0, 0, 0);
       const diff = Math.round((dObj - t) / 86400000);
-      const up = diff >= 0 && diff <= 3;
+      up = diff >= 0 && diff <= 3;
       if (up) {
         const badge = document.createElement('span');
         badge.className = 'dday-badge';
@@ -607,11 +613,19 @@
         badge.style.background = diff === 0 ? '#C62828' : diff === 1 ? '#E53935' : diff === 2 ? '#F57C00' : '#FB8C00';
         top.appendChild(badge);
       }
-      cell.appendChild(top);
-      const lines = saved.split('\n').map(s => s.trim()).filter(Boolean);
+    }
+    cell.appendChild(top);
+
+    if (holi || lines.length) {
       const chips = document.createElement('div');
       chips.className = 'day-chips';
-      const MAXC = 3;
+      if (holi) {
+        const hc = document.createElement('span');
+        hc.className = 'day-chip holi-chip';
+        hc.textContent = holi;
+        chips.appendChild(hc);
+      }
+      const MAXC = holi ? 2 : 3;
       lines.slice(0, MAXC).forEach(line => {
         const chip = document.createElement('span');
         chip.className = 'day-chip' + (up ? ' up' : '');
@@ -625,8 +639,6 @@
         chips.appendChild(more);
       }
       cell.appendChild(chips);
-    } else {
-      cell.appendChild(top);
     }
   }
 
