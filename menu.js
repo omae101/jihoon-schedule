@@ -89,6 +89,7 @@
     +   '<div class="hbo-help-head"><b>❓ 사용법</b><button class="hbo-close" id="hboHelpClose" aria-label="닫기">×</button></div>'
     +   '<div class="hbo-hrow"><span class="hbo-hic">🗂️</span><div><b>3단계 구조</b><p>연간 계획 → 월간 달력 → 일별 스케줄 순서로 계획해요.</p></div></div>'
     +   '<div class="hbo-hrow"><span class="hbo-hic">✍️</span><div><b>수행평가·시험</b><p>월간 달력에서 날짜를 눌러 입력하면, 3일 전부터 D-day 알림이 자동으로 떠요.</p></div></div>'
+    +   '<div class="hbo-hrow"><span class="hbo-hic">🔔</span><div><b>리마인더</b><p>수행평가·시험·보강·특강·설명회·학원 등록일을 입력해 두면, 메뉴의 🔔 리마인더와 홈 화면 "다가오는 일정"에 <b>D-day로 모아서</b> 떠요.</p></div></div>'
     +   '<div class="hbo-hrow"><span class="hbo-hic">🏫</span><div><b>시간표 자동 연동</b><p>학교·학원 시간표에 요일과 함께 입력하면(예: 월,수,금), 일일계획표에 그 요일에 자동으로 떠요.</p></div></div>'
     +   '<div class="hbo-hrow"><span class="hbo-hic">📊</span><div><b>성적·성향 분석</b><p>성적표와 사주·MBTI를 바탕으로 우리 아이 공부 성향을 분석해요.</p></div></div>'
     +   '<div class="hbo-hrow"><span class="hbo-hic">📷</span><div><b>성적표 사진 AI 정밀분석 (유료)</b><p>성적분석 화면에서 성적표·생활기록부 사진을 끌어다 놓으면, 추가 요금으로 AI가 과목별 강·약점과 학습 경향까지 훨씬 자세하게 읽어서 분석해 줘요.</p></div></div>'
