@@ -31,6 +31,10 @@
   .bg-teal .list span{background:rgba(255,255,255,.16);box-shadow:none;}
   .bg-teal p{color:#E3F4F1;}
   .feat{font-size:9vw;margin-bottom:4%;}
+  .dlbar{max-width:1080px;margin:-8px auto 0;text-align:center;}
+  .dlbtn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .dlbtn:active{background:var(--teal-d);}
+  .dlall{display:block;max-width:1080px;margin:0 auto 16px;background:#2E2F36;color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;width:100%;font-family:inherit;}
   @media(min-width:1120px){
     .slide .num{font-size:26px;} .slide .logo,.slide .brand-pin{font-size:28px;}
     .slide h1{font-size:71px;} .slide p{font-size:40px;} .slide .swipe{font-size:35px;}
@@ -40,8 +44,9 @@
 </head>
 <body>
 <div class="guide">
-  📲 <b>사용법</b>: 아래 카드를 <b>하나씩 캡처</b>해서 인스타에 올리세요. (폰에서 이 페이지를 열면 카드가 화면 폭에 딱 맞아 캡처하기 좋아요.) 마음에 들면 캡션은 아래 채팅의 문구를 복붙하세요.
+  📲 <b>이렇게 하세요</b>: <b>폰에서 이 페이지를 열고</b>, 카드마다 아래 <b>"💾 저장"</b> 버튼을 누르면 정사각형 이미지가 바로 저장돼요. (캡처 안 해도 됨!) 그다음 인스타에서 6장을 골라 올리고, 캡션은 채팅 문구를 복붙하세요.<br><span style="color:#999;">※ 저장 대신 이미지가 새 화면에 뜨면, 그 이미지를 <b>꾹 눌러 "이미지 저장"</b> 하세요.</span>
 </div>
+<button class="dlall" id="dlAll">📥 카드 6장 한 번에 저장 (PC에서 편해요)</button>
 
 <div class="deck">
 
@@ -99,5 +104,35 @@
   </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+  function saveOne(el, i) {
+    return html2canvas(el, { scale: 3, backgroundColor: null, useCORS: true }).then(function (canvas) {
+      var a = document.createElement('a');
+      a.download = 'hanbeone_card' + (i + 1) + '.png';
+      a.href = canvas.toDataURL('image/png');
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+  }
+  window.addEventListener('load', function () {
+    var slides = [].slice.call(document.querySelectorAll('.slide'));
+    slides.forEach(function (el, i) {
+      var bar = document.createElement('div'); bar.className = 'dlbar';
+      var b = document.createElement('button'); b.className = 'dlbtn';
+      b.textContent = '💾 ' + (i + 1) + '번 카드 저장';
+      b.addEventListener('click', function () { saveOne(el, i); });
+      bar.appendChild(b);
+      el.parentNode.insertBefore(bar, el.nextSibling);
+    });
+    var all = document.getElementById('dlAll');
+    if (all) all.addEventListener('click', function () {
+      (function next(i) {
+        if (i >= slides.length) return;
+        saveOne(slides[i], i).then(function () { setTimeout(function () { next(i + 1); }, 600); });
+      })(0);
+    });
+  });
+</script>
 </body>
 </html>
