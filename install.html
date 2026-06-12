@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한번에 앱 설치 · 홈 화면에 추가</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link rel="manifest" href="/app.webmanifest">
+<meta name="theme-color" content="#0D9488">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root{--teal:#0D9488;--teal-d:#0B7A70;--bg:#F5F3EF;--ink:#2E2F36;--sub:#5A6068;--line:#E6E3DD;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;}
+  body{background:var(--bg);color:var(--ink);line-height:1.6;}
+  .wrap{max-width:440px;margin:0 auto;padding:28px 20px 50px;}
+  .logo{text-align:center;font-size:26px;font-weight:800;color:var(--teal);margin-bottom:4px;}
+  .tag{text-align:center;color:var(--sub);font-size:14px;margin-bottom:22px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px;}
+  .card h2{font-size:17px;margin-bottom:10px;}
+  .step{display:flex;gap:10px;margin:10px 0;font-size:14.5px;}
+  .step .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  .btn{display:block;width:100%;text-align:center;background:var(--teal);color:#fff;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;text-decoration:none;font-family:inherit;}
+  .btn.ghost{background:#fff;color:var(--teal);border:1px solid var(--teal);margin-top:10px;}
+  .warn{background:#FFF4E5;border:1px solid #FFD699;border-radius:14px;padding:16px;margin-bottom:14px;color:#8A5A00;font-size:14.5px;line-height:1.65;}
+  .warn b{color:#B5462A;}
+  .hide{display:none;}
+  .small{color:var(--sub);font-size:12.5px;text-align:center;margin-top:16px;line-height:1.6;}
+  .small a{color:var(--teal);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">📚 한번에</div>
+  <div class="tag">학교·학원 일정 + 성적·성향 분석을 한 번에</div>
+
+  <!-- 인스타 등 인앱 브라우저 경고 -->
+  <div class="warn hide" id="warnInapp">
+    ⚠️ 지금 <b>앱 안의 브라우저</b>로 보고 있어요. 여기선 설치가 안 돼요.<br>
+    오른쪽 위 <b>⋯ (점 세 개)</b> → <b>"다른 브라우저로 열기"</b>(크롬/Safari)를 누른 뒤 다시 와주세요.
+    <button class="btn ghost" id="copyBtn" style="margin-top:12px;">🔗 주소 복사하기</button>
+  </div>
+
+  <!-- 안드로이드 -->
+  <div class="card hide" id="boxAndroid">
+    <h2>📲 홈 화면에 앱처럼 설치</h2>
+    <button class="btn" id="installBtn">앱 설치하기</button>
+    <div class="small" id="androidManual" style="text-align:left;margin-top:14px;">
+      버튼이 안 보이면: 크롬 메뉴 <b>⋮</b> → <b>"홈 화면에 추가"</b> → 추가
+    </div>
+  </div>
+
+  <!-- 아이폰 -->
+  <div class="card hide" id="boxIos">
+    <h2>📲 홈 화면에 추가 (아이폰)</h2>
+    <div class="step"><span class="n">1</span><div>아래 가운데 <b>공유 버튼 ⬆️</b> 누르기</div></div>
+    <div class="step"><span class="n">2</span><div><b>"홈 화면에 추가"</b> 선택</div></div>
+    <div class="step"><span class="n">3</span><div>오른쪽 위 <b>"추가"</b> → 끝! 홈에 아이콘 생겨요</div></div>
+  </div>
+
+  <!-- PC 등 기타 -->
+  <div class="card hide" id="boxOther">
+    <h2>🖥️ 바로 사용하기</h2>
+    <div class="small" style="text-align:left;">크롬 주소창 오른쪽의 <b>설치 아이콘</b>을 누르거나, 아래 버튼으로 바로 시작하세요.</div>
+  </div>
+
+  <a class="btn ghost" href="app.html" id="startBtn">설치 없이 바로 쓰기 →</a>
+
+  <div class="small">
+    설치하면 가입·결제 없이 무료로 써요.<br>
+    <a href="index.html">서비스 소개</a> · <a href="guide.html">가이드</a>
+  </div>
+</div>
+
+<script src="/pwa.js"></script>
+<script>
+  (function () {
+    var ua = navigator.userAgent || '';
+    var isInApp = /Instagram|FBAN|FBAV|KAKAOTALK|NAVER|Line|DaumApps/i.test(ua);
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+    var isAndroid = /Android/i.test(ua);
+    var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    function show(id) { var e = document.getElementById(id); if (e) e.classList.remove('hide'); }
+
+    if (standalone) {
+      // 이미 설치/실행 중이면 바로 앱으로
+      location.replace('app.html');
+      return;
+    }
+
+    if (isInApp) {
+      show('warnInapp');
+    } else if (isIOS) {
+      show('boxIos');
+    } else if (isAndroid) {
+      show('boxAndroid');
+    } else {
+      show('boxOther');
+    }
+
+    // 안드로이드 설치 버튼 (beforeinstallprompt)
+    var deferred = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault(); deferred = e;
+      var m = document.getElementById('androidManual'); if (m) m.style.display = 'none';
+    });
+    var ib = document.getElementById('installBtn');
+    if (ib) ib.addEventListener('click', function () {
+      if (deferred) { deferred.prompt(); deferred.userChoice.finally(function () { deferred = null; }); }
+      else { alert('크롬 메뉴 ⋮ → "홈 화면에 추가"를 눌러 설치해 주세요.'); }
+    });
+
+    // 주소 복사
+    var cb = document.getElementById('copyBtn');
+    if (cb) cb.addEventListener('click', function () {
+      var url = location.origin + '/install.html';
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { cb.textContent = '✅ 복사됨! 크롬에 붙여넣기'; }, function () { prompt('이 주소를 복사하세요', url); });
+      else prompt('이 주소를 복사하세요', url);
+    });
+  })();
+</script>
+</body>
+</html>
