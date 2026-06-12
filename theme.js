@@ -41,7 +41,9 @@
     var font = fdef.stack;
     var dark = shade(accent, -18);
     var soft = mix(accent, bg, 0.82); // 아주 연한 파스텔 배경용
+    var zoom = get('zoom', '1');
     var css =
+      'html{zoom:' + zoom + ';}' +
       ':root{' +
       '--bg:' + bg + ' !important;--surface-soft:' + mix(bg, '#FFFFFF', 0.5) + ' !important;' +
       '--text-main:' + text + ' !important;--text:' + text + ' !important;--ink:' + text + ' !important;' +
@@ -90,6 +92,13 @@
         '<div class="__st-row"><label>바탕 색</label><input type="color" id="__stBg"></div>' +
         '<div class="__st-row"><label>제목·포인트 색</label><input type="color" id="__stAccent"></div>' +
         '<div class="__st-row"><label>글씨 모양</label><select id="__stFont"></select></div>' +
+        '<div class="__st-row"><label>글자 크기</label><select id="__stZoom">' +
+          '<option value="0.85">아주 작게</option>' +
+          '<option value="0.95">작게</option>' +
+          '<option value="1">보통</option>' +
+          '<option value="1.1">크게</option>' +
+          '<option value="1.25">아주 크게</option>' +
+        '</select></div>' +
         '<div class="__st-row"><label>언어 / Language</label><select id="__stLang">' +
           '<option value="ko">한국어</option>' +
           '<option value="en">English (준비 중)</option>' +
@@ -110,6 +119,7 @@
       o.value = k; o.textContent = FONTS[k].label;
       fEl.appendChild(o);
     });
+    var zEl = document.getElementById('__stZoom');
     var lEl = document.getElementById('__stLang');
 
     function fill() {
@@ -117,10 +127,12 @@
       bEl.value = get('bg', DEF.bg);
       aEl.value = get('accent', DEF.accent);
       fEl.value = get('font', DEF.font);
+      zEl.value = get('zoom', '1');
       lEl.value = 'ko';
     }
     fill();
 
+    zEl.addEventListener('change', function () { set('zoom', zEl.value); apply(); });
     tEl.addEventListener('input', function () { set('text', tEl.value); apply(); });
     bEl.addEventListener('input', function () { set('bg', bEl.value); apply(); });
     aEl.addEventListener('input', function () { set('accent', aEl.value); apply(); });
@@ -130,7 +142,7 @@
     });
 
     document.getElementById('__stReset').addEventListener('click', function () {
-      set('text', DEF.text); set('bg', DEF.bg); set('accent', DEF.accent); set('font', DEF.font);
+      set('text', DEF.text); set('bg', DEF.bg); set('accent', DEF.accent); set('font', DEF.font); set('zoom', '1');
       apply(); fill();
     });
     var close = function () { box.classList.remove('on'); };
