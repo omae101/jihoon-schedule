@@ -433,6 +433,9 @@
   .adm-fit.high{background:#DCF3E3;color:#1E7A45;} .adm-fit.mid{background:#FBF1C9;color:#8A6D00;} .adm-fit.low{background:#FCE3E3;color:#C62828;}
   .adm-li{font-size:13.5px;color:#333;line-height:1.6;padding-left:16px;position:relative;margin:3px 0;}
   .adm-li:before{content:'•';position:absolute;left:4px;color:#0D9488;}
+  .adm-cheer{background:linear-gradient(135deg,#E8F7F3,#F3FBF6);border:1px solid #BFE6DC;border-radius:14px;padding:16px;margin-bottom:12px;}
+  .adm-cheer h4{margin:0 0 8px;font-size:14.5px;color:#0B7A70;}
+  .adm-cheer .adm-row{color:#1c4a44;font-weight:500;}
   .adm-caution{font-size:12px;color:#888;line-height:1.55;margin-top:8px;}
   .adm-loading{font-size:13px;color:#0D9488;font-weight:600;}
   </style>
@@ -1194,6 +1197,7 @@
     if (r.strengths && r.strengths.length) h += '<div class="adm-card"><h4>강점</h4>' + r.strengths.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
     if (r.improvements && r.improvements.length) h += '<div class="adm-card"><h4>보완점</h4>' + r.improvements.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
     if (r.roadmap && r.roadmap.length) h += '<div class="adm-card"><h4>준비 로드맵</h4>' + r.roadmap.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
+    if (r.encouragement) h += `<div class="adm-cheer"><h4>💪 끝까지, 포기하지 마세요</h4><div class="adm-row">${admEsc(r.encouragement)}</div></div>`;
     if (r.caution) h += `<div class="adm-caution">⚠️ ${admEsc(r.caution)}</div>`;
     admResult.innerHTML = h; admResult.classList.add('on');
   }
