@@ -328,9 +328,9 @@
   <div id="payModal" class="pay-overlay">
     <div class="pay-box">
       <button class="pay-x" id="payClose" title="닫기">×</button>
-      <h3>🤖 AI 정밀분석 이용권</h3>
-      <p class="pay-desc">성적표·생활기록부를 AI가 읽어 과목별 강·약점과 학습 경향까지 자세히 분석해 줘요.</p>
-      <div class="pay-price">1회 <b>990원</b></div>
+      <h3 id="payTitle">🤖 AI 정밀분석 이용권</h3>
+      <p class="pay-desc" id="payDesc">성적표·생활기록부를 AI가 읽어 과목별 강·약점과 학습 경향까지 자세히 분석해 줘요.</p>
+      <div class="pay-price" id="payPrice">1회 <b>990원</b></div>
       <button class="pay-btn primary" id="payBuy">💳 결제하기</button>
       <p class="pay-hint">결제 후 받은 <b>이용권 코드</b>를 입력하면 바로 열려요.</p>
       <div class="pay-coderow">
@@ -419,6 +419,61 @@
       <button class="add-btn" id="analyzeBtn">분석하기</button>
     </div>
     <div id="analysisResult" class="analysis-result" style="display:none;"></div>
+  </div>
+
+  <style>
+  .adm-badge{display:inline-block;background:#0D9488;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle;}
+  .adm-result{margin-top:14px;display:none;}
+  .adm-result.on{display:block;}
+  .adm-card{background:#F8FAFB;border:1px solid #E5EAEE;border-radius:14px;padding:14px 16px;margin-bottom:12px;}
+  .adm-card h4{margin:0 0 8px;font-size:14px;color:#0D9488;}
+  .adm-row{font-size:13.5px;color:#333;line-height:1.6;margin:4px 0;}
+  .adm-row b{color:#111;}
+  .adm-fit{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;margin-right:6px;}
+  .adm-fit.high{background:#DCF3E3;color:#1E7A45;} .adm-fit.mid{background:#FBF1C9;color:#8A6D00;} .adm-fit.low{background:#FCE3E3;color:#C62828;}
+  .adm-li{font-size:13.5px;color:#333;line-height:1.6;padding-left:16px;position:relative;margin:3px 0;}
+  .adm-li:before{content:'•';position:absolute;left:4px;color:#0D9488;}
+  .adm-caution{font-size:12px;color:#888;line-height:1.55;margin-top:8px;}
+  .adm-loading{font-size:13px;color:#0D9488;font-weight:600;}
+  </style>
+  <div class="input-section">
+    <h3>🎓 대학입시 전형분석 <span class="adm-badge">유료 · 고등</span></h3>
+    <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.55;">내신·모의고사 등급과 고교 유형을 바탕으로 <b>유리한 전형</b>과 <b>지원 전략(상향·적정·안정)</b>을 AI가 분석해 줘요. (위 고교 유형도 함께 반영돼요)</p>
+    <div class="input-row">
+      <div class="input-group">
+        <label>학년</label>
+        <select id="admGrade">
+          <option value="고1">고1</option>
+          <option value="고2">고2</option>
+          <option value="고3" selected>고3</option>
+          <option value="재수/N수">재수·N수</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>내신 평균 등급</label>
+        <input type="number" id="admNaesin" min="1" max="9" step="0.1" placeholder="예: 2.3">
+      </div>
+      <div class="input-group">
+        <label>모의고사 평균 등급</label>
+        <input type="number" id="admMock" min="1" max="9" step="0.1" placeholder="예: 3.0">
+      </div>
+      <div class="input-group">
+        <label>희망 계열</label>
+        <select id="admTrack">
+          <option value="">미정</option>
+          <option value="인문·사회">인문·사회</option>
+          <option value="자연·공학">자연·공학</option>
+          <option value="의약·보건">의약·보건</option>
+          <option value="예체능">예체능</option>
+        </select>
+      </div>
+      <div class="input-group" style="flex:2;">
+        <label>희망 대학·학과 (선택)</label>
+        <input type="text" id="admWish" placeholder="예: 컴퓨터공학, 인서울 희망">
+      </div>
+      <button class="add-btn" id="admBtn">🎓 AI 입시분석 받기 (49,000원)</button>
+    </div>
+    <div id="admResult" class="adm-result"></div>
   </div>
 
   <div class="legend">
@@ -1026,13 +1081,34 @@
     try { return localStorage.getItem('__premium') === '1'; } catch (e) { return false; }
   }
   // ===== 단건결제 이용권 설정 (바꾸려면 여기만 수정) =====
-  const PAY_URL = '';                  // 토스 송금링크 등 결제 링크 (예: 'https://toss.me/xxxx')
-  const UNLOCK_CODES = ['HANBEONE'];   // 결제한 분께 알려줄 이용권 코드 (여러 개 가능)
+  const PAY_URL = '';            // 토스 송금링크 등 결제 링크 (예: 'https://toss.me/xxxx'). 7/7 사업자 계좌 개설 후 넣기
+  const PRODUCTS = {
+    ai: {
+      title: '🤖 AI 정밀분석 이용권',
+      desc: '성적표·생활기록부를 AI가 읽어 과목별 강·약점과 학습 경향까지 자세히 분석해 줘요.',
+      price: '1회 <b>990원</b>',
+      codes: ['HANBEONE'],       // AI 분석 이용권 코드
+      unlockKey: '__premium'
+    },
+    admission: {
+      title: '🎓 대학입시 전형분석',
+      desc: '내신·모의고사 등급과 고교 유형을 바탕으로 유리한 전형(교과·종합·논술·정시)과 지원 전략을 AI가 분석해 줘요.',
+      price: '1회 <b>49,000원</b>',
+      codes: ['ADMISSION49'],    // 입시분석 이용권 코드
+      unlockKey: '__admission'
+    }
+  };
 
   const payModal = document.getElementById('payModal');
   const payMsg = document.getElementById('payMsg');
   const payCode = document.getElementById('payCode');
-  function showPaywall() {
+  let curProduct = PRODUCTS.ai;
+  function isUnlocked(key) { try { return localStorage.getItem(key) === '1'; } catch (e) { return false; } }
+  function showPaywall(prodKey) {
+    curProduct = PRODUCTS[prodKey] || PRODUCTS.ai;
+    document.getElementById('payTitle').textContent = curProduct.title;
+    document.getElementById('payDesc').textContent = curProduct.desc;
+    document.getElementById('payPrice').innerHTML = curProduct.price;
     payMsg.textContent = ''; payMsg.className = 'pay-msg';
     payCode.value = '';
     payModal.classList.add('on');
@@ -1048,9 +1124,9 @@
   function applyCode() {
     const v = (payCode.value || '').trim().toUpperCase();
     if (!v) { payMsg.className = 'pay-msg err'; payMsg.textContent = '코드를 입력해 주세요.'; return; }
-    const ok = UNLOCK_CODES.some(c => String(c).trim().toUpperCase() === v);
+    const ok = curProduct.codes.some(c => String(c).trim().toUpperCase() === v);
     if (ok) {
-      try { localStorage.setItem('__premium', '1'); } catch (e) {}
+      try { localStorage.setItem(curProduct.unlockKey, '1'); } catch (e) {}
       payMsg.className = 'pay-msg ok'; payMsg.textContent = '✅ 이용권이 확인됐어요! 잠시 후 열립니다.';
       setTimeout(() => location.reload(), 900);
     } else {
@@ -1059,6 +1135,91 @@
   }
   document.getElementById('payApply').addEventListener('click', applyCode);
   payCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyCode(); });
+
+  // ===== 대학입시 전형분석 =====
+  if (new URLSearchParams(location.search).get('admission') === '1') {
+    try { localStorage.setItem('__admission', '1'); } catch (e) {}
+  }
+  const admBtn = document.getElementById('admBtn');
+  const admResult = document.getElementById('admResult');
+  const admGrade = document.getElementById('admGrade');
+  const admNaesin = document.getElementById('admNaesin');
+  const admMock = document.getElementById('admMock');
+  const admTrack = document.getElementById('admTrack');
+  const admWish = document.getElementById('admWish');
+  [['grade-adm-grade', admGrade], ['grade-adm-naesin', admNaesin], ['grade-adm-mock', admMock], ['grade-adm-track', admTrack], ['grade-adm-wish', admWish]]
+    .forEach(([k, el]) => { const v = localStorage.getItem(k); if (v != null && v !== '') el.value = v; el.addEventListener('change', () => localStorage.setItem(k, el.value)); });
+
+  const admEsc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  function admHsTypeName() {
+    const el = document.getElementById('hsTypeInput');
+    if (!el || !el.value) return '';
+    const opt = el.options[el.selectedIndex];
+    return opt ? opt.text : '';
+  }
+  function admRecordSummary() {
+    if (!grades.length) return '';
+    const acc = {};
+    grades.forEach(g => Object.keys(g.scores || {}).forEach(s => {
+      const v = parseFloat(g.scores[s]); if (isNaN(v)) return;
+      acc[s] = acc[s] || { school: [], mock: [] };
+      (g.type === 'mock' ? acc[s].mock : acc[s].school).push(v);
+    }));
+    const avg = arr => arr.length ? Math.round(arr.reduce((x, y) => x + y, 0) / arr.length) : null;
+    const parts = [];
+    Object.keys(acc).forEach(s => {
+      const sc = avg(acc[s].school), mo = avg(acc[s].mock), seg = [];
+      if (sc != null) seg.push(`내신 ${sc}점`);
+      if (mo != null) seg.push(`모의 ${mo}점`);
+      if (seg.length) parts.push(`${s} ${seg.join('/')}`);
+    });
+    return parts.join(', ');
+  }
+  function admRender(r) {
+    let h = '';
+    h += `<div class="adm-card"><h4>총평</h4><div class="adm-row">${admEsc(r.summary)}</div></div>`;
+    if (r.recommendedTracks && r.recommendedTracks.length) {
+      h += '<div class="adm-card"><h4>유리한 전형</h4>';
+      r.recommendedTracks.forEach(t => {
+        const f = (t.fit || '').includes('높') ? 'high' : (t.fit || '').includes('낮') ? 'low' : 'mid';
+        h += `<div class="adm-row"><span class="adm-fit ${f}">${admEsc(t.fit)}</span><b>${admEsc(t.name)}</b> — ${admEsc(t.reason)}</div>`;
+      });
+      h += '</div>';
+    }
+    if (r.targetBands && r.targetBands.length) {
+      h += '<div class="adm-card"><h4>지원 전략</h4>';
+      r.targetBands.forEach(t => { h += `<div class="adm-row"><b>${admEsc(t.band)}</b> — ${admEsc(t.desc)}</div>`; });
+      h += '</div>';
+    }
+    if (r.strengths && r.strengths.length) h += '<div class="adm-card"><h4>강점</h4>' + r.strengths.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
+    if (r.improvements && r.improvements.length) h += '<div class="adm-card"><h4>보완점</h4>' + r.improvements.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
+    if (r.roadmap && r.roadmap.length) h += '<div class="adm-card"><h4>준비 로드맵</h4>' + r.roadmap.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
+    if (r.caution) h += `<div class="adm-caution">⚠️ ${admEsc(r.caution)}</div>`;
+    admResult.innerHTML = h; admResult.classList.add('on');
+  }
+  async function runAdmission() {
+    if (!isUnlocked('__admission')) { showPaywall('admission'); return; }
+    const naesin = (admNaesin.value || '').trim(), mock = (admMock.value || '').trim();
+    if (!naesin && !mock) { alert('내신 평균 등급이나 모의고사 평균 등급 중 하나는 입력해 주세요.'); return; }
+    admResult.classList.add('on');
+    admResult.innerHTML = '<div class="adm-loading">🎓 AI가 입시 전형을 분석하는 중이에요… (20~40초 걸릴 수 있어요)</div>';
+    admBtn.disabled = true;
+    try {
+      const resp = await fetch('/api/admission', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ grade: admGrade.value, naesin, mock, track: admTrack.value, wish: (admWish.value || '').trim(), hsType: admHsTypeName(), recordSummary: admRecordSummary() })
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.result) {
+        admResult.innerHTML = '<div class="adm-row" style="color:#C62828;">분석에 실패했어요. 잠시 후 다시 시도해 주세요.' + (data && data.error ? '<br><small>' + admEsc(data.error) + '</small>' : '') + '</div>';
+        return;
+      }
+      admRender(data.result);
+    } catch (e) {
+      admResult.innerHTML = '<div class="adm-row" style="color:#C62828;">네트워크 오류예요. 잠시 후 다시 시도해 주세요.</div>';
+    } finally { admBtn.disabled = false; }
+  }
+  admBtn.addEventListener('click', runAdmission);
 
   // 이미지를 적당히 줄여 base64로 (비용·전송량 절감)
   function fileToBase64(file, maxDim) {
@@ -1108,7 +1269,7 @@
 
   async function handleAi(file) {
     if (!file) return;
-    if (!isPremium()) { showPaywall(); return; }
+    if (!isPremium()) { showPaywall('ai'); return; }
     aiResult.style.display = 'block';
     aiResult.innerHTML = '<div class="ai-loading">🤖 AI가 이미지를 읽고 분석 중이에요… (10~20초)</div>';
     try {
@@ -1129,7 +1290,7 @@
     }
   }
 
-  aiBox.addEventListener('click', () => { if (!isPremium()) { showPaywall(); return; } aiInput.click(); });
+  aiBox.addEventListener('click', () => { if (!isPremium()) { showPaywall('ai'); return; } aiInput.click(); });
   aiInput.addEventListener('change', e => { handleAi(e.target.files[0]); e.target.value = ''; });
   aiBox.addEventListener('dragover', e => { e.preventDefault(); aiBox.classList.add('drag'); });
   aiBox.addEventListener('dragleave', () => aiBox.classList.remove('drag'));
