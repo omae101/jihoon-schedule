@@ -850,19 +850,32 @@
     const h3 = panel.querySelector('h3');
     const dot = document.createElement('button');
     dot.type = 'button'; dot.className = 'subj-color-dot'; dot.title = '과목 색 선택';
-    function paintDot() {
-      const c = EV_COLORS[subjectColors[koName]] || { bg: '#fff', fg: '#cfd3da' };
-      dot.style.background = c.bg; dot.style.borderColor = c.fg;
+    function applyColor() {
+      const key = subjectColors[koName];
+      const c = EV_COLORS[key];
+      // 색 동그라미
+      const dc = c || { bg: '#fff', fg: '#cfd3da' };
+      dot.style.background = dc.bg; dot.style.borderColor = dc.fg;
+      // 과목 버튼
+      tintSubjBtn(btn, key);
+      // 제목 + 적은 글(교재 내용)
+      if (c) {
+        h3.style.color = c.fg;
+        area.style.color = c.fg; area.style.fontWeight = '600';
+        area.style.background = c.bg; area.style.borderColor = c.fg;
+      } else {
+        h3.style.color = ''; area.style.color = ''; area.style.fontWeight = '';
+        area.style.background = ''; area.style.borderColor = '';
+      }
     }
-    paintDot();
-    tintSubjBtn(btn, subjectColors[koName]);
+    applyColor();
     dot.addEventListener('click', function (e) {
       e.stopPropagation();
       if (palettePop.classList.contains('on') && paletteAnchor === dot) { closePalette(); return; }
       openPalette(dot, subjectColors[koName], function (key) {
         subjectColors[koName] = key;
         localStorage.setItem('jihoon-subject-colors', JSON.stringify(subjectColors));
-        paintDot(); tintSubjBtn(btn, key); showSaved();
+        applyColor(); showSaved();
       });
     });
     h3.appendChild(dot);
