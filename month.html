@@ -419,6 +419,10 @@
   .edit-rows { display: flex; flex-direction: column; gap: 8px; max-height: 46vh; overflow-y: auto; }
   .ev-row { display: flex; align-items: center; gap: 8px; }
   .ev-color { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; padding: 0; }
+  .palette-pop { position: absolute; z-index: 1200; background: #fff; border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 10px; display: none; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .palette-pop.on { display: grid; }
+  .palette-sw { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(0,0,0,.12); cursor: pointer; padding: 0; }
+  .palette-sw.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent); }
   .ev-text { flex: 1; min-width: 0; border: 1px solid var(--line-strong); border-radius: 9px; padding: 10px 11px; font-family: inherit; font-size: 14px; outline: none; color: var(--text-main); background: #fff; }
   .ev-text:focus { border-color: var(--accent); }
   .ev-del { flex: none; background: none; border: none; color: #C62828; font-size: 20px; cursor: pointer; line-height: 1; padding: 0 2px; }
@@ -506,7 +510,7 @@
     <div class="edit-head"><b id="editTitle">일정 입력</b><button class="edit-x" id="editClose" aria-label="닫기">×</button></div>
     <div id="editRows" class="edit-rows"></div>
     <button id="editAddRow" class="edit-addrow">+ 일정 추가</button>
-    <p class="edit-hint">왼쪽 <b>색 동그라미</b>를 누르면 일정별로 색이 바뀌어요.</p>
+    <p class="edit-hint">왼쪽 <b>색 동그라미</b>를 누르면 원하는 색을 직접 고를 수 있어요.</p>
     <div class="edit-actions">
       <a id="editDayLink" class="edit-btn">📅 그날 화면</a>
       <button class="edit-btn primary" id="editSave">저장</button>
@@ -591,17 +595,22 @@
   let day = 1, weekIdx = 0;
   const cellByDate = {};
 
-  // 일정별 색 팔레트
+  // 일정별 색 팔레트 (기존 키 호환 유지 + 색 확장)
   const EV_COLORS = {
     gray:   { bg: '#E9EBF3', fg: '#3C3F54' },
     red:    { bg: '#FCE3E3', fg: '#C62828' },
     orange: { bg: '#FFE7D2', fg: '#B5560E' },
     yellow: { bg: '#FBF1C9', fg: '#8A6D00' },
+    lime:   { bg: '#E6F4D0', fg: '#5B7A1E' },
     green:  { bg: '#DCF3E3', fg: '#1E7A45' },
+    teal:   { bg: '#D2F0EC', fg: '#0B7A70' },
     blue:   { bg: '#DCE7FB', fg: '#2B5FB5' },
-    purple: { bg: '#ECE0FA', fg: '#6B3FA0' }
+    indigo: { bg: '#E0E2FB', fg: '#3F3FB0' },
+    purple: { bg: '#ECE0FA', fg: '#6B3FA0' },
+    pink:   { bg: '#FBE0EF', fg: '#B23A78' },
+    brown:  { bg: '#ECE3DA', fg: '#7A5A3A' }
   };
-  const EV_ORDER = ['gray', 'red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+  const EV_ORDER = ['gray','red','orange','yellow','lime','green','teal','blue','indigo','purple','pink','brown'];
   function readEvColors(dateStr) {
     try { const v = JSON.parse(localStorage.getItem(`jihoon-evcolor-${dateStr}`) || '[]'); return Array.isArray(v) ? v : []; }
     catch (e) { return []; }
@@ -716,15 +725,56 @@
     btn.dataset.color = key;
     btn.style.background = EV_COLORS[key].bg;
     btn.style.borderColor = EV_COLORS[key].fg;
-    btn.title = '색 바꾸기 (탭)';
+    btn.title = '색 선택 (탭)';
   }
+
+  // 색 팔레트 팝오버 (원하는 색 직접 선택)
+  const palettePop = document.createElement('div');
+  palettePop.className = 'palette-pop';
+  EV_ORDER.forEach(function (key) {
+    const sw = document.createElement('button');
+    sw.type = 'button'; sw.className = 'palette-sw'; sw.dataset.color = key;
+    sw.style.background = EV_COLORS[key].bg;
+    sw.style.borderColor = EV_COLORS[key].fg;
+    palettePop.appendChild(sw);
+  });
+  document.body.appendChild(palettePop);
+  let paletteTarget = null;
+  function openPalette(dot) {
+    paletteTarget = dot;
+    const cur = dot.dataset.color || 'gray';
+    palettePop.querySelectorAll('.palette-sw').forEach(function (s) {
+      s.classList.toggle('sel', s.dataset.color === cur);
+    });
+    const r = dot.getBoundingClientRect();
+    palettePop.classList.add('on');
+    const pw = palettePop.offsetWidth, ph = palettePop.offsetHeight;
+    let left = r.left + window.scrollX;
+    left = Math.min(left, window.scrollX + document.documentElement.clientWidth - pw - 8);
+    left = Math.max(left, window.scrollX + 8);
+    let top = r.bottom + window.scrollY + 6;
+    if (r.bottom + 6 + ph > document.documentElement.clientHeight) top = r.top + window.scrollY - ph - 6;
+    palettePop.style.left = left + 'px';
+    palettePop.style.top = top + 'px';
+  }
+  function closePalette() { palettePop.classList.remove('on'); paletteTarget = null; }
+  palettePop.addEventListener('click', function (e) {
+    const sw = e.target.closest('.palette-sw');
+    if (!sw || !paletteTarget) return;
+    setDot(paletteTarget, sw.dataset.color);
+    closePalette();
+  });
+  document.addEventListener('click', function (e) {
+    if (palettePop.classList.contains('on') && !palettePop.contains(e.target) && !e.target.classList.contains('ev-color')) closePalette();
+  });
   function addRow(text, color) {
     const row = document.createElement('div'); row.className = 'ev-row';
     const dot = document.createElement('button'); dot.type = 'button'; dot.className = 'ev-color';
     setDot(dot, color || 'gray');
-    dot.addEventListener('click', function () {
-      const next = EV_ORDER[(EV_ORDER.indexOf(dot.dataset.color) + 1) % EV_ORDER.length];
-      setDot(dot, next);
+    dot.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (palettePop.classList.contains('on') && paletteTarget === dot) { closePalette(); return; }
+      openPalette(dot);
     });
     const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'ev-text';
     inp.placeholder = '일정 내용 (예: 수학 수행평가)'; inp.value = text || '';

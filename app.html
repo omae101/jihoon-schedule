@@ -310,6 +310,16 @@
     color: var(--text-mute);
     font-size: 12px;
   }
+  /* 과목 색 범례 */
+  .tt-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .tt-legend:empty { display: none; }
+  .tt-legend .lg-item { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+  .tt-legend .lg-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(0,0,0,.12); cursor: pointer; padding: 0; flex: none; }
+  /* 색 팔레트 팝오버 (공용) */
+  .palette-pop { position: absolute; z-index: 1200; background: #fff; border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 10px; display: none; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .palette-pop.on { display: grid; }
+  .palette-sw { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(0,0,0,.12); cursor: pointer; padding: 0; }
+  .palette-sw.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent); }
   .timetable-hint {
     font-size: 12px;
     color: var(--text-mute);
@@ -840,7 +850,9 @@
       <tbody id="timetableBody"></tbody>
     </table>
 
-    <p class="timetable-hint">각 칸에 과목 입력 · 방향키로 이동 · 자동 저장돼요.</p>
+    <div id="ttColorLegend" class="tt-legend"></div>
+
+    <p class="timetable-hint">각 칸에 과목 입력 · 방향키로 이동 · 자동 저장돼요.<br>아래 <b>과목 색</b>에서 동그라미를 누르면 과목마다 색을 바꿀 수 있어요.</p>
 
     <div class="timetable-actions">
       <button class="modal-btn" id="timetableReset">초기화</button>
@@ -956,6 +968,114 @@
     timetableData = Array.from({ length: PERIODS }, () => ['','','','','']);
   }
 
+  // ===== 과목별 색 =====
+  const TT_COLORS = {
+    gray:   { bg: '#E9EBF3', fg: '#3C3F54' },
+    red:    { bg: '#FCE3E3', fg: '#C62828' },
+    orange: { bg: '#FFE7D2', fg: '#B5560E' },
+    yellow: { bg: '#FBF1C9', fg: '#8A6D00' },
+    lime:   { bg: '#E6F4D0', fg: '#5B7A1E' },
+    green:  { bg: '#DCF3E3', fg: '#1E7A45' },
+    teal:   { bg: '#D2F0EC', fg: '#0B7A70' },
+    blue:   { bg: '#DCE7FB', fg: '#2B5FB5' },
+    indigo: { bg: '#E0E2FB', fg: '#3F3FB0' },
+    purple: { bg: '#ECE0FA', fg: '#6B3FA0' },
+    pink:   { bg: '#FBE0EF', fg: '#B23A78' },
+    brown:  { bg: '#ECE3DA', fg: '#7A5A3A' }
+  };
+  const TT_ORDER = ['gray','red','orange','yellow','lime','green','teal','blue','indigo','purple','pink','brown'];
+  const AUTO_ORDER = ['blue','green','orange','purple','pink','teal','red','indigo','lime','brown','yellow'];
+  const SUBJECT_COLOR_KEY = 'jihoon-subject-colors';
+  let subjectColors;
+  try { subjectColors = JSON.parse(localStorage.getItem(SUBJECT_COLOR_KEY) || '{}') || {}; } catch (e) { subjectColors = {}; }
+  function saveSubjectColors() { localStorage.setItem(SUBJECT_COLOR_KEY, JSON.stringify(subjectColors)); }
+  const normSub = (s) => (s || '').trim();
+  function colorKeyForSubject(name) {
+    name = normSub(name);
+    if (!name) return null;
+    if (!subjectColors[name]) {
+      const used = Object.values(subjectColors);
+      let best = AUTO_ORDER[0], bestCount = Infinity;
+      AUTO_ORDER.forEach(k => { const c = used.filter(x => x === k).length; if (c < bestCount) { bestCount = c; best = k; } });
+      subjectColors[name] = best;
+      saveSubjectColors();
+    }
+    return subjectColors[name];
+  }
+  function paintCell(input) {
+    const td = input.closest('td'); if (!td) return;
+    const key = colorKeyForSubject(input.value);
+    if (key && TT_COLORS[key]) {
+      td.style.background = TT_COLORS[key].bg;
+      input.style.color = TT_COLORS[key].fg;
+      input.style.fontWeight = '700';
+    } else {
+      td.style.background = '';
+      input.style.color = '';
+      input.style.fontWeight = '';
+    }
+  }
+  function repaintAllCells() {
+    timetableBody.querySelectorAll('.subject-input').forEach(paintCell);
+  }
+  function updateLegend() {
+    const legend = document.getElementById('ttColorLegend');
+    legend.innerHTML = '';
+    const seen = [];
+    timetableData.forEach(row => (row || []).forEach(v => { const n = normSub(v); if (n && seen.indexOf(n) === -1) seen.push(n); }));
+    seen.forEach(name => {
+      const key = colorKeyForSubject(name);
+      const c = TT_COLORS[key] || TT_COLORS.gray;
+      const item = document.createElement('span'); item.className = 'lg-item';
+      item.style.background = c.bg; item.style.color = c.fg;
+      const dot = document.createElement('button'); dot.type = 'button'; dot.className = 'lg-dot';
+      dot.style.background = c.bg; dot.style.borderColor = c.fg;
+      dot.addEventListener('click', (e) => { e.stopPropagation(); openPalette(dot, name); });
+      const label = document.createElement('span'); label.textContent = name;
+      item.appendChild(dot); item.appendChild(label);
+      legend.appendChild(item);
+    });
+  }
+  // 색 팔레트 팝오버 (과목 색 선택)
+  const palettePop = document.createElement('div');
+  palettePop.className = 'palette-pop';
+  TT_ORDER.forEach(key => {
+    const sw = document.createElement('button');
+    sw.type = 'button'; sw.className = 'palette-sw'; sw.dataset.color = key;
+    sw.style.background = TT_COLORS[key].bg; sw.style.borderColor = TT_COLORS[key].fg;
+    palettePop.appendChild(sw);
+  });
+  document.body.appendChild(palettePop);
+  let paletteSubject = null;
+  function openPalette(anchor, subjectName) {
+    paletteSubject = subjectName;
+    const cur = subjectColors[subjectName];
+    palettePop.querySelectorAll('.palette-sw').forEach(s => s.classList.toggle('sel', s.dataset.color === cur));
+    const r = anchor.getBoundingClientRect();
+    palettePop.classList.add('on');
+    const pw = palettePop.offsetWidth, ph = palettePop.offsetHeight;
+    let left = Math.min(r.left + window.scrollX, window.scrollX + document.documentElement.clientWidth - pw - 8);
+    left = Math.max(left, window.scrollX + 8);
+    let top = r.bottom + window.scrollY + 6;
+    if (r.bottom + 6 + ph > document.documentElement.clientHeight) top = r.top + window.scrollY - ph - 6;
+    palettePop.style.left = left + 'px';
+    palettePop.style.top = top + 'px';
+  }
+  function closePalette() { palettePop.classList.remove('on'); paletteSubject = null; }
+  palettePop.addEventListener('click', (e) => {
+    const sw = e.target.closest('.palette-sw');
+    if (!sw || !paletteSubject) return;
+    subjectColors[paletteSubject] = sw.dataset.color;
+    saveSubjectColors();
+    closePalette();
+    repaintAllCells();
+    updateLegend();
+    showSaved();
+  });
+  document.addEventListener('click', (e) => {
+    if (palettePop.classList.contains('on') && !palettePop.contains(e.target) && !e.target.classList.contains('lg-dot')) closePalette();
+  });
+
   function renderTimetable() {
     timetableBody.innerHTML = '';
     for (let p = 0; p < PERIODS; p++) {
@@ -988,6 +1108,8 @@
           if (!timetableData[p]) timetableData[p] = ['','','','',''];
           timetableData[p][d] = input.value;
           localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
+          paintCell(input);
+          updateLegend();
           showSaved();
         });
         // 모바일: 칸을 탭하면 큰 입력 바로 적기 (격자는 한눈에 유지)
@@ -998,10 +1120,12 @@
           input.addEventListener('click', openEd);
         }
         td.appendChild(input);
+        paintCell(input);
         tr.appendChild(td);
       }
       timetableBody.appendChild(tr);
     }
+    updateLegend();
   }
   const ttEditor = document.getElementById('ttEditor');
   const ttEditorLabel = document.getElementById('ttEditorLabel');
@@ -1022,6 +1146,8 @@
     if (!timetableData[p]) timetableData[p] = ['', '', '', '', ''];
     timetableData[p][d] = ttEditorInput.value;
     localStorage.setItem(TIMETABLE_KEY, JSON.stringify(timetableData));
+    paintCell(input);
+    updateLegend();
     showSaved();
   });
   ttEditorInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); ttEditorInput.blur(); ttEditor.classList.remove('show'); } });

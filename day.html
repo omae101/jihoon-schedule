@@ -442,10 +442,24 @@
   // ---------- 학교 / 학원 시간표 (주간 시간표에서 요일별 자동 표시) ----------
   const WD_CHARS = ['일','월','화','수','목','금','토'];
   function readJSON(key){ try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch(e){ return null; } }
-  function autoRow(label, text){
+  // 과목별 색 (메인 화면 시간표에서 지정한 색을 읽기 전용으로 반영)
+  const DAY_TT_COLORS = {
+    gray:{bg:'#E9EBF3',fg:'#3C3F54'}, red:{bg:'#FCE3E3',fg:'#C62828'}, orange:{bg:'#FFE7D2',fg:'#B5560E'},
+    yellow:{bg:'#FBF1C9',fg:'#8A6D00'}, lime:{bg:'#E6F4D0',fg:'#5B7A1E'}, green:{bg:'#DCF3E3',fg:'#1E7A45'},
+    teal:{bg:'#D2F0EC',fg:'#0B7A70'}, blue:{bg:'#DCE7FB',fg:'#2B5FB5'}, indigo:{bg:'#E0E2FB',fg:'#3F3FB0'},
+    purple:{bg:'#ECE0FA',fg:'#6B3FA0'}, pink:{bg:'#FBE0EF',fg:'#B23A78'}, brown:{bg:'#ECE3DA',fg:'#7A5A3A'}
+  };
+  let SUBJ_COLOR_MAP = {};
+  try { SUBJ_COLOR_MAP = JSON.parse(localStorage.getItem('jihoon-subject-colors') || '{}') || {}; } catch(e){ SUBJ_COLOR_MAP = {}; }
+  function subjColor(name){ return DAY_TT_COLORS[SUBJ_COLOR_MAP[(name||'').trim()]] || null; }
+  function autoRow(label, text, color){
     const row = document.createElement('div'); row.className='mini-row';
     const t = document.createElement('div'); t.className='mini-time'; t.textContent=label;
     const x = document.createElement('div'); x.className='mini-text'; x.textContent=text;
+    if (color){
+      x.style.display='inline-block'; x.style.background=color.bg; x.style.color=color.fg;
+      x.style.fontWeight='700'; x.style.padding='2px 10px'; x.style.borderRadius='999px';
+    }
     row.appendChild(t); row.appendChild(x);
     return row;
   }
@@ -468,9 +482,9 @@
         if (subj) rows.push({ label:(i+1)+'교시', text:subj });
       });
     }
-    if (rows.length){ rows.forEach(r=>el.appendChild(autoRow(r.label, r.text))); return; }
+    if (rows.length){ rows.forEach(r=>el.appendChild(autoRow(r.label, r.text, subjColor(r.text)))); return; }
     const leg = legacyRows(schoolKey);
-    if (leg.length){ leg.forEach(r=>el.appendChild(autoRow(r.label, r.text))); return; }
+    if (leg.length){ leg.forEach(r=>el.appendChild(autoRow(r.label, r.text, subjColor(r.text)))); return; }
     el.innerHTML = (wd === 0 || wd === 6)
       ? '<div class="mini-empty">주말 — 학교 수업 없음</div>'
       : '<div class="mini-empty">메인 화면 🏫 학교 시간표에 과목을 입력하면 자동으로 떠요.</div>';
