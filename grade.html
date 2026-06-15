@@ -306,6 +306,41 @@
     <div id="aiResult" class="ai-result" style="display:none;"></div>
   </div>
 
+  <!-- AI 분석 이용권 결제 모달 -->
+  <style>
+  .pay-overlay{display:none;position:fixed;inset:0;background:rgba(30,30,40,.5);z-index:1300;justify-content:center;align-items:center;padding:20px;}
+  .pay-overlay.on{display:flex;}
+  .pay-box{background:#fff;border-radius:18px;padding:22px;max-width:360px;width:100%;position:relative;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:inherit;}
+  .pay-x{position:absolute;top:8px;right:12px;background:none;border:none;font-size:26px;color:#bbb;cursor:pointer;line-height:1;}
+  .pay-box h3{margin:0 0 8px;font-size:18px;color:#2E2F36;}
+  .pay-desc{font-size:13px;color:#666;line-height:1.55;margin:0 0 12px;}
+  .pay-price{font-size:15px;color:#2E2F36;margin-bottom:14px;} .pay-price b{font-size:20px;color:#0D9488;}
+  .pay-btn{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;background:#f3f4f6;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;color:#2E2F36;}
+  .pay-btn.primary{background:#0D9488;color:#fff;border-color:#0D9488;margin-bottom:14px;}
+  .pay-hint{font-size:12px;color:#888;margin:0 0 8px;line-height:1.5;}
+  .pay-coderow{display:flex;gap:8px;}
+  .pay-coderow input{flex:1;min-width:0;padding:11px;border:1px solid #ddd;border-radius:10px;font-size:14px;font-family:inherit;outline:none;}
+  .pay-coderow input:focus{border-color:#0D9488;}
+  .pay-coderow .pay-btn{width:auto;padding:11px 18px;}
+  .pay-msg{font-size:13px;margin:10px 0 0;min-height:18px;}
+  .pay-msg.ok{color:#1E7A45;font-weight:600;} .pay-msg.err{color:#C62828;}
+  </style>
+  <div id="payModal" class="pay-overlay">
+    <div class="pay-box">
+      <button class="pay-x" id="payClose" title="닫기">×</button>
+      <h3>🤖 AI 정밀분석 이용권</h3>
+      <p class="pay-desc">성적표·생활기록부를 AI가 읽어 과목별 강·약점과 학습 경향까지 자세히 분석해 줘요.</p>
+      <div class="pay-price">1회 <b>990원</b></div>
+      <button class="pay-btn primary" id="payBuy">💳 결제하기</button>
+      <p class="pay-hint">결제 후 받은 <b>이용권 코드</b>를 입력하면 바로 열려요.</p>
+      <div class="pay-coderow">
+        <input type="text" id="payCode" placeholder="이용권 코드 입력" autocomplete="off">
+        <button class="pay-btn" id="payApply">확인</button>
+      </div>
+      <p class="pay-msg" id="payMsg"></p>
+    </div>
+  </div>
+
   <div class="input-section">
     <h3>🧭 사주·MBTI 성향 분석</h3>
     <div class="input-row">
@@ -990,12 +1025,40 @@
   function isPremium() {
     try { return localStorage.getItem('__premium') === '1'; } catch (e) { return false; }
   }
+  // ===== 단건결제 이용권 설정 (바꾸려면 여기만 수정) =====
+  const PAY_URL = '';                  // 토스 송금링크 등 결제 링크 (예: 'https://toss.me/xxxx')
+  const UNLOCK_CODES = ['HANBEONE'];   // 결제한 분께 알려줄 이용권 코드 (여러 개 가능)
+
+  const payModal = document.getElementById('payModal');
+  const payMsg = document.getElementById('payMsg');
+  const payCode = document.getElementById('payCode');
   function showPaywall() {
-    alert('🤖 AI 정밀분석은 유료(프리미엄) 기능이에요.\n\n' +
-      '성적표를 AI가 읽어 과목별 강·약점과 학습 경향까지 자세히 분석해 줘요.\n' +
-      '· 1회 990원 (5회 묶음 3,900원)\n\n' +
-      '결제 기능은 준비 중이에요. 곧 열릴게요!');
+    payMsg.textContent = ''; payMsg.className = 'pay-msg';
+    payCode.value = '';
+    payModal.classList.add('on');
+    setTimeout(() => payCode.focus(), 50);
   }
+  function closePaywall() { payModal.classList.remove('on'); }
+  document.getElementById('payClose').addEventListener('click', closePaywall);
+  payModal.addEventListener('click', (e) => { if (e.target === payModal) closePaywall(); });
+  document.getElementById('payBuy').addEventListener('click', () => {
+    if (!PAY_URL) { alert('결제 링크 준비 중이에요. 곧 열릴게요!'); return; }
+    window.open(PAY_URL, '_blank');
+  });
+  function applyCode() {
+    const v = (payCode.value || '').trim().toUpperCase();
+    if (!v) { payMsg.className = 'pay-msg err'; payMsg.textContent = '코드를 입력해 주세요.'; return; }
+    const ok = UNLOCK_CODES.some(c => String(c).trim().toUpperCase() === v);
+    if (ok) {
+      try { localStorage.setItem('__premium', '1'); } catch (e) {}
+      payMsg.className = 'pay-msg ok'; payMsg.textContent = '✅ 이용권이 확인됐어요! 잠시 후 열립니다.';
+      setTimeout(() => location.reload(), 900);
+    } else {
+      payMsg.className = 'pay-msg err'; payMsg.textContent = '코드가 올바르지 않아요. 다시 확인해 주세요.';
+    }
+  }
+  document.getElementById('payApply').addEventListener('click', applyCode);
+  payCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyCode(); });
 
   // 이미지를 적당히 줄여 base64로 (비용·전송량 절감)
   function fileToBase64(file, maxDim) {
