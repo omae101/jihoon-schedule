@@ -1190,9 +1190,12 @@
       h += '</div>';
     }
     if (r.targetBands && r.targetBands.length) {
-      h += '<div class="adm-card"><h4>지원 전략</h4>';
+      h += '<div class="adm-card"><h4>지원 수준 (상향·적정·안정)</h4>';
       r.targetBands.forEach(t => { h += `<div class="adm-row"><b>${admEsc(t.band)}</b> — ${admEsc(t.desc)}</div>`; });
       h += '</div>';
+    }
+    if (r.applicationStrategy && r.applicationStrategy.length) {
+      h += '<div class="adm-card"><h4>추천 지원 조합 (수시 6장 + 정시)</h4>' + r.applicationStrategy.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
     }
     if (r.strengths && r.strengths.length) h += '<div class="adm-card"><h4>강점</h4>' + r.strengths.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
     if (r.improvements && r.improvements.length) h += '<div class="adm-card"><h4>보완점</h4>' + r.improvements.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
