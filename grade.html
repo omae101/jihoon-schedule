@@ -486,7 +486,7 @@
 
   <div class="input-section">
     <h3>📚 우리 아이 공부 상담 <span class="adm-badge">유아·초·중</span></h3>
-    <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.55;">한자·영어·한글·수학… <b>지금 시작할 적기</b>와 이 시기에 꼭 챙길 것을 AI가 나이에 맞춰 알려줘요. <b>첫 상담은 무료</b>예요.<br><span style="color:var(--accent,#3E9D90);">✨ 위 <b>성향 분석(생년월일·MBTI)</b>을 먼저 하면, 우리 아이 <b>기질에 맞춘</b> 상담이 나와요.</span></p>
+    <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.55;">한자·영어·한글·수학… <b>지금 시작할 적기</b>와 이 시기에 꼭 챙길 것을 AI가 나이에 맞춰 알려줘요. <b>첫 상담은 무료</b>예요.</p>
     <div class="input-row">
       <div class="input-group">
         <label>자녀 나이(만)</label>
@@ -509,6 +509,10 @@
         <label>지금 하는 공부 (선택)</label>
         <input type="text" id="cnsNow" placeholder="예: 한글 떼는 중, 영어 학습지">
       </div>
+      <label for="cnsUseTend" style="display:flex;align-items:center;gap:7px;flex-basis:100%;font-size:13px;color:#444;margin:2px 0 4px;cursor:pointer;">
+        <input type="checkbox" id="cnsUseTend" style="width:16px;height:16px;flex:none;">
+        <span>✨ 우리 아이 <b>기질(성향 분석)</b>도 반영하기 <span style="color:#999;">(선택 · 위 성향 분석을 먼저 해두면 더 정확)</span></span>
+      </label>
       <button class="add-btn" id="cnsBtn">📚 공부상담 받기 (첫회 무료)</button>
     </div>
     <div id="cnsResult" class="adm-result"></div>
@@ -1280,6 +1284,7 @@
   const cnsStage = document.getElementById('cnsStage');
   const cnsConcern = document.getElementById('cnsConcern');
   const cnsNow = document.getElementById('cnsNow');
+  const cnsUseTend = document.getElementById('cnsUseTend');
   [['grade-cns-age', cnsAge], ['grade-cns-stage', cnsStage], ['grade-cns-concern', cnsConcern], ['grade-cns-now', cnsNow]]
     .forEach(([k, el]) => { const v = localStorage.getItem(k); if (v != null && v !== '') el.value = v; el.addEventListener('change', () => localStorage.setItem(k, el.value)); });
 
@@ -1312,19 +1317,21 @@
     cnsResult.innerHTML = '<div class="adm-loading">📚 AI가 우리 아이 학습 적기를 살펴보는 중이에요… (15~30초 걸려요)</div>';
     cnsBtn.disabled = true;
     try {
-      // 성향분석(사주·MBTI) 결과가 있으면 함께 보내 아이 기질에 맞춤
+      // 성향(기질) 반영은 '선택' — 체크했을 때만 성향분석 결과를 함께 보냄
       let tendency = '';
-      try {
-        const rr = analyzeEngine();
-        if (rr && !rr.error) {
-          const sc = rr.scores;
-          tendency = `일간 ${STEMS[rr.dp.stem]}${BRANCHES[rr.dp.branch]}(${EL_NAME[rr.dayMasterEl]}), 오행 ${ohaengStr(rr.cnt)}`
-            + (rr.mbti && rr.mbti.length === 4 ? `, MBTI ${rr.mbti.toUpperCase()}` : '')
-            + `, 성향점수 수리${sc.수리}·문해${sc.문해}·집중${sc.집중}·창의${sc.창의}·성실${sc.성실}(100점 만점)`
-            + (rr.dn && rr.dn.label ? `, ${rr.dn.label}` : '')
-            + '. ' + buildSummary(rr);
-        }
-      } catch (e) { /* 성향 미입력이면 그냥 생략 */ }
+      if (cnsUseTend && cnsUseTend.checked) {
+        try {
+          const rr = analyzeEngine();
+          if (rr && !rr.error) {
+            const sc = rr.scores;
+            tendency = `일간 ${STEMS[rr.dp.stem]}${BRANCHES[rr.dp.branch]}(${EL_NAME[rr.dayMasterEl]}), 오행 ${ohaengStr(rr.cnt)}`
+              + (rr.mbti && rr.mbti.length === 4 ? `, MBTI ${rr.mbti.toUpperCase()}` : '')
+              + `, 성향점수 수리${sc.수리}·문해${sc.문해}·집중${sc.집중}·창의${sc.창의}·성실${sc.성실}(100점 만점)`
+              + (rr.dn && rr.dn.label ? `, ${rr.dn.label}` : '')
+              + '. ' + buildSummary(rr);
+          }
+        } catch (e) { /* 성향 미입력이면 그냥 생략 */ }
+      }
       const resp = await fetch('/api/counsel', {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ age, stage: cnsStage.value, concern: (cnsConcern.value || '').trim(), current: (cnsNow.value || '').trim(), tendency })
