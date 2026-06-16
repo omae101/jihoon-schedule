@@ -484,6 +484,36 @@
     <div id="admResult" class="adm-result"></div>
   </div>
 
+  <div class="input-section">
+    <h3>📚 우리 아이 공부 상담 <span class="adm-badge">유아·초·중</span></h3>
+    <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.55;">한자·영어·한글·수학… <b>지금 시작할 적기</b>와 이 시기에 꼭 챙길 것을 AI가 나이에 맞춰 알려줘요. <b>첫 상담은 무료</b>예요.</p>
+    <div class="input-row">
+      <div class="input-group">
+        <label>자녀 나이(만)</label>
+        <input type="number" id="cnsAge" min="3" max="16" step="1" placeholder="예: 6">
+      </div>
+      <div class="input-group">
+        <label>현재 단계</label>
+        <select id="cnsStage">
+          <option value="유아(미취학)">유아(미취학)</option>
+          <option value="초등 저학년(1~3)">초등 저학년(1~3)</option>
+          <option value="초등 고학년(4~6)">초등 고학년(4~6)</option>
+          <option value="중학생">중학생</option>
+        </select>
+      </div>
+      <div class="input-group" style="flex:2;">
+        <label>관심·고민 (선택)</label>
+        <input type="text" id="cnsConcern" placeholder="예: 영어 언제 시작? 한자 시켜도 될까?">
+      </div>
+      <div class="input-group" style="flex:2;">
+        <label>지금 하는 공부 (선택)</label>
+        <input type="text" id="cnsNow" placeholder="예: 한글 떼는 중, 영어 학습지">
+      </div>
+      <button class="add-btn" id="cnsBtn">📚 공부상담 받기 (첫회 무료)</button>
+    </div>
+    <div id="cnsResult" class="adm-result"></div>
+  </div>
+
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#E53935"></div> 학교 성적</div>
     <div class="legend-item"><div class="legend-dot" style="background:#1E88E5"></div> 모의고사</div>
@@ -1104,6 +1134,13 @@
       price: '1회 <b>49,000원</b>',
       codes: ['ADMISSION49'],    // 입시분석 이용권 코드
       unlockKey: '__admission'
+    },
+    counsel: {
+      title: '📚 우리 아이 공부 상담',
+      desc: '한자·영어·한글·수학 등 나이에 맞는 학습 적기와 이 시기 핵심을 AI가 알려줘요. 첫 상담은 무료예요.',
+      price: '재상담 1회 <b>490원</b>',
+      codes: ['STUDY490'],       // 공부상담 재상담 이용권 코드
+      unlockKey: '__counsel'
     }
   };
 
@@ -1232,6 +1269,65 @@
     } finally { admBtn.disabled = false; }
   }
   admBtn.addEventListener('click', runAdmission);
+
+  // ===== 우리 아이 공부 상담 (유아·초·중) — 첫회 무료, 이후 재상담 유료 =====
+  if (new URLSearchParams(location.search).get('counsel') === '1') {
+    try { localStorage.setItem('__counsel', '1'); } catch (e) {}
+  }
+  const cnsBtn = document.getElementById('cnsBtn');
+  const cnsResult = document.getElementById('cnsResult');
+  const cnsAge = document.getElementById('cnsAge');
+  const cnsStage = document.getElementById('cnsStage');
+  const cnsConcern = document.getElementById('cnsConcern');
+  const cnsNow = document.getElementById('cnsNow');
+  [['grade-cns-age', cnsAge], ['grade-cns-stage', cnsStage], ['grade-cns-concern', cnsConcern], ['grade-cns-now', cnsNow]]
+    .forEach(([k, el]) => { const v = localStorage.getItem(k); if (v != null && v !== '') el.value = v; el.addEventListener('change', () => localStorage.setItem(k, el.value)); });
+
+  function cnsRender(r) {
+    let h = '';
+    h += `<div class="adm-card"><h4>총평</h4><div class="adm-row">${admEsc(r.summary)}</div></div>`;
+    if (r.rightNow && r.rightNow.length) {
+      h += '<div class="adm-card"><h4>🗓️ 지금이 적기예요</h4>';
+      r.rightNow.forEach(t => { h += `<div class="adm-row"><b>${admEsc(t.area)}</b> — ${admEsc(t.what)}${t.why ? ' <span style="color:#888;">(' + admEsc(t.why) + ')</span>' : ''}</div>`; });
+      h += '</div>';
+    }
+    if (r.waitFor && r.waitFor.length) {
+      h += '<div class="adm-card"><h4>⏳ 조금 기다려도 돼요</h4>';
+      r.waitFor.forEach(t => { h += `<div class="adm-row"><b>${admEsc(t.area)}</b> — ${admEsc(t.when)}</div>`; });
+      h += '</div>';
+    }
+    if (r.coreFocus && r.coreFocus.length) h += '<div class="adm-card"><h4>📌 이 시기 핵심</h4>' + r.coreFocus.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
+    if (r.habits && r.habits.length) h += '<div class="adm-card"><h4>🪴 공부 습관 팁</h4>' + r.habits.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
+    if (r.roadmap && r.roadmap.length) h += '<div class="adm-card"><h4>🌱 다음 단계 로드맵</h4>' + r.roadmap.map(s => `<div class="adm-li">${admEsc(s)}</div>`).join('') + '</div>';
+    if (r.encouragement) h += `<div class="adm-cheer"><h4>💛 부모님께</h4><div class="adm-row">${admEsc(r.encouragement)}</div></div>`;
+    if (r.caution) h += `<div class="adm-caution">⚠️ ${admEsc(r.caution)}</div>`;
+    cnsResult.innerHTML = h; cnsResult.classList.add('on');
+  }
+  async function runCounsel() {
+    const usedFree = (function () { try { return localStorage.getItem('counsel-used') === '1'; } catch (e) { return false; } })();
+    if (usedFree && !isUnlocked('__counsel')) { showPaywall('counsel'); return; }
+    const age = (cnsAge.value || '').trim();
+    if (!age && !cnsStage.value) { alert('자녀 나이나 현재 단계를 알려주세요.'); return; }
+    cnsResult.classList.add('on');
+    cnsResult.innerHTML = '<div class="adm-loading">📚 AI가 우리 아이 학습 적기를 살펴보는 중이에요… (15~30초 걸려요)</div>';
+    cnsBtn.disabled = true;
+    try {
+      const resp = await fetch('/api/counsel', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ age, stage: cnsStage.value, concern: (cnsConcern.value || '').trim(), current: (cnsNow.value || '').trim() })
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.result) {
+        cnsResult.innerHTML = '<div class="adm-row" style="color:#C62828;">상담에 실패했어요. 잠시 후 다시 시도해 주세요.' + (data && data.error ? '<br><small>' + admEsc(data.error) + '</small>' : '') + '</div>';
+        return;
+      }
+      cnsRender(data.result);
+      try { localStorage.setItem('counsel-used', '1'); } catch (e) {}
+    } catch (e) {
+      cnsResult.innerHTML = '<div class="adm-row" style="color:#C62828;">네트워크 오류예요. 잠시 후 다시 시도해 주세요.</div>';
+    } finally { cnsBtn.disabled = false; }
+  }
+  cnsBtn.addEventListener('click', runCounsel);
 
   // 이미지를 적당히 줄여 base64로 (비용·전송량 절감)
   function fileToBase64(file, maxDim) {
