@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script src="/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한번에 — 로고</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  :root{ --teal:#0D9488; --teal2:#14B8A6; --ink:#23262B; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Pretendard',-apple-system,sans-serif;background:#EEF0F3;color:var(--ink);padding:26px 16px 70px;}
+  .head{max-width:880px;margin:0 auto 22px;text-align:center;}
+  .head h1{font-size:22px;font-weight:800;}
+  .head p{font-size:13.5px;color:#666;margin-top:6px;line-height:1.6;}
+  .grid{max-width:880px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:640px){ .grid{grid-template-columns:1fr;} }
+  .card{background:#fff;border:1px solid #E2E4E9;border-radius:18px;padding:22px;text-align:center;box-shadow:0 4px 16px rgba(20,40,38,.05);}
+  .card h2{font-size:14px;font-weight:800;margin-bottom:4px;}
+  .card .sub{font-size:12px;color:#8A8F98;margin-bottom:16px;}
+  .stage{display:flex;align-items:center;justify-content:center;min-height:160px;margin-bottom:16px;}
+  .stage.dark{background:#1F2430;border-radius:14px;}
+  .btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .btn{border:none;border-radius:9px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;padding:9px 16px;}
+  .btn.pri{background:var(--teal);color:#fff;}
+  .btn.gh{background:#fff;border:1px solid #D5D8DE;color:var(--ink);}
+  .note{max-width:880px;margin:22px auto 0;font-size:12.5px;color:#666;line-height:1.7;background:#fff;border:1px solid #E2E4E9;border-radius:12px;padding:14px 16px;}
+
+  /* 공용 심볼 정의용 (숨김) */
+  .defs{position:absolute;width:0;height:0;}
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>📐 한번에 로고</h1>
+    <p>마음에 드는 형태의 <b>PNG(고화질)</b> 또는 <b>SVG(벡터·상표/인쇄용)</b>를 저장하세요.<br>색·모양 바꾸고 싶으면 말씀해주세요.</p>
+  </div>
+
+  <!-- 공용 그라데이션/심볼 -->
+  <svg class="defs"><defs>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0D9488"/>
+    </linearGradient>
+  </defs></svg>
+
+  <div class="grid">
+    <!-- 1) 앱 아이콘 -->
+    <div class="card">
+      <h2>① 앱 아이콘</h2>
+      <div class="sub">앱·상표 도형용 (정사각형)</div>
+      <div class="stage">
+        <svg id="svg-icon" width="160" height="160" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="10" width="100" height="100" rx="28" fill="url(#tg)"/>
+          <rect x="30" y="40" width="20" height="8" rx="4" fill="#fff" opacity="0.45"/>
+          <rect x="30" y="56" width="29" height="8" rx="4" fill="#fff" opacity="0.72"/>
+          <rect x="30" y="72" width="15" height="8" rx="4" fill="#fff" opacity="0.38"/>
+          <path d="M59 71 L71 83 L93 47" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="btns">
+        <button class="btn pri" onclick="dlPng('svg-icon','한번에_아이콘',512)">PNG 저장</button>
+        <button class="btn gh" onclick="dlSvg('svg-icon','한번에_아이콘')">SVG 저장</button>
+      </div>
+    </div>
+
+    <!-- 2) 가로형 로고 -->
+    <div class="card">
+      <h2>② 가로형 로고</h2>
+      <div class="sub">상표(문자+도형)·웹·간판용</div>
+      <div class="stage">
+        <svg id="svg-h" width="300" height="120" viewBox="0 0 360 120" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="20" width="80" height="80" rx="22" fill="url(#tg)"/>
+          <rect x="24" y="44" width="16" height="6.5" rx="3.25" fill="#fff" opacity="0.45"/>
+          <rect x="24" y="57" width="24" height="6.5" rx="3.25" fill="#fff" opacity="0.72"/>
+          <rect x="24" y="70" width="12" height="6.5" rx="3.25" fill="#fff" opacity="0.38"/>
+          <path d="M48 69 L58 79 L76 55" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="104" y="68" font-family="Pretendard, sans-serif" font-size="46" font-weight="800" fill="#23262B" letter-spacing="-2">한번에</text>
+          <text x="106" y="92" font-family="Pretendard, sans-serif" font-size="15" font-weight="600" fill="#0D9488" letter-spacing="-0.5">학교·학원·성적을 한 번에</text>
+        </svg>
+      </div>
+      <div class="btns">
+        <button class="btn pri" onclick="dlPng('svg-h','한번에_가로로고',1200)">PNG 저장</button>
+        <button class="btn gh" onclick="dlSvg('svg-h','한번에_가로로고')">SVG 저장</button>
+      </div>
+    </div>
+
+    <!-- 3) 세로형 -->
+    <div class="card">
+      <h2>③ 세로형 로고</h2>
+      <div class="sub">인스타 프로필·앱 시작화면용</div>
+      <div class="stage">
+        <svg id="svg-v" width="160" height="180" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+          <rect x="64" y="14" width="72" height="72" rx="20" fill="url(#tg)"/>
+          <rect x="78" y="36" width="14" height="6" rx="3" fill="#fff" opacity="0.45"/>
+          <rect x="78" y="48" width="22" height="6" rx="3" fill="#fff" opacity="0.72"/>
+          <rect x="78" y="60" width="11" height="6" rx="3" fill="#fff" opacity="0.38"/>
+          <path d="M100 59 L109 68 L126 44" fill="none" stroke="#fff" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="100" y="135" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="44" font-weight="800" fill="#23262B" letter-spacing="-2">한번에</text>
+          <text x="100" y="162" text-anchor="middle" font-family="Pretendard, sans-serif" font-size="14" font-weight="600" fill="#0D9488" letter-spacing="-0.5">학교·학원·성적을 한 번에</text>
+        </svg>
+      </div>
+      <div class="btns">
+        <button class="btn pri" onclick="dlPng('svg-v','한번에_세로로고',800)">PNG 저장</button>
+        <button class="btn gh" onclick="dlSvg('svg-v','한번에_세로로고')">SVG 저장</button>
+      </div>
+    </div>
+
+    <!-- 4) 어두운 배경 버전 -->
+    <div class="card">
+      <h2>④ 흰색 버전 (어두운 배경용)</h2>
+      <div class="sub">색 배경·다크모드용</div>
+      <div class="stage dark">
+        <svg id="svg-w" width="300" height="120" viewBox="0 0 360 120" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="20" width="80" height="80" rx="22" fill="#fff"/>
+          <rect x="24" y="44" width="16" height="6.5" rx="3.25" fill="#0D9488" opacity="0.5"/>
+          <rect x="24" y="57" width="24" height="6.5" rx="3.25" fill="#0D9488" opacity="0.85"/>
+          <rect x="24" y="70" width="12" height="6.5" rx="3.25" fill="#0D9488" opacity="0.4"/>
+          <path d="M48 69 L58 79 L76 55" fill="none" stroke="#0D9488" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="104" y="68" font-family="Pretendard, sans-serif" font-size="46" font-weight="800" fill="#fff" letter-spacing="-2">한번에</text>
+          <text x="106" y="92" font-family="Pretendard, sans-serif" font-size="15" font-weight="600" fill="#9FE7DC" letter-spacing="-0.5">학교·학원·성적을 한 번에</text>
+        </svg>
+      </div>
+      <div class="btns">
+        <button class="btn pri" onclick="dlPng('svg-w','한번에_흰색로고',1200)">PNG 저장</button>
+        <button class="btn gh" onclick="dlSvg('svg-w','한번에_흰색로고')">SVG 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    💡 <b>로고 의미</b>: 흩어진 일정·할 일·성적(세 줄)이 <b>하나의 체크(✓)로 모여 정리</b>되는 모습 = "한 번에". 청록색은 신뢰·집중을 뜻해요.<br>
+    🏷️ <b>상표 출원엔</b> ②가로형(문자+도형 결합)이 가장 적합하고, 앱 아이콘은 ①을 쓰세요. PNG는 인스타·문서용, SVG는 인쇄·상표 도면용(깨지지 않음).
+  </div>
+
+  <script>
+    function svgEl(id){ return document.getElementById(id); }
+    function serialize(svg){
+      var clone = svg.cloneNode(true);
+      // 공용 그라데이션(defs)을 SVG 안에 직접 포함시켜 단독 저장해도 색이 유지되게
+      if (serialize._defs == null) {
+        serialize._defs = '<defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0D9488"/></linearGradient></defs>';
+      }
+      clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+      var inner = clone.innerHTML;
+      if (inner.indexOf('linearGradient') === -1) clone.innerHTML = serialize._defs + inner;
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(clone);
+    }
+    function dlSvg(id, name){
+      var str = serialize(svgEl(id));
+      var blob = new Blob([str], {type:'image/svg+xml'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a'); a.href=url; a.download=name+'.svg';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+    function dlPng(id, name, w){
+      var svg = svgEl(id);
+      var vb = svg.viewBox.baseVal;
+      var ratio = (vb && vb.width) ? vb.height/vb.width : 1;
+      var W = w, H = Math.round(w*ratio);
+      var str = serialize(svg);
+      var img = new Image();
+      var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(str);
+      img.onload = function(){
+        var cv = document.createElement('canvas'); cv.width=W; cv.height=H;
+        var ctx = cv.getContext('2d');
+        ctx.drawImage(img, 0, 0, W, H);
+        cv.toBlob(function(blob){
+          var u = URL.createObjectURL(blob);
+          var a = document.createElement('a'); a.href=u; a.download=name+'.png';
+          document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u);
+        }, 'image/png');
+      };
+      img.onerror = function(){ alert('저장에 실패했어요. SVG 저장을 이용해 주세요.'); };
+      img.src = url;
+    }
+  </script>
+</body>
+</html>
