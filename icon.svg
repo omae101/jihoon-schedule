@@ -1,6 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0D9488"/>
-  <text x="256" y="304" font-family="'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif"
-        font-size="220" font-weight="800" fill="#FFFFFF" text-anchor="middle" letter-spacing="-6">한</text>
-  <circle cx="256" cy="392" r="13" fill="#CCFBF1"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="512" height="512">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0D9488"/>
+  </linearGradient></defs>
+  <rect x="6" y="6" width="108" height="108" rx="26" fill="url(#g)"/>
+  <rect x="30" y="40" width="20" height="8" rx="4" fill="#fff" opacity="0.45"/>
+  <rect x="30" y="56" width="29" height="8" rx="4" fill="#fff" opacity="0.72"/>
+  <rect x="30" y="72" width="15" height="8" rx="4" fill="#fff" opacity="0.38"/>
+  <path d="M59 71 L71 83 L93 47" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
