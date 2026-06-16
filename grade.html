@@ -486,7 +486,7 @@
 
   <div class="input-section">
     <h3>📚 우리 아이 공부 상담 <span class="adm-badge">유아·초·중</span></h3>
-    <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.55;">한자·영어·한글·수학… <b>지금 시작할 적기</b>와 이 시기에 꼭 챙길 것을 AI가 나이에 맞춰 알려줘요. <b>첫 상담은 무료</b>예요.</p>
+    <p style="font-size:12.5px;color:var(--text-mute);margin:-6px 0 12px;line-height:1.55;">한자·영어·한글·수학… <b>지금 시작할 적기</b>와 이 시기에 꼭 챙길 것을 AI가 나이에 맞춰 알려줘요. <b>첫 상담은 무료</b>예요.<br><span style="color:var(--accent,#3E9D90);">✨ 위 <b>성향 분석(생년월일·MBTI)</b>을 먼저 하면, 우리 아이 <b>기질에 맞춘</b> 상담이 나와요.</span></p>
     <div class="input-row">
       <div class="input-group">
         <label>자녀 나이(만)</label>
@@ -1312,9 +1312,22 @@
     cnsResult.innerHTML = '<div class="adm-loading">📚 AI가 우리 아이 학습 적기를 살펴보는 중이에요… (15~30초 걸려요)</div>';
     cnsBtn.disabled = true;
     try {
+      // 성향분석(사주·MBTI) 결과가 있으면 함께 보내 아이 기질에 맞춤
+      let tendency = '';
+      try {
+        const rr = analyzeEngine();
+        if (rr && !rr.error) {
+          const sc = rr.scores;
+          tendency = `일간 ${STEMS[rr.dp.stem]}${BRANCHES[rr.dp.branch]}(${EL_NAME[rr.dayMasterEl]}), 오행 ${ohaengStr(rr.cnt)}`
+            + (rr.mbti && rr.mbti.length === 4 ? `, MBTI ${rr.mbti.toUpperCase()}` : '')
+            + `, 성향점수 수리${sc.수리}·문해${sc.문해}·집중${sc.집중}·창의${sc.창의}·성실${sc.성실}(100점 만점)`
+            + (rr.dn && rr.dn.label ? `, ${rr.dn.label}` : '')
+            + '. ' + buildSummary(rr);
+        }
+      } catch (e) { /* 성향 미입력이면 그냥 생략 */ }
       const resp = await fetch('/api/counsel', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ age, stage: cnsStage.value, concern: (cnsConcern.value || '').trim(), current: (cnsNow.value || '').trim() })
+        body: JSON.stringify({ age, stage: cnsStage.value, concern: (cnsConcern.value || '').trim(), current: (cnsNow.value || '').trim(), tendency })
       });
       const data = await resp.json();
       if (!resp.ok || !data.result) {
