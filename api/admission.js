@@ -1,5 +1,6 @@
 // Vercel 서버리스 함수 — Claude(Opus)로 대학입시 전형분석(조언형)
 // 클라이언트는 API 키를 보지 못함. 키는 Vercel 환경변수 ANTHROPIC_API_KEY 에 보관.
+// (2026-06-16 재배포 트리거: 환경변수 적용용 — 기능 변경 없음)
 
 const SCHEMA = {
   type: "object",
