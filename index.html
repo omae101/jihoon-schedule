@@ -231,8 +231,18 @@
   <h1><span>한번에</span></h1>
   <p>학교·학원 스케줄을 <strong>한 번에.</strong><br>수행평가 알림 · 성적 분석 · 실행까지 한 앱에서.</p>
   <a class="hero-btn" href="app.html">무료로 시작하기</a>
+  <button type="button" onclick="hanShare()" style="display:inline-block;margin:12px 0 0 8px;padding:14px 30px;background:#fff;color:var(--accent);font-size:16px;font-weight:700;border:2px solid var(--accent);border-radius:12px;cursor:pointer;font-family:inherit;vertical-align:top;">💌 친구에게 공유</button>
   <div class="hero-sub">가입 없이 바로 사용 · 무료</div>
 </section>
+<script>
+function hanShare(){
+  var url=(location.origin&&location.origin.indexOf('http')===0)?location.origin:'https://schedule-app-zeta-six.vercel.app';
+  var msg="우리 아이 학교·학원 일정, 성적, 공부 성향까지 한 곳에서 관리하는 무료 앱 '한번에' 같이 써봐요 😊";
+  if(navigator.share){ navigator.share({title:'한번에 — 학교·학원 일정을 한 번에',text:msg,url:url}).catch(function(){}); }
+  else if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(msg+'\n'+url).then(function(){ alert('공유 링크를 복사했어요!\n카카오톡 등에 붙여넣어 친구에게 알려주세요. 😊'); }).catch(function(){ window.prompt('아래 링크를 복사해 공유하세요',url); }); }
+  else{ window.prompt('아래 링크를 복사해 공유하세요',url); }
+}
+</script>
 
 <section class="features">
   <h2>'한번에'가 해결해요</h2>

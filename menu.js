@@ -82,6 +82,7 @@
     +   '<div class="hbo-divider"></div>'
     +   '<button class="hbo-item" id="hboSettingsBtn"><span class="hbo-ic">⚙️</span><span>화면 설정</span></button>'
     +   '<button class="hbo-item" id="hboHelpBtn"><span class="hbo-ic">❓</span><span>사용법</span></button>'
+    +   '<button class="hbo-item" id="hboShareBtn" style="color:#0B7A70;font-weight:700;"><span class="hbo-ic">💌</span><span>친구에게 공유하기</span></button>'
     +   '<div class="hbo-divider"></div>'
     +   '<button class="hbo-item hbo-reset" id="hboReset"><span class="hbo-ic">🧹</span><span>이 자녀 데이터 초기화</span></button>'
     + '</nav>'
@@ -117,6 +118,20 @@
   var aevBtn = document.getElementById('hboAevBtn');
   if (aevBtn) aevBtn.addEventListener('click', function () { close(); if (window.AcademyEvents) window.AcademyEvents.open(); });
   document.getElementById('hboHelpBtn').addEventListener('click', function () { close(); help.classList.add('on'); });
+  // 친구에게 공유 (웹 공유 API → 안 되면 링크 복사)
+  function hboShare() {
+    var url = (location.origin && location.origin.indexOf('http') === 0) ? location.origin : 'https://schedule-app-zeta-six.vercel.app';
+    var msg = "우리 아이 학교·학원 일정, 성적, 공부 성향까지 한 곳에서 관리하는 무료 앱 '한번에' 같이 써봐요 😊";
+    if (navigator.share) {
+      navigator.share({ title: '한번에 — 학교·학원 일정을 한 번에', text: msg, url: url }).catch(function () {});
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(msg + '\n' + url).then(function () { alert('공유 링크를 복사했어요!\n카카오톡 등에 붙여넣어 친구에게 알려주세요. 😊'); }).catch(function () { window.prompt('아래 링크를 복사해 공유하세요', url); });
+    } else {
+      window.prompt('아래 링크를 복사해 공유하세요', url);
+    }
+  }
+  var shareBtn = document.getElementById('hboShareBtn');
+  if (shareBtn) shareBtn.addEventListener('click', function () { close(); hboShare(); });
   document.getElementById('hboHelpClose').addEventListener('click', function () { help.classList.remove('on'); });
   document.getElementById('hboHelpDone').addEventListener('click', function () { help.classList.remove('on'); });
   help.addEventListener('click', function (e) { if (e.target === help) help.classList.remove('on'); });
