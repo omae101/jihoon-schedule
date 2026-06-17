@@ -38,6 +38,10 @@
   var MARK_ORDER = ['star', 'heart', 'dot', 'sparkle', 'diamond', 'bookmark'];
   var MARK_COLORS = ['#0D9488', '#E8A13A', '#E06B7E', '#3A3B42'];
   var DEF_MARK = 'star', DEF_MARKCOLOR = '#E8A13A';
+  // 화면설정 색 팔레트 (폰 기본 색창 대신 탭으로 고르기 — 이상한 숫자 안 뜸)
+  var TEXT_COLORS = ['#2E2F36', '#3A3B42', '#4A4A4A', '#2C3E50', '#5C4033', '#1F4E48', '#6B4E71'];
+  var BG_COLORS = ['#F5F3EF', '#FFFFFF', '#FFF9F0', '#F0F7F4', '#FDEFF2', '#EEF2FB', '#EAF4F0'];
+  var ACCENT_COLORS = ['#0D9488', '#3E9D90', '#E8A13A', '#E06B7E', '#4F46E5', '#2563EB', '#DB2777', '#16A34A', '#EA580C', '#0EA5E9'];
   // 마스크용 data-URI (alpha 마스크 — 색은 background-color로 입힘)
   function markUri(key) {
     var inner = MARKS[key] || MARKS.star;
@@ -112,7 +116,11 @@
       + '.__st-m.on{border-color:#0D9488;background:#E9F6F4;}'
       + '.__st-m.on i{background-color:#0D9488;}'
       + '.__st-c{width:32px;height:32px;border-radius:999px;border:3px solid transparent;cursor:pointer;padding:0;}'
-      + '.__st-c.on{border-color:#17181C;}';
+      + '.__st-c.on{border-color:#17181C;}'
+      + '.__st-row.col{display:block;}'
+      + '.__st-row.col > label{display:block;margin-bottom:8px;}'
+      + '.__st-sw{width:30px;height:30px;border-radius:999px;border:2px solid #E5E8EC;cursor:pointer;padding:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.05);}'
+      + '.__st-sw.on{border-color:#17181C;}';
     var s = document.createElement('style'); s.textContent = css; document.head.appendChild(s);
 
     var box = document.createElement('div');
@@ -121,9 +129,9 @@
     box.innerHTML =
       '<div class="__st-box">' +
         '<div class="__st-head"><b>⚙️ 화면 설정</b><button class="__st-x" id="__stX">×</button></div>' +
-        '<div class="__st-row"><label>글씨 색</label><input type="color" id="__stText"></div>' +
-        '<div class="__st-row"><label>바탕 색</label><input type="color" id="__stBg"></div>' +
-        '<div class="__st-row"><label>제목·포인트 색</label><input type="color" id="__stAccent"></div>' +
+        '<div class="__st-row col"><label>글씨 색</label><div class="__st-marks" id="__stTextC"></div></div>' +
+        '<div class="__st-row col"><label>바탕 색</label><div class="__st-marks" id="__stBgC"></div></div>' +
+        '<div class="__st-row col"><label>제목·포인트 색</label><div class="__st-marks" id="__stAccentC"></div></div>' +
         '<div class="__st-row"><label>글씨 모양</label><select id="__stFont"></select></div>' +
         '<div class="__st-row"><label>중요표시 모양</label><div class="__st-marks" id="__stMarkShape"></div></div>' +
         '<div class="__st-row"><label>중요표시 색</label><div class="__st-marks" id="__stMarkColor"></div></div>' +
@@ -145,10 +153,23 @@
       '</div>';
     document.body.appendChild(box);
 
-    var tEl = document.getElementById('__stText');
-    var bEl = document.getElementById('__stBg');
-    var aEl = document.getElementById('__stAccent');
     var fEl = document.getElementById('__stFont');
+    function selSw(wrap, key, def) {
+      var cur = get(key, def).toLowerCase();
+      [].forEach.call(wrap.children, function (b) { b.className = '__st-sw' + (b.getAttribute('data-c').toLowerCase() === cur ? ' on' : ''); });
+    }
+    function buildSwatches(wrapId, key, palette, def) {
+      var wrap = document.getElementById(wrapId);
+      palette.forEach(function (c) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = '__st-sw'; b.setAttribute('data-c', c); b.style.background = c;
+        b.addEventListener('click', function () { set(key, c); apply(); selSw(wrap, key, def); });
+        wrap.appendChild(b);
+      });
+      return wrap;
+    }
+    var textWrap = buildSwatches('__stTextC', 'text', TEXT_COLORS, DEF.text);
+    var bgWrap = buildSwatches('__stBgC', 'bg', BG_COLORS, DEF.bg);
+    var accentWrap = buildSwatches('__stAccentC', 'accent', ACCENT_COLORS, DEF.accent);
     FONT_ORDER.forEach(function (k) {
       var o = document.createElement('option');
       o.value = k; o.textContent = FONTS[k].label;
@@ -181,20 +202,17 @@
     }
 
     function fill() {
-      tEl.value = get('text', DEF.text);
-      bEl.value = get('bg', DEF.bg);
-      aEl.value = get('accent', DEF.accent);
       fEl.value = get('font', DEF.font);
       zEl.value = get('zoom', '1');
       lEl.value = 'ko';
+      selSw(textWrap, 'text', DEF.text);
+      selSw(bgWrap, 'bg', DEF.bg);
+      selSw(accentWrap, 'accent', DEF.accent);
       markSel();
     }
     fill();
 
     zEl.addEventListener('change', function () { set('zoom', zEl.value); apply(); });
-    tEl.addEventListener('input', function () { set('text', tEl.value); apply(); });
-    bEl.addEventListener('input', function () { set('bg', bEl.value); apply(); });
-    aEl.addEventListener('input', function () { set('accent', aEl.value); apply(); });
     fEl.addEventListener('change', function () { set('font', fEl.value); apply(); });
     lEl.addEventListener('change', function () {
       if (lEl.value === 'en') { alert('영어 버전은 준비 중이에요. 곧 추가할게요!'); lEl.value = 'ko'; }
