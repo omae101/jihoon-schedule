@@ -26,6 +26,25 @@
   function get(k, d) { try { return LS.getItem('__theme_' + k) || d; } catch (e) { return d; } }
   function set(k, v) { try { LS.setItem('__theme_' + k, v); } catch (e) {} }
 
+  // 중요표시 마크(이모지 X · 단색 벡터). 24x24 viewBox path/shape.
+  var MARKS = {
+    star: '<path d="M12 3.2 l2.45 4.97 5.48 .8 -3.97 3.87 .94 5.46 -4.9 -2.58 -4.9 2.58 .94 -5.46 -3.97 -3.87 5.48 -.8 z"/>',
+    heart: '<path d="M12 20.5 C 5 15.5 3.5 11.2 3.5 8.3 A 4.3 4.3 0 0 1 12 6.4 A 4.3 4.3 0 0 1 20.5 8.3 C 20.5 11.2 19 15.5 12 20.5 Z"/>',
+    dot: '<circle cx="12" cy="12" r="6.2"/>',
+    sparkle: '<path d="M12 2.5 C 12.6 7.8 16.2 11.4 21.5 12 C 16.2 12.6 12.6 16.2 12 21.5 C 11.4 16.2 7.8 12.6 2.5 12 C 7.8 11.4 11.4 7.8 12 2.5 Z"/>',
+    diamond: '<path d="M12 3.2 a2 2 0 0 1 1.5 .6 l6.7 6.7 a2 2 0 0 1 0 2.9 l-6.7 6.7 a2 2 0 0 1 -2.9 0 l-6.7 -6.7 a2 2 0 0 1 0 -2.9 l6.7 -6.7 a2 2 0 0 1 1.4 -.6 z"/>',
+    bookmark: '<path d="M7 3.5 h10 a1.5 1.5 0 0 1 1.5 1.5 v15.2 a0.8 0.8 0 0 1 -1.25 .66 L12 17.2 l-5.25 3.66 A0.8 0.8 0 0 1 5.5 20.2 V5 A1.5 1.5 0 0 1 7 3.5 Z"/>'
+  };
+  var MARK_ORDER = ['star', 'heart', 'dot', 'sparkle', 'diamond', 'bookmark'];
+  var MARK_COLORS = ['#0D9488', '#E8A13A', '#E06B7E', '#3A3B42'];
+  var DEF_MARK = 'star', DEF_MARKCOLOR = '#E8A13A';
+  // 마스크용 data-URI (alpha 마스크 — 색은 background-color로 입힘)
+  function markUri(key) {
+    var inner = MARKS[key] || MARKS.star;
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000">' + inner + '</svg>';
+    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+  }
+
   // 색 계산 헬퍼
   function hx(c) { c = String(c).replace('#', ''); if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2]; return [parseInt(c.slice(0, 2), 16), parseInt(c.slice(2, 4), 16), parseInt(c.slice(4, 6), 16)]; }
   function toHex(r) { return '#' + r.map(function (v) { v = Math.max(0, Math.min(255, Math.round(v))); return ('0' + v.toString(16)).slice(-2); }).join(''); }
@@ -42,16 +61,23 @@
     var dark = shade(accent, -18);
     var soft = mix(accent, bg, 0.82); // 아주 연한 파스텔 배경용
     var zoom = get('zoom', '1');
+    var markcolor = get('markcolor', DEF_MARKCOLOR);
+    var mk = markUri(get('markshape', DEF_MARK));
     var css =
       'html{zoom:' + zoom + ';}' +
       ':root{' +
       '--bg:' + bg + ' !important;--surface-soft:' + mix(bg, '#FFFFFF', 0.5) + ' !important;' +
       '--text-main:' + text + ' !important;--text:' + text + ' !important;--ink:' + text + ' !important;' +
       '--accent:' + accent + ' !important;--accent-dark:' + dark + ' !important;--accent-soft:' + soft + ' !important;' +
+      '--mark-color:' + markcolor + ' !important;' +
       '}' +
       'body{font-family:' + font + ' !important;}' +
       // 달력·숫자·제목·표·입력칸 등 '구조'는 어떤 글씨체를 골라도 항상 깔끔한 기본 글씨로 (레이아웃 깨짐 방지)
-      'table,th,td,.mini-month,.mini-h,.mini-wd,.mini-d,.day-number,.day-top,.nav-arrow,.month-switch,h1,h2,h3,input,select,.year-nav,.day-chip{font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif !important;}';
+      'table,th,td,.mini-month,.mini-h,.mini-wd,.mini-d,.day-number,.day-top,.nav-arrow,.month-switch,h1,h2,h3,input,select,.year-nav,.day-chip{font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif !important;}' +
+      // 중요표시(★) → 사용자가 고른 벡터 마크/색으로 렌더 (마스크 기법)
+      '.star{box-sizing:border-box !important;width:24px !important;height:24px !important;padding:2px !important;font-size:0 !important;color:transparent !important;background-color:#D2D7DD !important;-webkit-mask:' + mk + ' center/contain no-repeat;mask:' + mk + ' center/contain no-repeat;}' +
+      '.star.on{background-color:var(--mark-color) !important;}' +
+      '.todo.important{box-shadow:inset 3px 0 0 var(--mark-color) !important;}';
     var el = document.getElementById('__theme_css');
     if (!el) {
       el = document.createElement('style');
@@ -79,7 +105,14 @@
       + '.__st-row select{font-family:inherit;font-size:14px;padding:7px 10px;border:1px solid #C9CDD4;border-radius:8px;background:#fff;}'
       + '.__st-actions{display:flex;gap:8px;margin-top:16px;}'
       + '.__st-btn{flex:1;padding:11px;border-radius:9px;border:1px solid #C9CDD4;background:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;color:#17181C;}'
-      + '.__st-btn.pri{background:#0D9488;border-color:#0D9488;color:#fff;}';
+      + '.__st-btn.pri{background:#0D9488;border-color:#0D9488;color:#fff;}'
+      + '.__st-marks{display:flex;gap:8px;flex-wrap:wrap;}'
+      + '.__st-m{width:38px;height:38px;border-radius:10px;border:2px solid #E5E8EC;background:#F6F7F8;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}'
+      + '.__st-m i{width:22px;height:22px;display:block;background-color:#8A9099;}'
+      + '.__st-m.on{border-color:#0D9488;background:#E9F6F4;}'
+      + '.__st-m.on i{background-color:#0D9488;}'
+      + '.__st-c{width:32px;height:32px;border-radius:999px;border:3px solid transparent;cursor:pointer;padding:0;}'
+      + '.__st-c.on{border-color:#17181C;}';
     var s = document.createElement('style'); s.textContent = css; document.head.appendChild(s);
 
     var box = document.createElement('div');
@@ -92,6 +125,8 @@
         '<div class="__st-row"><label>바탕 색</label><input type="color" id="__stBg"></div>' +
         '<div class="__st-row"><label>제목·포인트 색</label><input type="color" id="__stAccent"></div>' +
         '<div class="__st-row"><label>글씨 모양</label><select id="__stFont"></select></div>' +
+        '<div class="__st-row"><label>중요표시 모양</label><div class="__st-marks" id="__stMarkShape"></div></div>' +
+        '<div class="__st-row"><label>중요표시 색</label><div class="__st-marks" id="__stMarkColor"></div></div>' +
         '<div class="__st-row"><label>글자 크기</label><select id="__stZoom">' +
           '<option value="0.85">아주 작게</option>' +
           '<option value="0.95">작게</option>' +
@@ -122,6 +157,29 @@
     var zEl = document.getElementById('__stZoom');
     var lEl = document.getElementById('__stLang');
 
+    // 중요표시 모양/색 선택 버튼 만들기
+    var shapeWrap = document.getElementById('__stMarkShape');
+    var colorWrap = document.getElementById('__stMarkColor');
+    MARK_ORDER.forEach(function (k) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = '__st-m'; b.setAttribute('data-k', k);
+      var i = document.createElement('i');
+      i.style.setProperty('-webkit-mask', markUri(k) + ' center/contain no-repeat');
+      i.style.setProperty('mask', markUri(k) + ' center/contain no-repeat');
+      b.appendChild(i);
+      b.addEventListener('click', function () { set('markshape', k); apply(); markSel(); });
+      shapeWrap.appendChild(b);
+    });
+    MARK_COLORS.forEach(function (c) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = '__st-c'; b.setAttribute('data-c', c); b.style.background = c;
+      b.addEventListener('click', function () { set('markcolor', c); apply(); markSel(); });
+      colorWrap.appendChild(b);
+    });
+    function markSel() {
+      var sh = get('markshape', DEF_MARK), co = get('markcolor', DEF_MARKCOLOR).toLowerCase();
+      [].forEach.call(shapeWrap.children, function (b) { b.className = '__st-m' + (b.getAttribute('data-k') === sh ? ' on' : ''); });
+      [].forEach.call(colorWrap.children, function (b) { b.className = '__st-c' + (b.getAttribute('data-c').toLowerCase() === co ? ' on' : ''); });
+    }
+
     function fill() {
       tEl.value = get('text', DEF.text);
       bEl.value = get('bg', DEF.bg);
@@ -129,6 +187,7 @@
       fEl.value = get('font', DEF.font);
       zEl.value = get('zoom', '1');
       lEl.value = 'ko';
+      markSel();
     }
     fill();
 
@@ -143,6 +202,7 @@
 
     document.getElementById('__stReset').addEventListener('click', function () {
       set('text', DEF.text); set('bg', DEF.bg); set('accent', DEF.accent); set('font', DEF.font); set('zoom', '1');
+      set('markshape', DEF_MARK); set('markcolor', DEF_MARKCOLOR);
       apply(); fill();
     });
     var close = function () { box.classList.remove('on'); };
