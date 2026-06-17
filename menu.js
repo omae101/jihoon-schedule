@@ -263,6 +263,23 @@
     yes.addEventListener('click', function () { m.close(); onYes(); });
     cancel.addEventListener('click', m.close);
   }
+  function hboInfo(msg, title) {
+    var m = hboModalBox();
+    if (title) {
+      var h = document.createElement('div');
+      h.textContent = title;
+      h.style.cssText = 'font-size:16px;font-weight:800;color:#17181C;margin-bottom:8px;';
+      m.box.appendChild(h);
+    }
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'font-size:15px;color:#2A2E34;line-height:1.7;white-space:pre-line;margin-bottom:4px;';
+    m.box.appendChild(t);
+    var row = hboBtnRow(m.box);
+    hboBtn(row, '확인', true, false).addEventListener('click', m.close);
+  }
+  // 다른 페이지에서도 깔끔 창을 재사용하도록 전역 노출 (브라우저 alert/prompt의 도메인 표시 회피)
+  window.HBO = { prompt: hboPrompt, confirm: hboConfirm, info: hboInfo };
 
   // 자녀 프로필 + 초기화
   if (window.Profiles) {

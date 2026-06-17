@@ -635,6 +635,10 @@
     const num = document.createElement('span');
     num.className = 'day-number' + ((isSun || holiRed) ? ' sun' : '') + (isTodayCell ? ' today' : '');
     num.textContent = dayNum;
+    num.style.cursor = 'pointer';
+    num.title = '이 날 일별 계획표 열기';
+    // 날짜 숫자를 누르면 일별(day) 화면으로 이동 (칸 편집 팝업과 분리)
+    num.addEventListener('click', function (e) { e.stopPropagation(); location.href = 'day.html?date=' + dateStr; });
     top.appendChild(num);
 
     const saved = (localStorage.getItem(`jihoon-assessment-${dateStr}`) || '').trim();

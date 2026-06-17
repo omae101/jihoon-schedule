@@ -1497,12 +1497,37 @@
     });
   }
 
+  // 깔끔한 안내 창 (브라우저 기본 alert은 모바일에서 도메인 주소가 떠 지저분)
+  function appInfo(msg, title) {
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(20,22,30,.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:24px;font-family:inherit;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#fff;border-radius:16px;padding:20px;max-width:340px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25);';
+    if (title) { var h = document.createElement('div'); h.textContent = title; h.style.cssText = 'font-size:16px;font-weight:800;color:#17181C;margin-bottom:8px;'; box.appendChild(h); }
+    var t = document.createElement('div'); t.textContent = msg; t.style.cssText = 'font-size:15px;color:#2A2E34;line-height:1.7;white-space:pre-line;'; box.appendChild(t);
+    var b = document.createElement('button'); b.textContent = '확인'; b.style.cssText = 'margin-top:14px;width:100%;padding:11px;border:none;background:#0D9488;color:#fff;border-radius:9px;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer;';
+    box.appendChild(b); ov.appendChild(box); document.body.appendChild(ov);
+    function close() { ov.remove(); }
+    b.addEventListener('click', close);
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+  }
+  function showAlarmHelp() {
+    var ua = navigator.userAgent || '';
+    var inApp = /Instagram|FBAN|FBAV|KAKAOTALK|NAVER|Line|DaumApps/i.test(ua);
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+    var msg;
+    if (inApp) msg = '인스타·카톡 등 "앱 안의 브라우저"에서는 알림을 켤 수 없어요.\n오른쪽 위 ⋯ 메뉴 → "다른 브라우저로 열기"(크롬/Safari)로 연 뒤 다시 시도하세요.';
+    else if (isIOS) msg = '아이폰은 먼저 "홈 화면에 추가"로 설치한 다음, 홈 화면의 한번에 아이콘으로 열어야 알림을 켤 수 있어요. (iOS 16.4 이상)';
+    else msg = '이 브라우저는 알림을 지원하지 않아요. 크롬 등 최신 브라우저에서 열어 주세요.';
+    appInfo(msg, '🔔 알림 켜는 법');
+  }
   function refreshAlarmBtn() {
     const state = Assessments.permissionState();
     if (state === 'unsupported') {
-      alarmBtn.textContent = '알림 미지원';
+      alarmBtn.textContent = '🔔 알림 켜는 법';
       alarmBtn.classList.add('denied');
-      alarmBtn.disabled = true;
+      alarmBtn.classList.remove('on');
+      alarmBtn.disabled = false;
     } else if (state === 'granted') {
       alarmBtn.textContent = '🔔 알림 켜짐';
       alarmBtn.classList.add('on');
@@ -1519,7 +1544,8 @@
 
   alarmBtn.addEventListener('click', async () => {
     const state = Assessments.permissionState();
-    if (state === 'granted' || state === 'denied' || state === 'unsupported') return;
+    if (state === 'unsupported') { showAlarmHelp(); return; }
+    if (state === 'granted' || state === 'denied') return;
     const result = await Assessments.requestPermission();
     refreshAlarmBtn();
     if (result === 'granted') {
