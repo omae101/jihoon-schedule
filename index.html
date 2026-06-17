@@ -22,6 +22,7 @@
     background: var(--bg);
     color: var(--text-main);
     line-height: 1.6;
+    overflow-x: hidden;
   }
 
   /* 상단 헤더 */
@@ -41,12 +42,17 @@
   .hero h1 { font-size: 44px; font-weight: 800; margin-bottom: 16px; color: var(--text-main); letter-spacing: -1px; }
   .hero h1 span { color: var(--accent); }
   .hero p { font-size: 18px; color: var(--text-sub); margin-bottom: 28px; line-height: 1.65; }
+  .hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
   .hero-btn {
-    display: inline-block; padding: 15px 44px; background: var(--accent); color: #fff;
+    display: inline-block; padding: 15px 32px; background: var(--accent); color: #fff;
     font-size: 17px; font-weight: 700; border-radius: 12px; text-decoration: none;
+    border: 2px solid var(--accent); cursor: pointer; font-family: inherit;
     transition: background 0.2s; box-shadow: 0 6px 18px rgba(13,148,136,0.25);
   }
   .hero-btn:hover { background: var(--accent-dark); }
+  .hero-btn.ghost { background: #fff; color: var(--accent); box-shadow: none; }
+  .hero-btn.ghost:hover { background: var(--accent-soft, #E9F6F4); }
+  @media (max-width: 430px) { .hero-btn { padding: 13px 22px; font-size: 15px; } }
   .hero-sub { margin-top: 12px; font-size: 13px; color: var(--text-sub); }
 
   /* 가이드 안내 */
@@ -230,9 +236,11 @@
 <section class="hero">
   <h1><span>한번에</span></h1>
   <p>학교·학원 스케줄을 <strong>한 번에.</strong><br>수행평가 알림 · 성적 분석 · 실행까지 한 앱에서.</p>
-  <a class="hero-btn" href="app.html">무료로 시작하기</a>
-  <a href="install.html" style="display:inline-block;margin:12px 0 0 8px;padding:14px 30px;background:var(--accent);color:#fff;font-size:16px;font-weight:700;border:2px solid var(--accent);border-radius:12px;cursor:pointer;font-family:inherit;vertical-align:top;text-decoration:none;">📲 앱 다운로드</a>
-  <button type="button" onclick="hanShare()" style="display:inline-block;margin:12px 0 0 8px;padding:14px 30px;background:#fff;color:var(--accent);font-size:16px;font-weight:700;border:2px solid var(--accent);border-radius:12px;cursor:pointer;font-family:inherit;vertical-align:top;">💌 친구에게 공유</button>
+  <div class="hero-cta">
+    <a class="hero-btn" href="app.html">무료로 시작하기</a>
+    <a class="hero-btn" href="install.html">📲 앱 다운로드</a>
+    <button type="button" class="hero-btn ghost" onclick="hanShare()">💌 친구에게 공유</button>
+  </div>
   <div class="hero-sub">가입 없이 바로 사용 · 무료 · 홈 화면에 앱처럼 설치</div>
 </section>
 <script>
