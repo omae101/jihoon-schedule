@@ -1,8 +1,11 @@
 {
+  "id": "/",
   "name": "한번에 - 학생 일정·성적 관리",
   "short_name": "한번에",
   "description": "학교·학원 일정, 할 일, 성적·성향 분석을 한 번에 관리하는 앱",
   "lang": "ko",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
   "start_url": "/app.html",
   "scope": "/",
   "display": "standalone",
