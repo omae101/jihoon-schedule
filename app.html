@@ -447,22 +447,22 @@
   .mini-month {
     display: block; text-decoration: none; color: inherit;
     background: var(--surface); border: 1px solid var(--line);
-    border-radius: 12px; padding: 10px 8px; transition: all .15s;
+    border-radius: 14px; padding: 16px 13px; transition: all .15s;
   }
-  .mini-month:hover { border-color: var(--accent); box-shadow: 0 3px 12px rgba(0,0,0,.06); }
-  .mini-month.current { border: 2px solid var(--accent); background: #EFF8F7; }
-  .mini-h { text-align: center; font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
-  .mini-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
-  .mini-wd { font-size: 9px; text-align: center; color: var(--text-mute); padding-bottom: 2px; }
-  .mini-wd.sun { color: #E06C6C; } .mini-wd.sat { color: #5B8DEF; }
+  .mini-month:hover { border-color: var(--accent-soft); box-shadow: 0 6px 18px rgba(20,32,45,.07); transform: translateY(-1px); }
+  .mini-month.current { border: 1.5px solid var(--accent); background: #F0FAF8; }
+  .mini-h { text-align: center; font-size: 14.5px; font-weight: 700; color: var(--text-main); margin-bottom: 11px; letter-spacing: -.3px; }
+  .mini-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .mini-wd { font-size: 10px; text-align: center; color: var(--text-mute); padding-bottom: 6px; font-weight: 600; }
+  .mini-wd.sun { color: #D78E89; } .mini-wd.sat { color: #98AACF; }
   .mini-d {
-    font-size: 10px; color: var(--text-sub); position: relative;
+    font-size: 11px; color: var(--text-sub); position: relative;
     aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
   }
-  .mini-d.sun { color: #E06C6C; } .mini-d.sat { color: #5B8DEF; }
+  .mini-d.sun { color: #D78E89; } .mini-d.sat { color: #98AACF; }
   .mini-d.today { background: var(--accent); color: #fff; border-radius: 50%; font-weight: 700; }
   .mini-d.has::after {
-    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    content: ''; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%);
     width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
   }
   .mini-d.today.has::after { background: #fff; }
