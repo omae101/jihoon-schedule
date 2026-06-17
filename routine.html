@@ -89,6 +89,8 @@
   .note{font-size:12.5px;color:var(--sub);background:#FFF7ED;border:1px solid #FCE4C4;border-radius:12px;padding:12px 14px;line-height:1.6;display:flex;gap:9px;}
   .note .ico{stroke:#B5651D;width:20px;height:20px;margin-top:1px;}
   .note b{color:#B5651D;}
+  .hearbtn{margin-top:10px;background:#fff;border:1px solid var(--accent);color:var(--accent);font-weight:700;font-size:13px;border-radius:10px;padding:9px 15px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;}
+  .hearbtn .ico{stroke:var(--accent);width:17px;height:17px;}
 
   /* 알람 오버레이 */
   .alarm{position:fixed;inset:0;background:rgba(13,148,136,.97);z-index:5000;display:none;flex-direction:column;
@@ -158,7 +160,8 @@
 
   <div class="note">
     <svg class="ico" viewBox="0 0 24 24"><path d="M6 9.5a6 6 0 0 1 12 0c0 4.5 2 5.5 2 5.5H4s2-1 2-5.5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg>
-    <div><b>알림 안내</b> — 루틴에 시간을 정해두면 <b>앱을 켜둔 동안</b> 그 시간에 화면 가득 알림이 떠요. 앱을 끈 상태에서 울리는 <b>진짜 알람</b>은 7월 정식 앱(플레이스토어)에서 지원할 예정이에요.</div>
+    <div><b>알림 안내</b> — 루틴에 시간을 정해두면 <b>앱을 켜둔 동안</b> 그 시간에 화면 가득 알림이 떠요. 앱을 끈 상태에서 울리는 <b>진짜 알람</b>은 7월 정식 앱(플레이스토어)에서 지원할 예정이에요.
+      <br><button class="hearbtn" id="hearBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M6 9.5a6 6 0 0 1 12 0c0 4.5 2 5.5 2 5.5H4s2-1 2-5.5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg>알람 소리 들어보기</button></div>
   </div>
 </div>
 
@@ -291,6 +294,34 @@
     var items=load(DUMP,[]); items.unshift({id:uid(),text:t,done:false}); save(DUMP,items); inp.value=''; renderDump(); inp.focus();
   }
 
+  // ---- 알람 소리 (파일 없이 Web Audio로 차임 생성) ----
+  var audioCtx=null;
+  function ensureAudio(){
+    try{ if(!audioCtx){ var AC=window.AudioContext||window.webkitAudioContext; if(AC) audioCtx=new AC(); } if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }catch(e){}
+  }
+  // 브라우저 정책상 소리는 한 번 터치/클릭한 뒤에 나요 → 첫 상호작용에서 오디오 깨우기
+  document.addEventListener('click', ensureAudio);
+  document.addEventListener('touchstart', ensureAudio);
+  function playChime(){
+    ensureAudio(); if(!audioCtx) return;
+    var now=audioCtx.currentTime;
+    // 딩-동 2번 (도-솔 느낌)
+    var seq=[ [784,0],[1047,0.22],[784,0.5],[1047,0.72] ];
+    seq.forEach(function(n){
+      var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.type='sine'; o.frequency.value=n[0];
+      var t=now+n[1];
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.35,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.20);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t); o.stop(t+0.22);
+    });
+    try{ if(navigator.vibrate) navigator.vibrate([220,120,220]); }catch(e){}
+  }
+  var hearBtn=document.getElementById('hearBtn');
+  if(hearBtn) hearBtn.addEventListener('click', playChime);
+
   // 알람 (앱 켜둔 동안)
   var alarm=document.getElementById('alarm'), alarmTxt=document.getElementById('alarmTxt');
   document.getElementById('alarmOk').addEventListener('click',function(){ alarm.classList.remove('on'); });
@@ -301,6 +332,7 @@
       if(it.time===hm && alerted.indexOf(it.id)<0 && done.indexOf(it.id)<0){
         alerted.push(it.id); save(alertedKey(),alerted);
         alarmTxt.textContent=it.text; alarm.classList.add('on');
+        playChime();
         try{ if('Notification' in window && Notification.permission==='granted') new Notification(it.text,{body:'지금 할 시간이에요!'}); }catch(e){}
       }
     });
