@@ -4,6 +4,7 @@
 <script src="/analytics.js"></script>
 <script src="/profiles.js"></script>
 <script src="/theme.js"></script>
+<script src="/alarmsound.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>우리 아이 루틴 · 한번에</title>
@@ -91,6 +92,10 @@
   .note b{color:#B5651D;}
   .hearbtn{margin-top:10px;background:#fff;border:1px solid var(--accent);color:var(--accent);font-weight:700;font-size:13px;border-radius:10px;padding:9px 15px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;}
   .hearbtn .ico{stroke:var(--accent);width:17px;height:17px;}
+  .sounds{display:flex;flex-wrap:wrap;gap:8px;}
+  .sound-chip{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:9px 14px;font-size:14px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;}
+  .sound-chip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-deep);}
+  .sound-chip .sc-play{width:14px;height:14px;fill:var(--accent);flex:none;}
 
   /* 알람 오버레이 */
   .alarm{position:fixed;inset:0;background:rgba(13,148,136,.97);z-index:5000;display:none;flex-direction:column;
@@ -145,6 +150,13 @@
     </div>
     <div class="stamps" id="stamps"></div>
     <div id="rewardWin"></div>
+  </div>
+
+  <!-- 알람 소리 -->
+  <div class="card">
+    <h2><svg class="ico" viewBox="0 0 24 24"><path d="M6 9.5a6 6 0 0 1 12 0c0 4.5 2 5.5 2 5.5H4s2-1 2-5.5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg>알람 소리</h2>
+    <div class="desc">루틴 알림 소리예요. 눌러서 들어보고 고르세요. (겨울왕국·골든 등 저작권 곡은 못 넣어요)</div>
+    <div class="sounds" id="sounds"></div>
   </div>
 
   <!-- 쏟아내기 -->
@@ -294,33 +306,29 @@
     var items=load(DUMP,[]); items.unshift({id:uid(),text:t,done:false}); save(DUMP,items); inp.value=''; renderDump(); inp.focus();
   }
 
-  // ---- 알람 소리 (파일 없이 Web Audio로 차임 생성) ----
-  var audioCtx=null;
-  function ensureAudio(){
-    try{ if(!audioCtx){ var AC=window.AudioContext||window.webkitAudioContext; if(AC) audioCtx=new AC(); } if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }catch(e){}
-  }
-  // 브라우저 정책상 소리는 한 번 터치/클릭한 뒤에 나요 → 첫 상호작용에서 오디오 깨우기
-  document.addEventListener('click', ensureAudio);
-  document.addEventListener('touchstart', ensureAudio);
-  function playChime(){
-    ensureAudio(); if(!audioCtx) return;
-    var now=audioCtx.currentTime;
-    // 딩-동 2번 (도-솔 느낌)
-    var seq=[ [784,0],[1047,0.22],[784,0.5],[1047,0.72] ];
-    seq.forEach(function(n){
-      var o=audioCtx.createOscillator(), g=audioCtx.createGain();
-      o.type='sine'; o.frequency.value=n[0];
-      var t=now+n[1];
-      g.gain.setValueAtTime(0.0001,t);
-      g.gain.exponentialRampToValueAtTime(0.35,t+0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001,t+0.20);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(t); o.stop(t+0.22);
-    });
-    try{ if(navigator.vibrate) navigator.vibrate([220,120,220]); }catch(e){}
-  }
+  // ---- 알람 소리 (공용 엔진 alarmsound.js) ----
+  var SOUND='alarm-sound';
+  function getSound(){ return load(SOUND,'ding'); }
+  function playChime(){ try{ window.HanAlarm && HanAlarm.play(getSound()); }catch(e){} }
+  document.addEventListener('click', function(){ try{ HanAlarm && HanAlarm.ensure(); }catch(e){} });
+  document.addEventListener('touchstart', function(){ try{ HanAlarm && HanAlarm.ensure(); }catch(e){} });
   var hearBtn=document.getElementById('hearBtn');
   if(hearBtn) hearBtn.addEventListener('click', playChime);
+
+  // 알람 소리 고르기 칩
+  var soundsEl=document.getElementById('sounds');
+  function renderSounds(){
+    if(!soundsEl || !window.HanAlarm) return;
+    var cur=getSound(); soundsEl.innerHTML='';
+    HanAlarm.list().forEach(function(s){
+      var b=document.createElement('button'); b.type='button';
+      b.className='sound-chip'+(s.key===cur?' on':'');
+      b.innerHTML='<svg viewBox="0 0 24 24" class="sc-play"><path d="M7 5l11 7-11 7z"/></svg>'+s.label;
+      b.addEventListener('click', function(){ save(SOUND, s.key); HanAlarm.play(s.key); renderSounds(); });
+      soundsEl.appendChild(b);
+    });
+  }
+  renderSounds();
 
   // 알람 (앱 켜둔 동안)
   var alarm=document.getElementById('alarm'), alarmTxt=document.getElementById('alarmTxt');
