@@ -204,6 +204,66 @@
 
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); help.classList.remove('on'); rem.classList.remove('on'); } });
 
+  // 깔끔한 자체 입력/확인 창 (브라우저 기본 prompt/confirm은 모바일에서 도메인 주소가 떠 지저분함)
+  function hboModalBox() {
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(20,22,30,.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:24px;font-family:"Pretendard","Apple SD Gothic Neo",sans-serif;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#fff;border-radius:16px;padding:20px;max-width:340px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25);';
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+    function close() { ov.remove(); }
+    ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+    return { ov: ov, box: box, close: close };
+  }
+  function hboBtnRow(box) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;margin-top:14px;';
+    box.appendChild(row);
+    return row;
+  }
+  function hboBtn(row, label, primary, danger) {
+    var b = document.createElement('button');
+    b.textContent = label;
+    var bg = danger ? '#E0533D' : (primary ? '#0D9488' : '#fff');
+    var fg = (primary || danger) ? '#fff' : '#17181C';
+    var bd = (primary || danger) ? 'none' : '1px solid #C9CDD4';
+    b.style.cssText = 'flex:1;padding:11px;border:' + bd + ';background:' + bg + ';color:' + fg + ';border-radius:9px;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer;';
+    row.appendChild(b);
+    return b;
+  }
+  function hboPrompt(title, value, onOk) {
+    var m = hboModalBox();
+    var t = document.createElement('div');
+    t.textContent = title;
+    t.style.cssText = 'font-size:16px;font-weight:800;color:#17181C;margin-bottom:12px;';
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = value || '';
+    inp.style.cssText = 'width:100%;padding:11px 12px;border:1px solid #C9CDD4;border-radius:9px;font-size:15px;font-family:inherit;box-sizing:border-box;';
+    m.box.appendChild(t); m.box.appendChild(inp);
+    var row = hboBtnRow(m.box);
+    var cancel = hboBtn(row, '취소', false, false);
+    var ok = hboBtn(row, '확인', true, false);
+    function done() { var v = (inp.value || '').trim(); m.close(); if (v) onOk(v); }
+    ok.addEventListener('click', done);
+    cancel.addEventListener('click', m.close);
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') done(); });
+    setTimeout(function () { inp.focus(); inp.select(); }, 50);
+  }
+  function hboConfirm(msg, onYes, yesLabel, danger) {
+    var m = hboModalBox();
+    var t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'font-size:15px;color:#2A2E34;line-height:1.6;white-space:pre-line;margin-bottom:6px;';
+    m.box.appendChild(t);
+    var row = hboBtnRow(m.box);
+    var cancel = hboBtn(row, '취소', false, false);
+    var yes = hboBtn(row, yesLabel || '확인', !danger, danger);
+    yes.addEventListener('click', function () { m.close(); onYes(); });
+    cancel.addEventListener('click', m.close);
+  }
+
   // 자녀 프로필 + 초기화
   if (window.Profiles) {
     var chips = document.getElementById('hboPChips');
@@ -219,8 +279,7 @@
         b.textContent = p.name;
         b.addEventListener('click', function () {
           if (p.id === cur) {
-            var nn = prompt('자녀 이름 변경', p.name);
-            if (nn !== null && nn.trim()) { Profiles.rename(p.id, nn); renderChips(); }
+            hboPrompt('자녀 이름 변경', p.name, function (nn) { Profiles.rename(p.id, nn); renderChips(); });
           } else { Profiles.switchTo(p.id); }
         });
         chips.appendChild(b);
@@ -229,14 +288,14 @@
     }
     renderChips();
     var addc = document.getElementById('hboAddChild');
-    if (addc) addc.addEventListener('click', function () { var n = prompt('추가할 자녀 이름'); if (n && n.trim()) Profiles.add(n); });
+    if (addc) addc.addEventListener('click', function () { hboPrompt('추가할 자녀 이름', '', function (n) { Profiles.add(n); }); });
     if (delBtn) delBtn.addEventListener('click', function () {
       var c = Profiles.current();
-      if (c && confirm('"' + c.name + '" 자녀를 삭제할까요?\n이 자녀의 모든 데이터가 지워지고 되돌릴 수 없어요.')) Profiles.remove(c.id);
+      if (c) hboConfirm('"' + c.name + '" 자녀를 삭제할까요?\n이 자녀의 모든 데이터가 지워지고 되돌릴 수 없어요.', function () { Profiles.remove(c.id); }, '삭제', true);
     });
   }
   var reset = document.getElementById('hboReset');
   if (reset) reset.addEventListener('click', function () {
-    if (window.Profiles && confirm('현재 자녀의 모든 데이터(일정·할 일·성적 등)를 지울까요?\n되돌릴 수 없어요.')) Profiles.resetCurrent();
+    if (window.Profiles) hboConfirm('현재 자녀의 모든 데이터(일정·할 일·성적 등)를 지울까요?\n되돌릴 수 없어요.', function () { Profiles.resetCurrent(); }, '초기화', true);
   });
 })();
