@@ -1598,7 +1598,7 @@
 
   // ===== 알람 소리 (수행평가 다가올 때 차임 — 공용 alarmsound.js, 선택한 소리) =====
   var pendingChime = false;
-  function chimeSound(){ try{ return localStorage.getItem('alarm-sound') || 'ding'; }catch(e){ return 'ding'; } }
+  function chimeSound(){ return 'alarm'; } // 우선 '삐삐삐'로 고정 (나중에 선택/자작곡)
   function playChime(){ try{ if(window.HanAlarm) HanAlarm.play(chimeSound()); }catch(e){} }
   // 브라우저 정책상 첫 터치/클릭 후에 소리가 나요 → 다가온 일정 있으면 첫 상호작용 때 울림
   document.addEventListener('click', function(){ try{ if(window.HanAlarm) HanAlarm.ensure(); }catch(e){} if(pendingChime){ pendingChime=false; playChime(); } });

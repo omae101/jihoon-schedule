@@ -152,13 +152,6 @@
     <div id="rewardWin"></div>
   </div>
 
-  <!-- 알람 소리 -->
-  <div class="card">
-    <h2><svg class="ico" viewBox="0 0 24 24"><path d="M6 9.5a6 6 0 0 1 12 0c0 4.5 2 5.5 2 5.5H4s2-1 2-5.5Z"/><path d="M9.5 19a2.5 2.5 0 0 0 5 0"/></svg>알람 소리</h2>
-    <div class="desc">루틴 알림 소리예요. 눌러서 들어보고 고르세요. (겨울왕국·골든 등 저작권 곡은 못 넣어요)</div>
-    <div class="sounds" id="sounds"></div>
-  </div>
-
   <!-- 쏟아내기 -->
   <div class="card">
     <h2><svg class="ico" viewBox="0 0 24 24"><path d="M9.5 18h5"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.8 10.6c.6.6.9 1.1.9 2.4h5.8c0-1.3.3-1.8.9-2.4A6 6 0 0 0 12 3Z"/></svg>머릿속 쏟아내기</h2>
@@ -306,29 +299,12 @@
     var items=load(DUMP,[]); items.unshift({id:uid(),text:t,done:false}); save(DUMP,items); inp.value=''; renderDump(); inp.focus();
   }
 
-  // ---- 알람 소리 (공용 엔진 alarmsound.js) ----
-  var SOUND='alarm-sound';
-  function getSound(){ return load(SOUND,'ding'); }
-  function playChime(){ try{ window.HanAlarm && HanAlarm.play(getSound()); }catch(e){} }
+  // ---- 알람 소리 (공용 엔진 alarmsound.js) — 우선 '삐삐삐'로 고정 (자작곡은 나중에) ----
+  function playChime(){ try{ window.HanAlarm && HanAlarm.play('alarm'); }catch(e){} }
   document.addEventListener('click', function(){ try{ HanAlarm && HanAlarm.ensure(); }catch(e){} });
   document.addEventListener('touchstart', function(){ try{ HanAlarm && HanAlarm.ensure(); }catch(e){} });
   var hearBtn=document.getElementById('hearBtn');
   if(hearBtn) hearBtn.addEventListener('click', playChime);
-
-  // 알람 소리 고르기 칩
-  var soundsEl=document.getElementById('sounds');
-  function renderSounds(){
-    if(!soundsEl || !window.HanAlarm) return;
-    var cur=getSound(); soundsEl.innerHTML='';
-    HanAlarm.list().forEach(function(s){
-      var b=document.createElement('button'); b.type='button';
-      b.className='sound-chip'+(s.key===cur?' on':'');
-      b.innerHTML='<svg viewBox="0 0 24 24" class="sc-play"><path d="M7 5l11 7-11 7z"/></svg>'+s.label;
-      b.addEventListener('click', function(){ save(SOUND, s.key); HanAlarm.play(s.key); renderSounds(); });
-      soundsEl.appendChild(b);
-    });
-  }
-  renderSounds();
 
   // 알람 (앱 켜둔 동안)
   var alarm=document.getElementById('alarm'), alarmTxt=document.getElementById('alarmTxt');
