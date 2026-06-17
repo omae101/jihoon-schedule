@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script src="/analytics.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한번에 — 고교학점제 카드 5장</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background: #ECEAE4; color: #23262B;
+    display: flex; flex-direction: column; align-items: center; padding: 24px 16px 80px; }
+  h1.t { font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+  .hint { font-size: 13.5px; color: #6B7079; text-align: center; margin: 8px 0 26px; line-height: 1.6; max-width: 480px; }
+  .hint b { color: #0B7A70; }
+  .saveAll { margin-bottom: 28px; padding: 14px 30px; background: #23262B; color: #fff; border: none;
+    border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit; }
+  .block { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; }
+  .label { font-size: 13px; font-weight: 700; color: #8A8F98; margin-bottom: 10px; }
+  .stage { width: min(92vw, 420px); aspect-ratio: 1/1; position: relative; }
+
+  .card { width: 1080px; height: 1080px; transform-origin: top left; position: absolute; top: 0; left: 0;
+    border-radius: 64px; padding: 84px 84px; display: flex; flex-direction: column; overflow: hidden; }
+  .card.light { background:
+      radial-gradient(120% 80% at 84% -10%, #D7F2EC 0%, rgba(215,242,236,0) 54%),
+      linear-gradient(158deg, #FFFFFF 0%, #F4F1EB 100%); }
+  .card.teal { background: linear-gradient(158deg, #0E9C8E 0%, #0D9488 100%); color: #fff; }
+
+  .brand { display: inline-flex; align-items: center; gap: 16px; align-self: flex-start;
+    background: #0D9488; color: #fff; font-weight: 800; font-size: 40px;
+    padding: 14px 36px 14px 26px; border-radius: 999px; letter-spacing: -1.5px; }
+  .brand svg { width: 46px; height: 46px; }
+
+  .num { width: 92px; height: 92px; border-radius: 50%; background: #0D9488; color: #fff;
+    font-size: 52px; font-weight: 800; display: flex; align-items: center; justify-content: center; align-self: flex-start; }
+  .topic { align-self: flex-start; margin-top: 28px; font-size: 34px; font-weight: 800; color: #0B7A70; letter-spacing: -1px; }
+
+  .headline { margin-top: 22px; font-weight: 800; color: #1F2329; font-size: 74px; line-height: 1.22; letter-spacing: -3px; }
+  .headline .hl { color: #0D9488; }
+  .sub { margin-top: 30px; font-size: 41px; color: #565D67; font-weight: 600; line-height: 1.5; letter-spacing: -1.5px; }
+
+  .ticks { margin-top: 44px; display: flex; flex-direction: column; gap: 26px; }
+  .row { display: flex; align-items: flex-start; gap: 22px; font-size: 39px; font-weight: 600; color: #2A2E34; letter-spacing: -1.3px; line-height: 1.4; }
+  .row .tk { flex: none; margin-top: 6px; width: 50px; height: 50px; border-radius: 999px; background: #E3F4F0;
+    display: flex; align-items: center; justify-content: center; }
+  .row .tk svg { width: 30px; height: 30px; }
+  .row b { color: #0B7A70; font-weight: 800; }
+
+  .spacer { flex: 1; min-height: 16px; }
+  .foot { display: flex; align-items: center; justify-content: space-between; }
+  .foot .bx { display: inline-flex; align-items: center; gap: 12px; font-size: 34px; font-weight: 800; color: #0D9488; letter-spacing: -1px; }
+  .foot .bx svg { width: 40px; height: 40px; }
+  .foot .swipe { font-size: 33px; font-weight: 700; color: #8A9099; }
+
+  .cta { background: #0D9488; color: #fff; border-radius: 36px; padding: 38px; text-align: center; box-shadow: 0 18px 44px rgba(13,148,136,.28); }
+  .cta .big { font-size: 48px; font-weight: 800; letter-spacing: -2px; }
+  .cta .small { font-size: 34px; font-weight: 600; opacity: .96; margin-top: 10px; letter-spacing: -1px; }
+
+  /* 표지(teal) */
+  .card.teal .headline { color: #fff; }
+  .card.teal .sub { color: #DBF3EF; }
+  .card.teal .cover-badge { align-self: flex-start; background: rgba(255,255,255,.18); color: #fff; font-weight: 800;
+    font-size: 36px; padding: 14px 34px; border-radius: 999px; letter-spacing: -1px; }
+  .card.teal .swipe { color: #CDEBE6; font-size: 36px; font-weight: 700; }
+
+  .saveBtn { margin-top: 18px; padding: 13px 32px; background: #0D9488; color: #fff; border: none;
+    border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit; }
+</style>
+</head>
+<body>
+  <h1 class="t">한번에 · 고교학점제 카드 5장</h1>
+  <div class="hint">각 카드 <b>이미지 저장</b> → 인스타 게시물/릴스에 <b>5장 캐러셀</b>로 올리세요.<br>캡션에 블로그 글 링크 + “👆 프로필 링크” 를 넣으면 좋아요.</div>
+  <button class="saveAll" id="saveAll">💾 5장 모두 저장</button>
+
+  <svg width="0" height="0" style="position:absolute"><defs>
+    <g id="mk-white">
+      <rect x="36" y="43" width="22" height="9" rx="4.5" fill="#fff" opacity="0.5"/>
+      <rect x="36" y="57" width="32" height="9" rx="4.5" fill="#fff" opacity="0.85"/>
+      <rect x="36" y="71" width="17" height="9" rx="4.5" fill="#fff" opacity="0.45"/>
+      <path d="M62 70 L75 83 L97 50" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g id="mk-teal">
+      <rect x="36" y="43" width="22" height="9" rx="4.5" fill="#0D9488" opacity="0.5"/>
+      <rect x="36" y="57" width="32" height="9" rx="4.5" fill="#0D9488" opacity="0.9"/>
+      <rect x="36" y="71" width="17" height="9" rx="4.5" fill="#0D9488" opacity="0.45"/>
+      <path d="M62 70 L75 83 L97 50" fill="none" stroke="#0D9488" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </defs></svg>
+
+  <!-- ① 표지 -->
+  <div class="block">
+    <div class="label">① 표지</div>
+    <div class="stage"><div class="card teal" id="c1">
+      <span class="cover-badge">📚 학부모 필독</span>
+      <div class="headline" style="margin-top:60px;">고교학점제,<br>이것만은 꼭!</div>
+      <div class="sub">2025년 고1부터 달라진 입시,<br>핵심 4가지로 정리했어요</div>
+      <div class="spacer"></div>
+      <div class="foot">
+        <span class="bx"><svg viewBox="0 0 120 120"><use href="#mk-white"/></svg>한번에</span>
+        <span class="swipe">넘겨보세요 →</span>
+      </div>
+    </div></div>
+    <button class="saveBtn" data-card="c1" data-name="hakjeom_1">💾 이미지 저장</button>
+  </div>
+
+  <!-- ② 내신 1:1:1 -->
+  <div class="block">
+    <div class="label">② 내신 1·2·3학년</div>
+    <div class="stage"><div class="card light" id="c2">
+      <span class="num">1</span>
+      <div class="topic">내신</div>
+      <div class="headline">1·2·3학년<br><span class="hl">1:1:1</span> 반영</div>
+      <div class="ticks">
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>한 학년 삐끗해도 <b>끝까지 만회</b> 가능</div>
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>초반에 잘해도 놓으면 그대로 반영</div>
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>👉 <b>끝까지 성실함</b>이 곧 전략</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="foot"><span class="bx"><svg viewBox="0 0 120 120"><use href="#mk-teal"/></svg>한번에</span></div>
+    </div></div>
+    <button class="saveBtn" data-card="c2" data-name="hakjeom_2">💾 이미지 저장</button>
+  </div>
+
+  <!-- ③ 수행평가 + 출석 -->
+  <div class="block">
+    <div class="label">③ 수행평가·출석</div>
+    <div class="stage"><div class="card light" id="c3">
+      <span class="num">2</span>
+      <div class="topic">수행평가 · 출석</div>
+      <div class="headline">관리가 곧 <span class="hl">점수</span></div>
+      <div class="ticks">
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>수행평가 비중 <b>40~50%</b> · 제출일 관리 필수</div>
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>출석은 <b>과목별·매시간</b> 반영</div>
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>많이 빠지면 <b>과목 이수</b>가 위태로워요</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="foot"><span class="bx"><svg viewBox="0 0 120 120"><use href="#mk-teal"/></svg>한번에</span></div>
+    </div></div>
+    <button class="saveBtn" data-card="c3" data-name="hakjeom_3">💾 이미지 저장</button>
+  </div>
+
+  <!-- ④ 통합사회·통합과학 -->
+  <div class="block">
+    <div class="label">④ 통합사회·통합과학</div>
+    <div class="stage"><div class="card light" id="c4">
+      <span class="num">3</span>
+      <div class="topic">1학년 통합과목</div>
+      <div class="headline">국·영·수와<br><span class="hl">같은 비중</span></div>
+      <div class="ticks">
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>통합사회·한국사 <b>각 8학점</b> (국영수급)</div>
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>1학년 통합사회·통합과학 → <b>2028 수능</b>까지</div>
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>2학년 때 놓으면 다 까먹어요 · <b>끌고 가기</b></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="foot"><span class="bx"><svg viewBox="0 0 120 120"><use href="#mk-teal"/></svg>한번에</span></div>
+    </div></div>
+    <button class="saveBtn" data-card="c4" data-name="hakjeom_4">💾 이미지 저장</button>
+  </div>
+
+  <!-- ⑤ 5등급제·생기부 + 결론 -->
+  <div class="block">
+    <div class="label">⑤ 생기부 + 결론</div>
+    <div class="stage"><div class="card light" id="c5">
+      <span class="num">4</span>
+      <div class="topic">5등급제 시대</div>
+      <div class="headline">생기부가<br>더 <span class="hl">중요</span>해졌어요</div>
+      <div class="ticks">
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>등급만으론 변별 어려움 → <b>성취기준 이수</b>가 핵심</div>
+        <div class="row"><span class="tk"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 6.5" fill="none" stroke="#0D9488" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>상위권은 <b>수능 최저</b>도 필수(서울대 제외)</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="cta"><div class="big">끝까지 남는 아이가 이겨요</div><div class="small">일정·수행평가·출결·생기부를 한 번에 👆 프로필 링크</div></div>
+    </div></div>
+    <button class="saveBtn" data-card="c5" data-name="hakjeom_5">💾 이미지 저장</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    var stages = document.querySelectorAll('.stage');
+    function fit() { stages.forEach(function (s) { s.querySelector('.card').style.transform = 'scale(' + (s.clientWidth / 1080) + ')'; }); }
+    fit(); window.addEventListener('resize', fit);
+    function saveCard(id, name) {
+      return new Promise(function (resolve) {
+        var card = document.getElementById(id);
+        card.style.transform = 'none';
+        html2canvas(card, { scale: 1, width: 1080, height: 1080, backgroundColor: null, useCORS: true }).then(function (canvas) {
+          var a = document.createElement('a'); a.download = name + '.png'; a.href = canvas.toDataURL('image/png');
+          document.body.appendChild(a); a.click(); a.remove(); fit(); resolve();
+        }).catch(function () { fit(); resolve(); });
+      });
+    }
+    document.querySelectorAll('.saveBtn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var old = b.textContent; b.disabled = true; b.textContent = '저장 중…';
+        saveCard(b.dataset.card, b.dataset.name).then(function () { b.disabled = false; b.textContent = old; });
+      });
+    });
+    document.getElementById('saveAll').addEventListener('click', async function () {
+      var b = this; b.disabled = true; b.textContent = '저장 중…';
+      var list = [['c1','hakjeom_1'],['c2','hakjeom_2'],['c3','hakjeom_3'],['c4','hakjeom_4'],['c5','hakjeom_5']];
+      for (var i = 0; i < list.length; i++) { await saveCard(list[i][0], list[i][1]); await new Promise(function (r){ setTimeout(r,400); }); }
+      b.disabled = false; b.textContent = '💾 5장 모두 저장';
+    });
+  </script>
+</body>
+</html>
