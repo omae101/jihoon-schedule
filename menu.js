@@ -240,6 +240,7 @@
     var inp = document.createElement('input');
     inp.type = 'text';
     inp.value = value || '';
+    inp.setAttribute('autocomplete', 'off'); inp.setAttribute('autocorrect', 'off'); inp.setAttribute('autocapitalize', 'off'); inp.setAttribute('spellcheck', 'false');
     inp.style.cssText = 'width:100%;padding:11px 12px;border:1px solid #C9CDD4;border-radius:9px;font-size:15px;font-family:inherit;box-sizing:border-box;';
     m.box.appendChild(t); m.box.appendChild(inp);
     var row = hboBtnRow(m.box);
