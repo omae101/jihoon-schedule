@@ -11,18 +11,18 @@
 <title>월간 스케줄표</title>
 <style>
   :root {
-    --bg: #F2F3F5;
+    --bg: #F4F5F8;
     --surface: #FFFFFF;
-    --surface-soft: #EBEDF0;
-    --text-main: #17181C;
-    --text-sub: #4A4E57;
+    --surface-soft: #F3F5F8;
+    --text-main: #23262B;
+    --text-sub: #565C66;
     --text-mute: #9CA1AB;
-    --line: #E2E4E9;
-    --line-strong: #C9CDD4;
+    --line: #EBEDF1;
+    --line-strong: #D7DBE1;
     --accent: #0D9488;
     --accent-soft: #CCFBF1;
     --accent-dark: #0B7A70;
-    --weekend: #DC2626;
+    --weekend: #D9766F;
     --ink: #1F2430;
     --ink-dark: #11141B;
   }
@@ -33,12 +33,14 @@
     margin: 0;
     padding: 30px 20px;
     color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   .container {
     max-width: 1500px;
     margin: 0 auto;
     background: var(--surface);
-    border-radius: 16px;
+    border-radius: 20px;
     box-shadow: 0 4px 20px rgba(62,39,35,0.06);
     padding: 36px;
     border: 1px solid var(--line);
