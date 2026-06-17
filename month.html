@@ -173,6 +173,19 @@
     background: var(--surface);
     color: var(--text-main);
   }
+  /* 교재 편집칸 (글자 하이라이트 가능) */
+  .subject-panel .textbook-edit {
+    width: 100%; min-height: 84px; padding: 8px 9px;
+    border: 1px solid var(--line); border-radius: 4px;
+    font-family: inherit; font-size: 13px; line-height: 1.75;
+    background: #fff; color: var(--text-main);
+    white-space: pre-wrap; outline: none; overflow-y: auto;
+  }
+  .subject-panel .textbook-edit:empty:before { content: attr(data-ph); color: #9aa0a6; }
+  .hl-toolbar { display: flex; align-items: center; gap: 6px; margin: 8px 0 6px; flex-wrap: wrap; }
+  .hl-label { font-size: 12px; color: #7a818b; font-weight: 700; margin-right: 2px; }
+  .hl-sw { width: 26px; height: 26px; border-radius: 7px; border: 1px solid #d7dbe0; cursor: pointer; padding: 0; }
+  .hl-sw.hl-clear { background: #fff; color: #888; font-size: 13px; font-weight: 800; line-height: 1; }
   .hidden { display: none; }
   .subject-toolbar {
     display: flex;
@@ -490,11 +503,11 @@
     <button class="btn subject-btn" id="socialBtn">사회</button>
   </div>
   <div id="subjectInputs" class="subject-inputs">
-    <div id="koreanPanel" class="subject-panel hidden"><h3>국어 교재</h3><textarea id="koreanArea" placeholder="국어 교재를 적어보세요"></textarea></div>
-    <div id="mathPanel" class="subject-panel hidden"><h3>수학 교재</h3><textarea id="mathArea" placeholder="수학 교재를 적어보세요"></textarea></div>
-    <div id="englishPanel" class="subject-panel hidden"><h3>영어 교재</h3><textarea id="englishArea" placeholder="영어 교재를 적어보세요"></textarea></div>
-    <div id="sciencePanel" class="subject-panel hidden"><h3>과학 교재</h3><textarea id="scienceArea" placeholder="과학 교재를 적어보세요"></textarea></div>
-    <div id="socialPanel" class="subject-panel hidden"><h3>사회 교재</h3><textarea id="socialArea" placeholder="사회 교재를 적어보세요"></textarea></div>
+    <div id="koreanPanel" class="subject-panel hidden"><h3>국어 교재</h3><div id="koreanArea" class="textbook-edit" contenteditable="true" data-ph="국어 교재를 적어보세요"></div></div>
+    <div id="mathPanel" class="subject-panel hidden"><h3>수학 교재</h3><div id="mathArea" class="textbook-edit" contenteditable="true" data-ph="수학 교재를 적어보세요"></div></div>
+    <div id="englishPanel" class="subject-panel hidden"><h3>영어 교재</h3><div id="englishArea" class="textbook-edit" contenteditable="true" data-ph="영어 교재를 적어보세요"></div></div>
+    <div id="sciencePanel" class="subject-panel hidden"><h3>과학 교재</h3><div id="scienceArea" class="textbook-edit" contenteditable="true" data-ph="과학 교재를 적어보세요"></div></div>
+    <div id="socialPanel" class="subject-panel hidden"><h3>사회 교재</h3><div id="socialArea" class="textbook-edit" contenteditable="true" data-ph="사회 교재를 적어보세요"></div></div>
   </div>
 
   <div class="toolbar">
@@ -845,7 +858,10 @@
     const area = document.getElementById(`${sub}Area`);
     const koName = SUBJ_KO[sub];
     const STORAGE_KEY = `jihoon-textbook-${sub}-${YEAR}-${MONTH}`;
-    area.value = localStorage.getItem(STORAGE_KEY) || '';
+    // 기존 평문 호환 + 저장된 서식(형광펜) 복원
+    const savedTb = localStorage.getItem(STORAGE_KEY) || '';
+    if (savedTb && savedTb.indexOf('<') === -1) area.textContent = savedTb;
+    else area.innerHTML = savedTb;
 
     // 패널 제목 옆 색 동그라미 (누르면 팔레트)
     const h3 = panel.querySelector('h3');
@@ -859,15 +875,9 @@
       dot.style.background = dc.bg; dot.style.borderColor = dc.fg;
       // 과목 버튼
       tintSubjBtn(btn, key);
-      // 제목 + 적은 글(교재 내용)
-      if (c) {
-        h3.style.color = c.fg;
-        area.style.color = c.fg; area.style.fontWeight = '600';
-        area.style.background = c.bg; area.style.borderColor = c.fg;
-      } else {
-        h3.style.color = ''; area.style.color = ''; area.style.fontWeight = '';
-        area.style.background = ''; area.style.borderColor = '';
-      }
+      // 과목 색은 제목·글자색에만 (편집칸 배경은 흰색 유지 → 형광펜이 잘 보이게)
+      if (c) { h3.style.color = c.fg; area.style.color = c.fg; }
+      else { h3.style.color = ''; area.style.color = ''; }
     }
     applyColor();
     dot.addEventListener('click', function (e) {
@@ -881,12 +891,43 @@
     });
     h3.appendChild(dot);
 
+    // 형광펜: 선택한 글자에 배경색. (모바일에서 선택이 풀리지 않게 마지막 선택영역 저장·복원)
+    let savedRange = null;
+    function saveRange() {
+      const s = window.getSelection();
+      if (s && s.rangeCount && area.contains(s.anchorNode)) savedRange = s.getRangeAt(0).cloneRange();
+    }
+    area.addEventListener('mouseup', saveRange);
+    area.addEventListener('keyup', saveRange);
+    area.addEventListener('touchend', saveRange);
+    function doHL(col) {
+      area.focus();
+      if (savedRange) { const s = window.getSelection(); s.removeAllRanges(); s.addRange(savedRange); }
+      try { document.execCommand('styleWithCSS', false, true); } catch (e) {}
+      if (!document.execCommand('hiliteColor', false, col)) document.execCommand('backColor', false, col);
+      localStorage.setItem(STORAGE_KEY, area.innerHTML); showSaved(); saveRange();
+    }
+    const HL_COLORS = ['#FFF59D', '#C8F7C5', '#FBD3E0', '#CDE7FF', '#FFE0B2', '#E5D4FF'];
+    const hlBar = document.createElement('div'); hlBar.className = 'hl-toolbar';
+    const hlLabel = document.createElement('span'); hlLabel.className = 'hl-label'; hlLabel.textContent = '형광펜'; hlBar.appendChild(hlLabel);
+    HL_COLORS.forEach(function (col) {
+      const sw = document.createElement('button'); sw.type = 'button'; sw.className = 'hl-sw'; sw.style.background = col; sw.title = '형광펜';
+      sw.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      sw.addEventListener('click', function () { doHL(col); });
+      hlBar.appendChild(sw);
+    });
+    const hlClear = document.createElement('button'); hlClear.type = 'button'; hlClear.className = 'hl-sw hl-clear'; hlClear.textContent = '✕'; hlClear.title = '형광펜 빼기';
+    hlClear.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    hlClear.addEventListener('click', function () { doHL('transparent'); });
+    hlBar.appendChild(hlClear);
+    panel.insertBefore(hlBar, area);
+
     btn.addEventListener('click', () => {
       panel.classList.toggle('hidden');
       btn.classList.toggle('active');
     });
     area.addEventListener('input', () => {
-      localStorage.setItem(STORAGE_KEY, area.value);
+      localStorage.setItem(STORAGE_KEY, area.innerHTML);
       showSaved();
     });
   });
