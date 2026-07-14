@@ -1,4 +1,4 @@
-// 한번에 — Vercel 웹 애널리틱스 + 설치(홈화면 추가) 이벤트 추적
+// 아이담다 — Vercel 웹 애널리틱스 + 설치(홈화면 추가) 이벤트 추적
 // Vercel 대시보드에서 Web Analytics를 "Enable" 하면 방문자/페이지뷰가 집계됩니다.
 (function () {
   // Vercel insights 이벤트 큐 셋업

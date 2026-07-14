@@ -1,4 +1,4 @@
-// 한번에 카드뉴스 — 각 카드 '이미지 저장' 버튼 (html2canvas)
+// 아이담다 카드뉴스 — 각 카드 '이미지 저장' 버튼 (html2canvas)
 function saveOne(el, i, prefix) {
   return html2canvas(el, { scale: 3, backgroundColor: null, useCORS: true }).then(function (canvas) {
     var a = document.createElement('a');

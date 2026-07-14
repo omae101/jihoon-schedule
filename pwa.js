@@ -1,4 +1,4 @@
-// 한번에 PWA: 서비스워커 등록 + 홈화면 설치 버튼
+// 아이담다 PWA: 서비스워커 등록 + 홈화면 설치 버튼
 (function () {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {

@@ -757,14 +757,14 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="한번에">
+<meta name="apple-mobile-web-app-title" content="아이담다">
 <script src="/pwa.js" defer></script>
 </head>
 <body>
 <div class="container">
   <div class="topbar">
     <button id="menuBtn" class="menu-btn" title="메뉴" aria-label="메뉴">☰</button>
-    <span class="topbar-brand">한번에</span>
+    <span class="topbar-brand">아이담다</span>
   </div>
   <h1>
     <input type="text" id="ownerName" class="name-input" placeholder="이름" maxlength="10">
@@ -798,7 +798,7 @@
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <nav class="drawer" id="drawer" aria-label="메뉴">
   <div class="drawer-head">
-    <span class="drawer-brand">📅 한번에</span>
+    <span class="drawer-brand">📅 아이담다</span>
     <button class="drawer-close" id="drawerClose" title="닫기" aria-label="닫기">×</button>
   </div>
   <div class="drawer-profiles">
@@ -1560,7 +1560,7 @@
     var isIOS = /iPhone|iPad|iPod/i.test(ua);
     var msg;
     if (inApp) msg = '인스타·카톡 등 "앱 안의 브라우저"에서는 알림을 켤 수 없어요.\n오른쪽 위 ⋯ 메뉴 → "다른 브라우저로 열기"(크롬/Safari)로 연 뒤 다시 시도하세요.';
-    else if (isIOS) msg = '아이폰은 먼저 "홈 화면에 추가"로 설치한 다음, 홈 화면의 한번에 아이콘으로 열어야 알림을 켤 수 있어요. (iOS 16.4 이상)';
+    else if (isIOS) msg = '아이폰은 먼저 "홈 화면에 추가"로 설치한 다음, 홈 화면의 아이담다 아이콘으로 열어야 알림을 켤 수 있어요. (iOS 16.4 이상)';
     else msg = '이 브라우저는 알림을 지원하지 않아요. 크롬 등 최신 브라우저에서 열어 주세요.';
     appInfo(msg, '🔔 알림 켜는 법');
   }
@@ -1623,7 +1623,7 @@
     const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
     const a = document.createElement('a');
     a.href = url;
-    a.download = `한번에-백업-${stamp}.json`;
+    a.download = `아이담다-백업-${stamp}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
     showSaved();
@@ -1644,7 +1644,7 @@
         alert('복원 완료! 페이지를 새로고침합니다.');
         location.reload();
       } catch (e) {
-        alert('백업 파일을 읽지 못했어요. 올바른 "한번에" 백업 파일(.json)인지 확인해 주세요.');
+        alert('백업 파일을 읽지 못했어요. 올바른 "아이담다" 백업 파일(.json)인지 확인해 주세요.');
       }
       restoreFile.value = '';
     };

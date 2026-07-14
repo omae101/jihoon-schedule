@@ -1,4 +1,4 @@
-// 한번에 — 공용 사이드 메뉴(햄버거). 모든 화면 상단에 ☰ 표시.
+// 아이담다 — 공용 사이드 메뉴(햄버거). 모든 화면 상단에 ☰ 표시.
 (function () {
   if (document.getElementById('hboDrawer')) return; // 중복 주입 방지
 
@@ -60,7 +60,7 @@
   // 상단바 (페이지 맨 위)
   var topbar = document.createElement('div');
   topbar.className = 'hbo-topbar';
-  topbar.innerHTML = '<button class="hbo-menubtn" id="hboMenuBtn" aria-label="메뉴">☰</button><span class="hbo-brand">한번에</span>';
+  topbar.innerHTML = '<button class="hbo-menubtn" id="hboMenuBtn" aria-label="메뉴">☰</button><span class="hbo-brand">아이담다</span>';
   document.body.insertBefore(topbar, document.body.firstChild);
 
   // 오버레이 + 드로어 + 사용법
@@ -68,7 +68,7 @@
   holder.innerHTML = ''
     + '<div class="hbo-overlay" id="hboOverlay"></div>'
     + '<nav class="hbo-drawer" id="hboDrawer" aria-label="메뉴">'
-    +   '<div class="hbo-head"><span class="hbo-dbrand">📅 한번에</span><button class="hbo-close" id="hboClose" aria-label="닫기">×</button></div>'
+    +   '<div class="hbo-head"><span class="hbo-dbrand">📅 아이담다</span><button class="hbo-close" id="hboClose" aria-label="닫기">×</button></div>'
     +   '<div class="hbo-profiles"><div class="hbo-plabel">자녀 (이름을 누르면 전환)</div><div class="hbo-pchips" id="hboPChips"></div><button class="hbo-addchild" id="hboAddChild">+ 자녀 추가</button><button class="hbo-delchild" id="hboDelChild" style="display:none;">🗑 현재 자녀 삭제</button></div>'
     +   '<a class="hbo-item" href="app.html"><span class="hbo-ic">🗂️</span><span>연간 계획</span></a>'
     +   '<a class="hbo-item" href="month.html?year=' + YEAR_NOW + '&month=' + MONTH_NOW + '"><span class="hbo-ic">🗓️</span><span>이번 달 달력</span></a>'
@@ -123,9 +123,9 @@
   // 친구에게 공유 (웹 공유 API → 안 되면 링크 복사)
   function hboShare() {
     var url = (location.origin && location.origin.indexOf('http') === 0) ? location.origin : 'https://schedule-app-zeta-six.vercel.app';
-    var msg = "우리 아이 학교·학원 일정, 성적, 공부 성향까지 한 곳에서 관리하는 무료 앱 '한번에' 같이 써봐요 😊";
+    var msg = "우리 아이 학교·학원 일정, 성적, 공부 성향까지 한 곳에서 관리하는 무료 앱 '아이담다' 같이 써봐요 😊";
     if (navigator.share) {
-      navigator.share({ title: '한번에 — 학교·학원 일정을 한 번에', text: msg, url: url }).catch(function () {});
+      navigator.share({ title: '아이담다 — 학교·학원 일정을 한 번에', text: msg, url: url }).catch(function () {});
     } else if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(msg + '\n' + url).then(function () { alert('공유 링크를 복사했어요!\n카카오톡 등에 붙여넣어 친구에게 알려주세요. 😊'); }).catch(function () { window.prompt('아래 링크를 복사해 공유하세요', url); });
     } else {

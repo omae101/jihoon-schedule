@@ -1,4 +1,4 @@
-// 한번에 앱 아이콘 렌더러 — 확정 로고 심볼(흩어진 3줄 → 체크)로 PNG 생성
+// 아이담다 앱 아이콘 렌더러 — 확정 로고 심볼(흩어진 3줄 → 체크)로 PNG 생성
 // 실행: node tools/render-icons.js [--preview]
 const sharp = require('sharp');
 const fs = require('fs');

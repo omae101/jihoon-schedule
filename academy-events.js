@@ -1,4 +1,4 @@
-// 한번에 — 학원 설명회·등록(결제)일 관리. 입력하면 리마인더에 D-day로 표시.
+// 아이담다 — 학원 설명회·등록(결제)일 관리. 입력하면 리마인더에 D-day로 표시.
 // window.AcademyEvents.open() 으로 입력창, getUpcoming(maxDays)로 다가오는 일정.
 (function () {
   var LS = window.localStorage;

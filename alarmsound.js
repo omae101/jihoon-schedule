@@ -1,4 +1,4 @@
-// 한번에 — 알람 소리 엔진 (파일 없이 Web Audio로 멜로디 생성)
+// 아이담다 — 알람 소리 엔진 (파일 없이 Web Audio로 멜로디 생성)
 // 사용: HanAlarm.play('folk'), HanAlarm.list(), HanAlarm.ensure()
 // ※ 저작권 곡(겨울왕국·골든 등)은 넣지 않음. 전래(닐리리야)·자작 멜로디만.
 window.HanAlarm = (function () {

@@ -1,4 +1,4 @@
-// 한번에 PWA service worker
+// 아이담다 PWA service worker
 const CACHE = 'hanbeone-v1';
 const CORE = [
   '/app.html', '/day.html', '/month.html', '/grade.html', '/index.html',
