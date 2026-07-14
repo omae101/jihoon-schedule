@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.schedule_app_zeta_six.twa",
+        "sha256_cert_fingerprints": ["89:EA:71:F5:08:DD:03:52:2B:89:CA:7D:B1:C9:A2:C5:4D:92:4D:36:82:F9:F8:06:B0:76:96:41:FB:0B:6D:0B"]
+      }
+    }]
