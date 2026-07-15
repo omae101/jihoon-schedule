@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <script src="/profiles.js"></script>
 <script src="/theme.js"></script>
+<script src="/points.js"></script>
 <script src="/academy-events.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일별 계획표</title>
@@ -355,7 +356,11 @@
     const check = document.createElement('div'); check.className='check'; check.textContent='✓';
     const txt = document.createElement('div'); txt.className='todo-text'; txt.contentEditable=true; txt.textContent=text; txt.dataset.ph='할 일 입력';
     const star = document.createElement('div'); star.className='star'+(important?' on':''); star.textContent='★';
-    check.addEventListener('click', ()=>{ row.classList.toggle('done'); saveTodo(); });
+    check.addEventListener('click', ()=>{
+      const nowDone = row.classList.toggle('done');
+      saveTodo();
+      if (nowDone) { awardTodo(txt.textContent); checkAllDoneBonus(); }
+    });
     star.addEventListener('click', ()=>{ const on=star.classList.toggle('on'); row.classList.toggle('important', on); saveTodo(); });
     txt.addEventListener('blur', saveTodo);
     txt.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); txt.blur(); } });
@@ -390,6 +395,25 @@
       pct===100 ? '오늘 할 일 모두 완료! 🎉' :
       pct>=60  ? '거의 다 왔어요 💪' :
       pct>0    ? '하나씩 해볼까요?' : '오늘도 화이팅!';
+  }
+  // 할 일 완료 → 포인트 적립 (같은 할 일로 하루 한 번만, 중복/farming 방지)
+  function awardTodo(text){
+    text = (text||'').trim();
+    if (!text || !window.HBOPoints) return;
+    const k = '__pts_td_' + selectedDate;
+    let done = []; try { done = JSON.parse(localStorage.getItem(k) || '[]'); } catch(e){}
+    if (done.indexOf(text) !== -1) return;       // 이미 이 할 일로 포인트 받음
+    done.push(text); localStorage.setItem(k, JSON.stringify(done));
+    HBOPoints.add(10, '할 일 완료');
+  }
+  function checkAllDoneBonus(){
+    let total=0, done=0;
+    [...todoList.querySelectorAll('.todo')].forEach(r=>{
+      const t = r.querySelector('.todo-text').textContent.trim();
+      if(!t) return; total++;
+      if(r.classList.contains('done')) done++;
+    });
+    if (total>0 && done===total && window.HBOPoints) HBOPoints.dayAllDoneBonus();
   }
   document.getElementById('addTodoBtn').addEventListener('click', ()=>addTodoRow('', false, false, true));
 
