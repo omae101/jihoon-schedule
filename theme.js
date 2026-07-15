@@ -146,6 +146,7 @@
           '<option value="ko">한국어</option>' +
           '<option value="en">English (준비 중)</option>' +
         '</select></div>' +
+        '<div class="__st-row col"><label>데이터 백업 / 복원</label><div class="__st-actions" style="margin-top:6px;"><button class="__st-btn" id="__stBackup">📤 내보내기</button><button class="__st-btn" id="__stRestore">📥 불러오기</button></div></div>' +
         '<div class="__st-actions">' +
           '<button class="__st-btn" id="__stReset">기본값으로</button>' +
           '<button class="__st-btn pri" id="__stDone">완료</button>' +
@@ -223,6 +224,45 @@
       set('markshape', DEF_MARK); set('markcolor', DEF_MARKCOLOR);
       apply(); fill();
     });
+    // 데이터 백업 / 복원 (설정 안으로 옮김 — LS는 window.localStorage = 현재 자녀 범위)
+    var doBackup = function () {
+      var data = {};
+      for (var i = 0; i < LS.length; i++) { var k = LS.key(i); data[k] = LS.getItem(k); }
+      var payload = { _app: '아이담다', _version: 1, _date: new Date().toISOString(), data: data };
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var d = new Date();
+      var stamp = '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+      var a = document.createElement('a');
+      a.href = url; a.download = '아이담다-백업-' + stamp + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    };
+    var stFile = document.createElement('input');
+    stFile.type = 'file'; stFile.accept = 'application/json,.json'; stFile.style.display = 'none';
+    document.body.appendChild(stFile);
+    stFile.addEventListener('change', function () {
+      var f = stFile.files[0]; if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          var parsed = JSON.parse(reader.result);
+          var data = (parsed && parsed.data) ? parsed.data : parsed;
+          if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('형식 오류');
+          if (!confirm('백업 파일의 내용으로 이 기기의 데이터를 덮어씁니다. 계속할까요?')) { stFile.value = ''; return; }
+          Object.keys(data).forEach(function (k) { LS.setItem(k, data[k]); });
+          alert('복원 완료! 페이지를 새로고침합니다.');
+          location.reload();
+        } catch (e) {
+          alert('백업 파일을 읽지 못했어요. 올바른 "아이담다" 백업 파일(.json)인지 확인해 주세요.');
+        }
+        stFile.value = '';
+      };
+      reader.readAsText(f);
+    });
+    var bBtn = document.getElementById('__stBackup'); if (bBtn) bBtn.addEventListener('click', doBackup);
+    var rBtn = document.getElementById('__stRestore'); if (rBtn) rBtn.addEventListener('click', function () { stFile.click(); });
+
     var close = function () { box.classList.remove('on'); };
     document.getElementById('__stX').addEventListener('click', close);
     document.getElementById('__stDone').addEventListener('click', close);

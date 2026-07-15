@@ -792,7 +792,6 @@
 
   <div class="months-grid" id="monthsGrid"></div>
 
-  <input type="file" id="restoreFile" accept="application/json,.json" style="display:none;">
 </div>
 
 <!-- 사이드 메뉴 (햄버거) -->
@@ -819,14 +818,11 @@
   <button class="drawer-item" id="academyBtn"><span class="di-ic">🎒</span><span>학원 시간표</span></button>
   <button class="drawer-item" id="aevBtn"><span class="di-ic">📋</span><span>설명회·등록일</span></button>
   <div class="drawer-divider"></div>
-  <button class="drawer-item" id="backupBtn"><span class="di-ic">📤</span><span>백업 내보내기</span></button>
-  <button class="drawer-item" id="restoreBtn"><span class="di-ic">📥</span><span>복원 불러오기</span></button>
-  <div class="drawer-divider"></div>
-  <button class="drawer-item" id="settingsBtn"><span class="di-ic">⚙️</span><span>화면 설정</span></button>
+  <button class="drawer-item" id="settingsBtn"><span class="di-ic">⚙️</span><span>화면 설정 <small style="color:var(--text-mute);font-weight:600;">(백업·복원 포함)</small></span></button>
   <button class="drawer-item" id="helpBtn"><span class="di-ic">❓</span><span>사용법</span></button>
   <div class="drawer-divider"></div>
   <button class="drawer-item drawer-reset" id="drResetBtn"><span class="di-ic">🧹</span><span>이 자녀 데이터 초기화</span></button>
-  <p class="drawer-foot">백업은 폰↔컴퓨터 데이터 이동용이에요.</p>
+  <p class="drawer-foot">데이터 백업·복원은 ⚙️ 화면 설정에 있어요.</p>
 </nav>
 
 <div id="timetableModal" class="modal-overlay">
@@ -1628,44 +1624,7 @@
     try{ var up=Assessments.getUpcoming(); if(up && up.length) pendingChime=true; }catch(e){}
   }, 500);
 
-  // ===== 백업 / 복원 (폰↔컴퓨터 데이터 이동) =====
-  document.getElementById('backupBtn').addEventListener('click', () => {
-    const data = {};
-    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); data[k] = localStorage.getItem(k); }
-    const payload = { _app: '한번에', _version: 1, _date: new Date().toISOString(), data };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const d = new Date();
-    const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `아이담다-백업-${stamp}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-    showSaved();
-  });
-  const restoreFile = document.getElementById('restoreFile');
-  document.getElementById('restoreBtn').addEventListener('click', () => restoreFile.click());
-  restoreFile.addEventListener('change', () => {
-    const f = restoreFile.files[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(reader.result);
-        const data = parsed && parsed.data ? parsed.data : parsed;
-        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('형식 오류');
-        if (!confirm('백업 파일의 내용으로 이 기기의 데이터를 덮어씁니다. 계속할까요?')) { restoreFile.value=''; return; }
-        Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
-        alert('복원 완료! 페이지를 새로고침합니다.');
-        location.reload();
-      } catch (e) {
-        alert('백업 파일을 읽지 못했어요. 올바른 "아이담다" 백업 파일(.json)인지 확인해 주세요.');
-      }
-      restoreFile.value = '';
-    };
-    reader.readAsText(f);
-  });
+  // 백업 / 복원은 ⚙️ 화면 설정(theme.js)으로 이동함
 </script>
 </body>
 </html>
