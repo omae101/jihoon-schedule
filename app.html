@@ -933,9 +933,18 @@
   // 이름 저장/불러오기
   const NAME_KEY = 'jihoon-owner-name';
   const nameInput = document.getElementById('ownerName');
-  nameInput.value = localStorage.getItem(NAME_KEY) || '';
+  // 제목 '이름' 칸과 자녀 프로필 이름을 연동한다.
+  // 제목 칸이 비어 있으면(새로 추가한 자녀 등) 프로필 이름을 가져와 채운다.
+  let _profName = '';
+  try { if (window.Profiles && Profiles.current()) _profName = (Profiles.current().name || ''); } catch (e) {}
+  nameInput.value = _profName || localStorage.getItem(NAME_KEY) || '';
+  if (nameInput.value && localStorage.getItem(NAME_KEY) !== nameInput.value) {
+    try { localStorage.setItem(NAME_KEY, nameInput.value); } catch (e) {}
+  }
   nameInput.addEventListener('input', () => {
     localStorage.setItem(NAME_KEY, nameInput.value);
+    // 자녀 프로필 이름도 같이 바꿔 메뉴의 자녀 칩과 일치시킨다
+    try { if (window.Profiles && Profiles.currentId) Profiles.rename(Profiles.currentId(), nameInput.value); } catch (e) {}
     showSaved();
   });
 
@@ -1419,7 +1428,13 @@
           b.textContent = p.name;
           b.addEventListener('click', () => {
             if (p.id === cur) {
-              appPrompt('자녀 이름 변경', p.name, (nn) => { Profiles.rename(p.id, nn); renderChips(); });
+              appPrompt('자녀 이름 변경', p.name, (nn) => {
+                Profiles.rename(p.id, nn); renderChips();
+                if (p.id === Profiles.currentId() && (nn || '').trim()) {
+                  nameInput.value = nn.trim();
+                  try { localStorage.setItem(NAME_KEY, nn.trim()); } catch (e) {}
+                }
+              });
             } else { Profiles.switchTo(p.id); }
           });
           chips.appendChild(b);
