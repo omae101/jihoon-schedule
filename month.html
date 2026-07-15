@@ -265,6 +265,7 @@
   .day-chip.obs-chip { background: #ECEFF3; color: #5A6270; font-weight: 600; }
   .day-chip.sched { background: #E1EDFF; color: #2C5AA6; }  /* 일별 '오늘 일정' */
   .day-chip.todo-chip { background: #E4F5E9; color: #1E7A45; }  /* 일별 '할 일' */
+  .day-chip.event { background: #EDE4FB; color: #7A3FBF; font-weight: 700; }  /* 설명회·등록일 */
   .day-more { font-size: 9.5px; color: var(--text-mute); padding-left: 4px; }
 
   .saved-indicator {
@@ -657,6 +658,15 @@
         : [];
     } catch (e) { return []; }
   }
+  // 설명회·등록일(academy-events.js, jihoon-academy-events: 전체 배열에서 이 날짜 것만)
+  function readEvents(dateStr) {
+    try {
+      const v = JSON.parse(localStorage.getItem('jihoon-academy-events') || '[]');
+      return Array.isArray(v)
+        ? v.filter(e => e && e.date === dateStr && (e.text || '').trim()).map(e => (e.text || '').trim())
+        : [];
+    } catch (e) { return []; }
+  }
 
   // 한 날짜 칸의 내용(날짜 숫자 + 칩)을 채운다 (편집 후 다시 그릴 때도 사용)
   function fillCell(cell, dateStr) {
@@ -698,6 +708,7 @@
     // 표시할 칩: 수행평가/일정(assessment) + 일별 '오늘 일정'(timetable) 합쳐서
     const evColors = readEvColors(dateStr);
     const chipItems = [];
+    readEvents(dateStr).forEach(t => { chipItems.push({ text: t, cls: 'event' }); });  // 설명회·등록일 먼저
     lines.forEach((line, idx) => {
       const c = EV_COLORS[evColors[idx]] || (up ? { bg: '#FFE3D6', fg: '#B5462A' } : EV_COLORS.gray);
       chipItems.push({ text: line, bg: c.bg, fg: c.fg });
