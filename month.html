@@ -263,6 +263,7 @@
   .day-chip.up { background: #FFE3D6; color: #B5462A; }
   .day-chip.holi-chip { background: #FCE3E3; color: #C62828; font-weight: 700; }
   .day-chip.obs-chip { background: #ECEFF3; color: #5A6270; font-weight: 600; }
+  .day-chip.sched { background: #E1EDFF; color: #2C5AA6; }  /* 일별 '오늘 일정' */
   .day-more { font-size: 9.5px; color: var(--text-mute); padding-left: 4px; }
 
   .saved-indicator {
@@ -633,6 +634,16 @@
     try { const v = JSON.parse(localStorage.getItem(`jihoon-evcolor-${dateStr}`) || '[]'); return Array.isArray(v) ? v : []; }
     catch (e) { return []; }
   }
+  // 일별 화면의 '오늘 일정'(설명회 등)을 월 달력에도 보여주기 위해 읽어온다
+  function readTimetable(dateStr) {
+    try {
+      const v = JSON.parse(localStorage.getItem(`timetable_${dateStr}`) || '[]');
+      return Array.isArray(v)
+        ? v.filter(it => it && (it.text || '').trim())
+            .map(it => ({ time: (it.time || '').trim(), text: (it.text || '').trim() }))
+        : [];
+    } catch (e) { return []; }
+  }
 
   // 한 날짜 칸의 내용(날짜 숫자 + 칩)을 채운다 (편집 후 다시 그릴 때도 사용)
   function fillCell(cell, dateStr) {
@@ -654,6 +665,7 @@
 
     const saved = (localStorage.getItem(`jihoon-assessment-${dateStr}`) || '').trim();
     const lines = saved ? saved.split('\n').map(s => s.trim()).filter(Boolean) : [];
+    const sched = readTimetable(dateStr);   // 일별 '오늘 일정'(설명회 등)
 
     let up = false;
     if (saved) {
@@ -670,7 +682,18 @@
     }
     cell.appendChild(top);
 
-    if (holi || lines.length) {
+    // 표시할 칩: 수행평가/일정(assessment) + 일별 '오늘 일정'(timetable) 합쳐서
+    const evColors = readEvColors(dateStr);
+    const chipItems = [];
+    lines.forEach((line, idx) => {
+      const c = EV_COLORS[evColors[idx]] || (up ? { bg: '#FFE3D6', fg: '#B5462A' } : EV_COLORS.gray);
+      chipItems.push({ text: line, bg: c.bg, fg: c.fg });
+    });
+    sched.forEach(it => {
+      chipItems.push({ text: it.time ? (it.time + ' ' + it.text) : it.text, cls: 'sched' });
+    });
+
+    if (holi || chipItems.length) {
       const chips = document.createElement('div');
       chips.className = 'day-chips';
       if (holi) {
@@ -679,20 +702,18 @@
         hc.textContent = holi.name;
         chips.appendChild(hc);
       }
-      const evColors = readEvColors(dateStr);
       const MAXC = holi ? 2 : 3;
-      lines.slice(0, MAXC).forEach((line, idx) => {
+      chipItems.slice(0, MAXC).forEach(ci => {
         const chip = document.createElement('span');
-        chip.className = 'day-chip';
-        const c = EV_COLORS[evColors[idx]] || (up ? { bg: '#FFE3D6', fg: '#B5462A' } : EV_COLORS.gray);
-        chip.style.background = c.bg; chip.style.color = c.fg;
-        chip.textContent = line;
+        chip.className = 'day-chip' + (ci.cls ? ' ' + ci.cls : '');
+        if (ci.bg) { chip.style.background = ci.bg; chip.style.color = ci.fg; }
+        chip.textContent = ci.text;
         chips.appendChild(chip);
       });
-      if (lines.length > MAXC) {
+      if (chipItems.length > MAXC) {
         const more = document.createElement('span');
         more.className = 'day-more';
-        more.textContent = '+' + (lines.length - MAXC) + '개 더';
+        more.textContent = '+' + (chipItems.length - MAXC) + '개 더';
         chips.appendChild(more);
       }
       cell.appendChild(chips);
