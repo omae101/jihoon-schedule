@@ -264,6 +264,7 @@
   .day-chip.holi-chip { background: #FCE3E3; color: #C62828; font-weight: 700; }
   .day-chip.obs-chip { background: #ECEFF3; color: #5A6270; font-weight: 600; }
   .day-chip.sched { background: #E1EDFF; color: #2C5AA6; }  /* 일별 '오늘 일정' */
+  .day-chip.todo-chip { background: #E4F5E9; color: #1E7A45; }  /* 일별 '할 일' */
   .day-more { font-size: 9.5px; color: var(--text-mute); padding-left: 4px; }
 
   .saved-indicator {
@@ -634,13 +635,25 @@
     try { const v = JSON.parse(localStorage.getItem(`jihoon-evcolor-${dateStr}`) || '[]'); return Array.isArray(v) ? v : []; }
     catch (e) { return []; }
   }
-  // 일별 화면의 '오늘 일정'(설명회 등)을 월 달력에도 보여주기 위해 읽어온다
+  // 일별 화면의 '오늘 일정'(설명회 등)을 월 달력에도 보여준다.
+  // 기본 시간블록(잠자는 시간/자습·식사/학교)은 월 달력에선 숨겨 실제 일정만 뜨게 한다.
+  const TT_DEFAULTS = ['잠자는 시간', '자습·식사', '학교'];
   function readTimetable(dateStr) {
     try {
       const v = JSON.parse(localStorage.getItem(`timetable_${dateStr}`) || '[]');
       return Array.isArray(v)
-        ? v.filter(it => it && (it.text || '').trim())
-            .map(it => ({ time: (it.time || '').trim(), text: (it.text || '').trim() }))
+        ? v.map(it => ({ time: ((it && it.time) || '').trim(), text: ((it && it.text) || '').trim() }))
+            .filter(it => it.text && TT_DEFAULTS.indexOf(it.text) === -1)
+        : [];
+    } catch (e) { return []; }
+  }
+  // 일별 화면의 '할 일'(체크리스트) 중 아직 안 한 것을 월 달력에도 보여준다.
+  function readTodos(dateStr) {
+    try {
+      const v = JSON.parse(localStorage.getItem(`todo_${dateStr}`) || '[]');
+      return Array.isArray(v)
+        ? v.filter(t => t && (t.text || '').trim() && !t.done)
+            .map(t => ({ text: (t.text || '').trim(), important: !!t.important }))
         : [];
     } catch (e) { return []; }
   }
@@ -691,6 +704,9 @@
     });
     sched.forEach(it => {
       chipItems.push({ text: it.time ? (it.time + ' ' + it.text) : it.text, cls: 'sched' });
+    });
+    readTodos(dateStr).forEach(t => {
+      chipItems.push({ text: '☐ ' + t.text, cls: 'todo-chip' });
     });
 
     if (holi || chipItems.length) {
