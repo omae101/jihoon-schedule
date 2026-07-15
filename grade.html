@@ -380,6 +380,7 @@
           <option value="elem">초등</option>
           <option value="mid">중등</option>
           <option value="high">고등</option>
+          <option value="adult">성인(어른)</option>
         </select>
       </div>
       <div class="input-group">
@@ -1694,11 +1695,12 @@
   }
   function resolveLevel(age){
     const v=levelInput.value;
-    if(v==='elem'||v==='mid'||v==='high') return v;
+    if(v==='elem'||v==='mid'||v==='high'||v==='adult') return v;
     if(age==null) return 'mid';
     if(age<=12) return 'elem';
     if(age<=15) return 'mid';
-    return 'high';
+    if(age<=18) return 'high';
+    return 'adult';
   }
   function tendencyScores(c,mbti,g,w){
     const tot=Object.values(c).reduce((a,b)=>a+b,0)||1; const p=k=>c[k]/tot;
@@ -1775,7 +1777,7 @@
     const gsig=gradeSignal(stats);
     const age=ageFrom(dob);
     const level=resolveLevel(age);
-    const w=({elem:0.12,mid:0.35,high:0.55})[level]||0.2;
+    const w=({elem:0.12,mid:0.35,high:0.55,adult:0})[level]||0.2;
     const scores=tendencyScores(cnt,mbti,gsig,w);
     const chrono=[cWake.value,cFocus.value,cSleepy.value].filter(v=>v!=='').map(Number);
     const curY=new Date().getFullYear();
@@ -1797,6 +1799,8 @@
       P.push(`초등 시기에는 성적 데이터가 아직 얕아 점수보다 타고난 기질이 더 정확합니다. 강점인 ${t1}은(는) 칭찬으로 키우고, ${low}은(는) 독서·놀이처럼 부담 없이 접근하면 효과적입니다.`);
     } else if(r.level==='mid'){
       P.push(`중등은 기질과 내신이 함께 쌓이는 단계라, ${t1} 강점을 살리되 ${low}을(를) 시험 범위 안에서 꾸준히 보강하면 성적이 안정됩니다.`);
+    } else if(r.level==='adult'){
+      P.push(`성인 기준으로는 학습보다 타고난 기질과 강점을 이해하는 데 초점을 둡니다. ${t1}과(와) ${t2}이(가) 강점이라 이를 살리는 일·역할에서 힘이 나고, ${low}은(는) 의식적으로 챙기면 삶과 자기관리의 균형이 좋아집니다.`);
     } else {
       let d='';
       if(r.gsig&&r.gsig.schoolAvg!=null&&r.gsig.mockAvg!=null){
@@ -1836,7 +1840,7 @@
     const NM={수리:'수리·논리력',문해:'문해·언어력',집중:'집중 지속력',창의:'창의·표현력',성실:'성실·자기관리'};
     const order=['수리','문해','집중','창의','성실'];
     const bars=order.map(k=>`<div class="bar-row"><div class="lab"><span>${NM[k]}</span><span class="sc">${r.scores[k]}</span></div><div class="bar-track"><div class="bar-fill" style="width:${r.scores[k]}%"></div></div></div>`).join('');
-    const lv={elem:'초등',mid:'중등',high:'고등'}[r.level]||'';
+    const lv={elem:'초등',mid:'중등',high:'고등',adult:'성인'}[r.level]||'';
     const summary=buildSummary(r); const tips=buildTips(r);
     analysisResult.innerHTML=`
      <div class="an">
