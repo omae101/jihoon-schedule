@@ -11,6 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://js.tosspayments.com/v2/standard"></script>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
   :root {
@@ -332,8 +333,8 @@
       <h3 id="payTitle">🤖 AI 정밀분석 이용권</h3>
       <p class="pay-desc" id="payDesc">성적표·생활기록부를 AI가 읽어 과목별 강·약점과 학습 경향까지 자세히 분석해 줘요.</p>
       <div class="pay-price" id="payPrice">1회 <b>990원</b></div>
-      <button class="pay-btn primary" id="payBuy">💳 결제하기</button>
-      <p class="pay-hint">결제 후 받은 <b>이용권 코드</b>를 입력하면 바로 열려요.</p>
+      <button class="pay-btn primary" id="payBuy">💳 카드·간편결제로 결제하기</button>
+      <p class="pay-hint">결제하면 <b>바로 이용권이 열려요.</b> (이용권 코드가 있으면 아래에 입력)</p>
       <div class="pay-coderow">
         <input type="text" id="payCode" placeholder="이용권 코드 입력" autocomplete="off">
         <button class="pay-btn" id="payApply">확인</button>
@@ -1131,17 +1132,66 @@
     try { localStorage.setItem('__owner', '1'); } catch (e) {}
   }
   function isOwner() { try { return localStorage.getItem('__owner') === '1'; } catch (e) { return false; } }
+
+  // ===== 토스 결제 성공/실패로 돌아왔을 때 처리 =====
+  (function handlePayReturn() {
+    const q = new URLSearchParams(location.search);
+    const flow = q.get('payflow');
+    if (!flow) return;
+    function cleanUrl() { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+    if (flow === 'fail') {
+      cleanUrl();
+      alert('결제가 취소되었거나 실패했어요.' + (q.get('message') ? '\n(' + q.get('message') + ')' : ''));
+      return;
+    }
+    const paymentKey = q.get('paymentKey');
+    const orderId = q.get('orderId');
+    const amount = q.get('amount');
+    if (flow === 'success' && paymentKey && orderId && amount) {
+      fetch('/api/confirm-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentKey: paymentKey, orderId: orderId, amount: Number(amount) })
+      }).then(r => r.json()).then(d => {
+        cleanUrl();
+        if (d && d.ok && d.unlockKey) {
+          try { localStorage.setItem(d.unlockKey, '1'); } catch (e) {}
+          alert('결제가 완료됐어요! 🎉 이용권이 열렸어요.');
+          location.reload();
+        } else {
+          alert('결제 승인에 실패했어요: ' + ((d && d.error) || '알 수 없는 오류'));
+        }
+      }).catch(e => { cleanUrl(); alert('결제 확인 중 오류가 났어요: ' + e.message); });
+    }
+  })();
   function premiumOpen() { return LAUNCH_OPEN || isOwner(); }
   function comingSoon() {
     alert('프리미엄 기능은 7월 7일에 열려요! 🎁\n지금은 무료 기능(일정·할 일·성향 분석)을 마음껏 써보세요 😊');
   }
-  // ===== 단건결제 이용권 설정 (바꾸려면 여기만 수정) =====
-  const PAY_URL = '';            // 토스 송금링크 등 결제 링크 (예: 'https://toss.me/xxxx'). 7/7 사업자 계좌 개설 후 넣기
+  // ===== 토스페이먼츠 결제 설정 =====
+  // ▶ 정식 오픈(실결제) 시 할 일:
+  //   1) 아래 TOSS_CLIENT_KEY 를 토스 개발자센터의 '라이브 클라이언트 키'로 교체
+  //   2) Vercel 환경변수 TOSS_SECRET_KEY 에 '라이브 시크릿 키' 추가 후 재배포
+  //   3) LAUNCH_OPEN = true 로 변경
+  // 지금은 토스 공개 '테스트 키' → 실제 청구 안 되고 흐름만 검증됨.
+  const TOSS_CLIENT_KEY = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq'; // TODO: 라이브 클라이언트 키로 교체
+  let _tossPayment = null;
+  function getTossPayment() {
+    if (!window.TossPayments) return null;
+    if (!_tossPayment) {
+      const tp = TossPayments(TOSS_CLIENT_KEY);
+      _tossPayment = tp.payment({ customerKey: TossPayments.ANONYMOUS }); // 비회원(가입없는) 결제
+    }
+    return _tossPayment;
+  }
   const PRODUCTS = {
     ai: {
       title: '🤖 AI 정밀분석 이용권',
       desc: '성적표·생활기록부를 AI가 읽어 과목별 강·약점과 학습 경향까지 자세히 분석해 줘요.',
       price: '1회 <b>990원</b>',
+      amount: 990,               // 실제 결제 금액(원)
+      orderPrefix: 'AI',         // 주문번호 앞글자(서버가 상품 판별)
+      orderName: '아이담다 AI 정밀분석',
       codes: ['HANBEONE'],       // AI 분석 이용권 코드
       unlockKey: '__premium'
     },
@@ -1149,6 +1199,9 @@
       title: '🎓 대학입시 전형분석',
       desc: '내신·모의고사 등급과 고교 유형을 바탕으로 유리한 전형(교과·종합·논술·정시)과 지원 전략을 AI가 분석해 줘요.',
       price: '1회 <b>49,000원</b>',
+      amount: 49000,
+      orderPrefix: 'ADM',
+      orderName: '아이담다 대학입시 전형분석',
       codes: ['ADMISSION49'],    // 입시분석 이용권 코드
       unlockKey: '__admission'
     },
@@ -1156,6 +1209,9 @@
       title: '📚 우리 아이 공부 상담',
       desc: '한자·영어·한글·수학 등 나이에 맞는 학습 적기와 이 시기 핵심을 AI가 알려줘요. 첫 상담은 무료예요.',
       price: '재상담 1회 <b>490원</b>',
+      amount: 490,
+      orderPrefix: 'CNS',
+      orderName: '아이담다 공부 상담',
       codes: ['STUDY490'],       // 공부상담 재상담 이용권 코드
       unlockKey: '__counsel'
     }
@@ -1179,9 +1235,27 @@
   function closePaywall() { payModal.classList.remove('on'); }
   document.getElementById('payClose').addEventListener('click', closePaywall);
   payModal.addEventListener('click', (e) => { if (e.target === payModal) closePaywall(); });
-  document.getElementById('payBuy').addEventListener('click', () => {
-    if (!PAY_URL) { alert('결제 링크 준비 중이에요. 곧 열릴게요!'); return; }
-    window.open(PAY_URL, '_blank');
+  document.getElementById('payBuy').addEventListener('click', async () => {
+    const pay = getTossPayment();
+    if (!pay) { alert('결제 모듈을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'); return; }
+    const orderId = curProduct.orderPrefix + '-' + Date.now() + Math.random().toString(36).slice(2, 8);
+    payMsg.className = 'pay-msg'; payMsg.textContent = '';
+    try {
+      await pay.requestPayment({
+        method: 'CARD',                                   // 카드 + 간편결제
+        amount: { currency: 'KRW', value: curProduct.amount },
+        orderId: orderId,
+        orderName: curProduct.orderName,
+        successUrl: location.origin + '/grade.html?payflow=success',
+        failUrl: location.origin + '/grade.html?payflow=fail',
+      });
+    } catch (err) {
+      // 사용자가 결제창을 닫거나 취소하면 여기로 옴
+      if (err && err.code && err.code !== 'USER_CANCEL') {
+        payMsg.className = 'pay-msg err';
+        payMsg.textContent = '결제를 시작하지 못했어요: ' + (err.message || err.code);
+      }
+    }
   });
   function applyCode() {
     const v = (payCode.value || '').trim().toUpperCase();
