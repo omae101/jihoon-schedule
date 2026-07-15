@@ -1124,9 +1124,9 @@
   function isPremium() {
     try { return localStorage.getItem('__premium') === '1'; } catch (e) { return false; }
   }
-  // ===== 프리미엄 오픈 게이트 (7월 7일 오픈) =====
+  // ===== 프리미엄 오픈 게이트 =====
   // 오픈 전까지 모든 유료 기능을 잠가, 사람들이 아직 못 쓰게 합니다(=API 비용도 안 나감).
-  // 7월 7일에 아래 LAUNCH_OPEN 을 true 로 바꾸면 결제/이용권 로직이 정상 작동합니다.
+  // 정식 오픈 시(토스 라이브 키 등록 후) 아래 LAUNCH_OPEN 을 true 로 바꾸면 결제/이용권 로직이 정상 작동합니다.
   const LAUNCH_OPEN = false;
   // 사장님 본인 테스트용(비공개 주소): grade.html?owner=hanbeone0707 로 한 번 열면 이 기기에서만 미리 사용 가능
   if (new URLSearchParams(location.search).get('owner') === 'hanbeone0707') {
@@ -1167,7 +1167,7 @@
   })();
   function premiumOpen() { return LAUNCH_OPEN || isOwner(); }
   function comingSoon() {
-    alert('프리미엄 기능은 7월 7일에 열려요! 🎁\n지금은 무료 기능(일정·할 일·성향 분석)을 마음껏 써보세요 😊');
+    alert('프리미엄 기능은 곧 열려요! 🎁\n지금은 무료 기능(일정·할 일·성향 분석)을 마음껏 써보세요 😊');
   }
   // ===== 토스페이먼츠 결제 설정 =====
   // ▶ 정식 오픈(실결제) 시 할 일:
