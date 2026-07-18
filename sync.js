@@ -1,20 +1,38 @@
-// 아이담다 — 자녀 연동(엄마폰↔자녀폰 실시간 동기화) v1 (beta)
+// 아이담다 — 자녀 연동(엄마폰↔자녀폰 실시간 동기화) v2 (다자녀)
 // Supabase 스냅샷 방식: 현재 자녀의 전체 데이터를 한 덩어리로 서버 kv에 저장/불러오기.
-// 안전장치: '연동한 그 자녀'가 선택돼 있을 때만 작동(다른 자녀 데이터 안 섞임).
+// v2: 연동 정보를 '자녀별'로 저장 → 엄마폰 하나로 자녀 여러 명을 각각 다른 폰과 연동 가능.
+//     (연동 정보 키는 __로 시작해 동기화 스냅샷엔 안 섞이고, 뒤에 자녀 id를 붙여 자녀별로 구분)
 (function () {
   var SB_URL = 'https://czbrvzsdlmasfgaxurjp.supabase.co';
   var SB_KEY = 'sb_publishable_FrgDPsUo1dj8EkUPkXT6_A_pNoylzG4';
-  var K_SPACE = '__sync_space';   // 연결된 space_id (전역)
-  var K_CHILD = '__sync_child';   // 연동한 자녀 프로필 id (전역)
-  var K_TS    = '__sync_ts';      // 마지막 적용 스냅샷 시각 (전역)
+  var P_SPACE = '__sync_space_';   // + childId → 연결된 space_id
+  var P_TS    = '__sync_ts_';      // + childId → 마지막 적용 스냅샷 시각
 
   var sb = null, ready = false, applying = false, pushTimer = null, channel = null;
-  function space() { try { return localStorage.getItem(K_SPACE); } catch (e) { return null; } }
-  function child() { try { return localStorage.getItem(K_CHILD); } catch (e) { return null; } }
   function curChild() { try { return window.Profiles ? Profiles.currentId() : 'c1'; } catch (e) { return 'c1'; } }
-  function active() { return !!space() && child() === curChild(); }  // 연동 자녀가 지금 선택됨?
+  function space() { try { return localStorage.getItem(P_SPACE + curChild()); } catch (e) { return null; } }
+  function setSpace(v) { try { localStorage.setItem(P_SPACE + curChild(), v); } catch (e) {} }
+  function tsGet() { try { return parseInt(localStorage.getItem(P_TS + curChild()) || '0', 10); } catch (e) { return 0; } }
+  function tsSet(t) { try { localStorage.setItem(P_TS + curChild(), String(t)); } catch (e) {} }
+  function active() { return !!space(); }  // 지금 선택된 자녀가 연동돼 있나?
 
-  // 인증 세션은 기기 전역(__)에 저장 → 자녀 전환해도 유지
+  // v1(전역 단일 연동) → v2(자녀별) 1회 이전: 예전에 연동해 둔 게 있으면 그 자녀 슬롯으로 옮김
+  function migrateOld() {
+    try {
+      var oldSpace = localStorage.getItem('__sync_space');
+      if (!oldSpace) return;
+      var oldChild = localStorage.getItem('__sync_child') || 'c1';
+      if (!localStorage.getItem(P_SPACE + oldChild)) {
+        localStorage.setItem(P_SPACE + oldChild, oldSpace);
+        localStorage.setItem(P_TS + oldChild, localStorage.getItem('__sync_ts') || '0');
+      }
+      localStorage.removeItem('__sync_space');
+      localStorage.removeItem('__sync_child');
+      localStorage.removeItem('__sync_ts');
+    } catch (e) {}
+  }
+
+  // 인증 세션은 기기 전역(__)에 저장 → 자녀 전환해도 유지(한 익명 사용자가 여러 자녀 space의 멤버)
   var authStore = {
     getItem: function (k) { try { return localStorage.getItem('__sbauth_' + k); } catch (e) { return null; } },
     setItem: function (k, v) { try { localStorage.setItem('__sbauth_' + k, v); } catch (e) {} },
@@ -63,14 +81,14 @@
 
   function pull(cb) {
     if (!active() || !ready) return cb && cb();
-    sb.from('kv').select('v').eq('space_id', space()).eq('slot', 'main').eq('k', '__snapshot').maybeSingle()
+    var sid = space();
+    sb.from('kv').select('v').eq('space_id', sid).eq('slot', 'main').eq('k', '__snapshot').maybeSingle()
       .then(function (r) {
         if (r.data && r.data.v) {
           var snap = r.data.v; // jsonb → 객체
-          var localTs = parseInt(localStorage.getItem(K_TS) || '0', 10);
-          if (snap.t && snap.t > localTs) {
+          if (snap.t && snap.t > tsGet()) {
             applySnapshot(snap.d || {});
-            localStorage.setItem(K_TS, String(snap.t));
+            tsSet(snap.t);
             cb && cb(true); // 변경 적용됨 → 새로고침 권장
             return;
           }
@@ -81,10 +99,11 @@
 
   function push() {
     if (!active() || !ready) return;
+    var sid = space();
     var t = Date.now();
     var snap = { t: t, d: snapshot() };
-    sb.from('kv').upsert({ space_id: space(), slot: 'main', k: '__snapshot', v: snap }, { onConflict: 'space_id,slot,k' })
-      .then(function (r) { if (!r.error) localStorage.setItem(K_TS, String(t)); }, function () {});
+    sb.from('kv').upsert({ space_id: sid, slot: 'main', k: '__snapshot', v: snap }, { onConflict: 'space_id,slot,k' })
+      .then(function (r) { if (!r.error) tsSet(t); }, function () {});
   }
   function schedulePush() { if (!active()) return; clearTimeout(pushTimer); pushTimer = setTimeout(push, 1500); }
 
@@ -100,14 +119,16 @@
 
   function subscribe() {
     if (!active() || !ready || channel) return;
-    channel = sb.channel('kv-' + space())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'kv', filter: 'space_id=eq.' + space() }, function () {
+    var sid = space();
+    channel = sb.channel('kv-' + sid)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kv', filter: 'space_id=eq.' + sid }, function () {
         pull(function (changed) { if (changed) location.reload(); });
       }).subscribe();
   }
 
-  // ---- 시작: 이미 연동돼 있으면 인증→풀→구독→자동푸시 ----
+  // ---- 시작: 이미 (이 자녀가) 연동돼 있으면 인증→풀→구독→자동푸시 ----
   function start() {
+    migrateOld();
     if (!space()) { hookWrites(); return; }
     init(function (err) {
       if (err) return;
@@ -118,19 +139,18 @@
 
   // ================= 공개 API (페어링 UI에서 호출) =================
   window.HBOSync = {
-    isPaired: function () { return !!space(); },
-    pairedChild: function () { return child(); },
+    isPaired: function () { return !!space(); },           // 지금 선택된 자녀가 연동됐나
+    pairedChild: function () { return space() ? curChild() : null; },
     active: active,
-    // 자녀폰: 연결 코드 만들기
+    // 자녀폰: 연결 코드 만들기 (지금 선택된 자녀 기준)
     createCode: function (cb) {
       init(function (err) {
         if (err) return cb(err);
         sb.rpc('create_space_with_code').then(function (r) {
           if (r.error) return cb(r.error);
           var d = r.data; // {space_id, code}
-          localStorage.setItem(K_SPACE, d.space_id);
-          localStorage.setItem(K_CHILD, curChild());
-          localStorage.setItem(K_TS, '0');
+          setSpace(d.space_id);
+          tsSet(0);
           hookWrites();
           push();       // 이 자녀 현재 데이터 서버로 올림
           subscribe();
@@ -138,16 +158,15 @@
         }, function (e) { cb(e); });
       });
     },
-    // 엄마폰: 코드 입력해서 참여
+    // 엄마폰: 코드 입력해서 참여 (지금 선택된 자녀에 연결)
     joinCode: function (code, cb) {
       init(function (err) {
         if (err) return cb(err);
         sb.rpc('join_space', { p_code: code }).then(function (r) {
           if (r.error) return cb(r.error);
           var d = r.data; // {space_id}
-          localStorage.setItem(K_SPACE, d.space_id);
-          localStorage.setItem(K_CHILD, curChild());
-          localStorage.setItem(K_TS, '0');
+          setSpace(d.space_id);
+          tsSet(0);
           hookWrites();
           pull(function () { cb(null); });  // 서버(자녀폰) 데이터 받아오기
           subscribe();
@@ -155,7 +174,7 @@
       });
     },
     syncNow: function (cb) { init(function (err) { if (err) return cb && cb(err); push(); pull(function (c) { cb && cb(null, c); if (c) location.reload(); }); }); },
-    unpair: function () { try { localStorage.removeItem(K_SPACE); localStorage.removeItem(K_CHILD); localStorage.removeItem(K_TS); } catch (e) {} if (channel) { try { sb.removeChannel(channel); } catch (e) {} channel = null; } }
+    unpair: function () { try { localStorage.removeItem(P_SPACE + curChild()); localStorage.removeItem(P_TS + curChild()); } catch (e) {} if (channel) { try { sb.removeChannel(channel); } catch (e) {} channel = null; } }
   };
 
   if (document.readyState !== 'loading') start();

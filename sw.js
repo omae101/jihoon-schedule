@@ -1,5 +1,5 @@
 // 아이담다 PWA service worker
-const CACHE = 'hanbeone-v2';
+const CACHE = 'hanbeone-v3';
 const CORE = [
   '/app.html', '/day.html', '/month.html', '/grade.html', '/index.html', '/pair.html',
   '/notifications.js', '/pwa.js', '/profiles.js', '/sync.js', '/menu.js',
