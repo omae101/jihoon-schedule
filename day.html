@@ -526,8 +526,15 @@
       data.forEach(r=>{
         const time = (r.time||'').trim(), name = (r.name||'').trim(), subject = (r.subject||'').trim();
         if (!time && !name && !subject) return;
-        if (time && time.indexOf(ch) === -1) return;       // 이 요일에 해당 안 됨
-        const timeOnly = time.replace(/[월화수목금토일]/g,'').replace(/,/g,' ').replace(/\s+/g,' ').trim();
+        let match, timeOnly;
+        if (Array.isArray(r.days) && r.days.length){        // 새 방식: 요일 배열
+          if (r.days.indexOf(ch) === -1) return;
+          timeOnly = time;
+        } else {                                            // 레거시: 시간 글자에 요일 섞임
+          if (time && time.indexOf(ch) === -1) return;
+          if (!time) return;
+          timeOnly = time.replace(/[월화수목금토일]/g,'').replace(/,/g,' ').replace(/\s+/g,' ').trim();
+        }
         rows.push({ label: timeOnly || time || '시간', text: [name, subject].filter(Boolean).join(' · ') });
       });
     }
