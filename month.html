@@ -77,6 +77,9 @@
     color: var(--text-main); text-decoration: none; font-size: 14px;
   }
   .nav-arrow:hover { border-color: var(--accent); color: var(--accent); }
+  .month-pick { display: flex; align-items: center; gap: 2px; }
+  .mpsel { font-family: inherit; font-size: 19px; font-weight: 800; color: #17181C; border: none; background: transparent; cursor: pointer; padding: 4px 2px; -webkit-appearance: none; appearance: none; text-align: center; }
+  .mpsel:focus { outline: none; }
   .hb-spacer { width: 56px; flex: none; }
   h1 {
     text-align: center;
@@ -469,7 +472,7 @@
     <a id="yearLink" href="app.html" class="nav-btn home">📅 연간</a>
     <div class="month-switch">
       <a id="prevMonthBtn" href="#" class="nav-arrow" title="이전달">◀</a>
-      <h1 id="monthTitle">월간</h1>
+      <div class="month-pick"><select id="yearSel" class="mpsel" title="연도 바로가기"></select><select id="monthSel" class="mpsel" title="월 바로가기"></select></div>
       <a id="nextMonthBtn" href="#" class="nav-arrow" title="다음달">▶</a>
     </div>
     <span class="hb-spacer"></span>
@@ -555,7 +558,13 @@
 
   document.getElementById('yearLink').href = `app.html?year=${YEAR}`;
 
-  document.getElementById('monthTitle').textContent = `${YEAR}년 ${MONTH}월`;
+  (function(){
+    var ys = document.getElementById('yearSel'), ms = document.getElementById('monthSel');
+    for (var y = MIN_YEAR; y <= MAX_YEAR; y++) { var o = document.createElement('option'); o.value = y; o.textContent = y + '년'; if (y === YEAR) o.selected = true; ys.appendChild(o); }
+    for (var m = 1; m <= 12; m++) { var o2 = document.createElement('option'); o2.value = m; o2.textContent = m + '월'; if (m === MONTH) o2.selected = true; ms.appendChild(o2); }
+    function go(){ location.href = 'month.html?year=' + ys.value + '&month=' + ms.value; }
+    ys.addEventListener('change', go); ms.addEventListener('change', go);
+  })();
   document.getElementById('monthPlanTitle').textContent = `${MONTH}월 목표`;
   document.title = `아이담다 · ${YEAR}년 ${MONTH}월`;
 
