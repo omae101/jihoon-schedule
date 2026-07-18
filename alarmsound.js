@@ -20,25 +20,33 @@ window.HanAlarm = (function () {
     bell:   { label: '밝은 종소리',      type: 'triangle', notes: [['E5',.4],['G5',.4],['C6',.4],['G5',.4],['C6',.9]] },
     xylo:   { label: '실로폰 멜로디',     type: 'sine',     notes: [['C5',.45],['E5',.45],['G5',.45],['C6',.5],['G5',.4],['C6',.9]] }
   };
-  function play(name) {
-    var c = ensure(); if (!c) return;
-    var t = TUNES[name] || TUNES.ding;
-    var beat = 0.34, now = c.currentTime, cur = 0;
+  var PEAK = 0.7;   // 소리 크기(0~1). 0.35→0.7로 키움. 순차 재생이라 왜곡 없음.
+  function playOnce(c, t, startAt) {
+    var beat = 0.34, cur = 0, master = c.createGain();
+    master.gain.value = 1; master.connect(c.destination);
     t.notes.forEach(function (n) {
       var f = N[n[0]], dur = n[1] * beat;
       if (f > 0) {
         var o = c.createOscillator(), g = c.createGain();
         o.type = t.type || 'sine'; o.frequency.value = f;
-        var st = now + cur;
+        var st = startAt + cur;
         g.gain.setValueAtTime(0.0001, st);
-        g.gain.exponentialRampToValueAtTime(0.35, st + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, st + dur * 0.92);
-        o.connect(g); g.connect(c.destination);
+        g.gain.exponentialRampToValueAtTime(PEAK, st + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, st + dur * 0.96);
+        o.connect(g); g.connect(master);
         o.start(st); o.stop(st + dur);
       }
       cur += dur;
     });
-    try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+    return cur; // 이 곡의 총 길이(초)
+  }
+  function play(name, opts) {
+    var c = ensure(); if (!c) return;
+    var t = TUNES[name] || TUNES.ding;
+    var reps = (opts && opts.repeat) || 2;   // 알람은 기본 2번 반복(더 잘 들리게)
+    var at = c.currentTime, gap = 0.12;
+    for (var i = 0; i < reps; i++) { var len = playOnce(c, t, at); at += len + gap; }
+    try { if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 400]); } catch (e) {}
   }
   function list() { return Object.keys(TUNES).map(function (k) { return { key: k, label: TUNES[k].label }; }); }
   return { play: play, ensure: ensure, list: list };
