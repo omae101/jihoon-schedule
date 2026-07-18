@@ -98,8 +98,9 @@ end; $$;
 -- 연결 코드 생성: 암호학적 난수(gen_random_bytes)로 8자리 영숫자.
 -- 헷갈리는 글자(0,O,1,I,L) 제외한 31자 알파벳 → 약 8.5×10^11 경우의 수.
 -- (예전 6자리 숫자=100만은 익명로그인+무차별 대입에 취약 → 사실상 추측 불가로 강화)
+-- search_path에 extensions 포함: Supabase는 pgcrypto(gen_random_bytes)를 extensions 스키마에 설치함
 create or replace function public.gen_pair_code()
-returns text language sql volatile set search_path = public as $$
+returns text language sql volatile set search_path = public, extensions as $$
   select string_agg(substr('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 1 + (get_byte(b, i) % 31), 1), '')
   from (select gen_random_bytes(8) as b) s, generate_series(0, 7) as i;
 $$;

@@ -55,7 +55,7 @@ drop policy if exists kv_write  on public.kv;
 create policy kv_select on public.kv for select using (public.is_member(space_id));
 create policy kv_write  on public.kv for all   using (public.is_member(space_id)) with check (public.is_member(space_id));
 create or replace function public.gen_pair_code()
-returns text language sql volatile set search_path = public as $$
+returns text language sql volatile set search_path = public, extensions as $$
   select string_agg(substr('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 1 + (get_byte(b, i) % 31), 1), '')
   from (select gen_random_bytes(8) as b) s, generate_series(0, 7) as i;
 $$;
