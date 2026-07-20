@@ -1725,13 +1725,24 @@
 
   function jdn(y,m,d){const a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
   function dayPillar(Y,M,D){const i=((jdn(Y,M,D)+49)%60+60)%60;return {stem:i%10,branch:i%12};}
-  function yearPillar(Y,M,D){let y=Y; if(M===1||(M===2&&D<4)) y=Y-1; return {stem:((y-4)%10+10)%10,branch:((y-4)%12+12)%12};}
-  function monthBranch(M,D){const thr={1:6,2:4,3:6,4:5,5:6,6:6,7:7,8:8,9:8,10:8,11:7,12:7};return D<thr[M]?(M%12+11)%12:M%12;}
+  // ===== 절기 정확 계산: 태양 겉보기 황경(천문 계산, Meeus 저정밀도) =====
+  // 근사 날짜표 대신 태양 황경으로 24절기를 정확히 판정 → 월주(월지·월간)·연도경계(입춘)를 만세력 기준으로 정확화.
+  function _toRad(d){return d*Math.PI/180;}
+  function julianDay(Y,M,D,hUT){let y=Y,m=M;if(m<=2){y-=1;m+=12;}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+(D+hUT/24)+B-1524.5;}
+  function sunLongitude(jd){const T=(jd-2451545.0)/36525;const L0=280.46646+36000.76983*T+0.0003032*T*T;const Md=(357.52911+35999.05029*T-0.0001537*T*T);const Mr=_toRad(((Md%360)+360)%360);const C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)+(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);const app=(L0+C)-0.00569-0.00478*Math.sin(_toRad(125.04-1934.136*T));return ((app%360)+360)%360;}
+  // KST(한국표준시) 생년월일시 → 그 순간 태양황경. 시각 미입력이면 정오 기준(절기 경계일이 아니면 결과 동일).
+  function solarLongOf(Y,M,D,h){const hh=(h===''||h==null)?12:parseInt(h);return sunLongitude(julianDay(Y,M,D,(hh-9)));}
+  // 절(節) 기준 월지: 입춘(황경315°)=인월, 30°마다 다음 월지
+  function monthBranchBySun(L){const k=Math.floor((((L-315)%360)+360)%360/30);return (2+k)%12;}
+  // 사주 연도는 입춘(315°)에 바뀜: 1월=전년, 2월은 입춘 전이면 전년
+  function solarYearOf(Y,M,L){if(M===1)return Y-1;if(M===2)return (L<315?Y-1:Y);return Y;}
   function monthStem(yStem,mBr){const base=[2,4,6,8,0][yStem%5];return (base+(((mBr-2)+12)%12))%10;}
   function hourPillar(dStem,h){const br=Math.floor((h+1)/2)%12;const base=[0,2,4,6,8][dStem%5];return {stem:(base+br)%10,branch:br};}
   function buildPillars(Y,M,D,h){
-    const yp=yearPillar(Y,M,D);
-    const mBr=monthBranch(M,D); const mp={stem:monthStem(yp.stem,mBr),branch:mBr};
+    const L=solarLongOf(Y,M,D,h);
+    const sy=solarYearOf(Y,M,L);
+    const yp={stem:((sy-4)%10+10)%10,branch:((sy-4)%12+12)%12};
+    const mBr=monthBranchBySun(L); const mp={stem:monthStem(yp.stem,mBr),branch:mBr};
     const dp=dayPillar(Y,M,D);
     const list=[yp,mp,dp];
     if(h!==null&&h!==undefined&&h!=='') list.push(hourPillar(dp.stem,parseInt(h)));
@@ -1946,7 +1957,7 @@
       ${r.shinsal&&r.shinsal.length?`<div class="an-tip" style="background:#F3F0FF;border-color:#E0D7FF;"><b>🌟 신살 풀이 (명리)</b><br>${r.shinsal.map(s=>`· <b>${SHINSAL_INFO[s].nm}</b> — ${SHINSAL_INFO[s].t}`).join('<br>')}</div>`:''}
       ${r.samjae?`<div class="an-tip" style="background:#FFF7ED;border-color:#FDE4C4;"><b>🔮 삼재 참고</b><br>${samjaeText(r.samjae,r.zodiac)}</div>`:''}
       <div class="an-tip"><b>📝 계획 팁</b><br>${tips.map(x=>'· '+x).join('<br>')}</div>
-      <div class="an-disclaimer">※ 사주는 출생시간·절기에 따라 달라질 수 있는 참고용 경향 분석이며, 성적·기질을 종합한 학습 가이드입니다. (요약 ${summary.length}자)</div>
+      <div class="an-disclaimer">※ 절기는 천문 계산(태양 황경)으로 정확히 반영했어요. 다만 시주(時)는 시계 시각 기준이라 진태양시(경도 보정)를 쓰는 만세력과는 시주가 다를 수 있어요. 참고용 경향 분석이며, 성적·기질을 종합한 학습 가이드입니다.</div>
      </div>`;
     analysisResult.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
