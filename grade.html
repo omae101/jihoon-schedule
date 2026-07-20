@@ -508,6 +508,7 @@
         <label>관심·고민 (선택)</label>
         <input type="text" id="cnsConcern" placeholder="예: 영어 언제 시작? 한자 시켜도 될까?">
       </div>
+      <div id="cnsChips" style="flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 2px;"></div>
       <div class="input-group" style="flex:2;">
         <label>지금 하는 공부 (선택)</label>
         <input type="text" id="cnsNow" placeholder="예: 한글 떼는 중, 영어 학습지">
@@ -1377,6 +1378,18 @@
   const cnsUseTend = document.getElementById('cnsUseTend');
   [['grade-cns-age', cnsAge], ['grade-cns-stage', cnsStage], ['grade-cns-concern', cnsConcern], ['grade-cns-now', cnsNow]]
     .forEach(([k, el]) => { const v = localStorage.getItem(k); if (v != null && v !== '') el.value = v; el.addEventListener('change', () => localStorage.setItem(k, el.value)); });
+
+  // 자주 묻는 질문 칩 → 탭하면 고민칸에 자동으로 채움
+  (function(){
+    const box = document.getElementById('cnsChips'); if (!box) return;
+    const FAQ = ['영어 언제 시작할까요?','한자 시켜도 될까요?','한글 떼는 시기','수학 선행 필요할까요?','독서 습관 잡는 법','집중력이 약해요','스스로 공부하는 습관'];
+    FAQ.forEach(q => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = q;
+      b.style.cssText = 'border:1px solid #E2E4E9;background:#F7F8FA;color:#555;font-family:inherit;font-size:12px;font-weight:600;padding:6px 11px;border-radius:999px;cursor:pointer;';
+      b.addEventListener('click', () => { cnsConcern.value = q; try { localStorage.setItem('grade-cns-concern', q); } catch(e){} cnsConcern.focus(); });
+      box.appendChild(b);
+    });
+  })();
 
   function cnsRender(r) {
     let h = '';
