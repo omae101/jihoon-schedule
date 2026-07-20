@@ -46,7 +46,7 @@ drop policy if exists members_select on public.space_members;
 drop policy if exists members_insert_self on public.space_members;
 drop policy if exists members_delete_self on public.space_members;
 create policy members_select on public.space_members for select using (public.is_member(space_id));
-create policy members_insert_self on public.space_members for insert with check (user_id = auth.uid());
+-- (보안) 직접 INSERT 정책 제거: 멤버 추가는 create_space_with_code/join_space RPC(SECURITY DEFINER)로만 → 코드 없이 남의 space 무단 가입 차단
 create policy members_delete_self on public.space_members for delete using (user_id = auth.uid());
 drop policy if exists codes_insert on public.pair_codes;
 create policy codes_insert on public.pair_codes for insert with check (public.is_member(space_id));

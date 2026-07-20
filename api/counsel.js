@@ -111,6 +111,12 @@ module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST만 허용돼요." });
   }
+  // 출처 검증: 우리 사이트에서 온 요청만 허용 (외부 직접호출로 API 비용 새는 것 차단)
+  const _host = req.headers.host || "";
+  const _ref = req.headers.origin || req.headers.referer || "";
+  if (!_host || _ref.indexOf("://" + _host) === -1) {
+    return res.status(403).json({ error: "허용되지 않은 요청이에요." });
+  }
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: "서버에 ANTHROPIC_API_KEY가 설정되지 않았어요." });
@@ -126,7 +132,7 @@ module.exports = async (req, res) => {
     if (!lines.length) return res.status(400).json({ error: "자녀 나이나 단계를 알려주세요." });
 
     const payload = {
-      model: "claude-sonnet-4-6",
+      model: "claude-sonnet-5",
       max_tokens: 2200,
       output_config: {
         format: { type: "json_schema", schema: SCHEMA }

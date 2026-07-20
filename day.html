@@ -599,13 +599,14 @@
     box.innerHTML = '';
     if (typeof Assessments === 'undefined') return;
     const items = Assessments.getUpcoming(null, selectedDate);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     items.forEach(it=>{
       const a = document.createElement('a');
       a.className = 'banner';
       a.href = 'day.html?date=' + it.dateStr;
       const dd = it.dday === 0 ? 'D-DAY' : 'D-' + it.dday;
       const md = it.dateStr.split('-');
-      a.innerHTML = `🔔 <span class="dd">${dd}</span> ${it.text} <span style="margin-left:auto;color:var(--text-mute);font-size:12px;white-space:nowrap;">${parseInt(md[1])}월 ${parseInt(md[2])}일</span>`;
+      a.innerHTML = `🔔 <span class="dd">${dd}</span> ${esc(it.text)} <span style="margin-left:auto;color:var(--text-mute);font-size:12px;white-space:nowrap;">${parseInt(md[1])}월 ${parseInt(md[2])}일</span>`;
       a.style.justifyContent = 'flex-start';
       box.appendChild(a);
     });
