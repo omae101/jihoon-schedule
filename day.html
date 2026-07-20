@@ -117,6 +117,9 @@
   .tl-time { flex: none; min-width: 86px; font-size: 12px; color: var(--text-mute); font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; outline: none; }
   .tl-time:focus { color: var(--accent); }
   .tl-text { flex: 1; font-size: 14.5px; outline: none; min-height: 21px; }
+  .tl-auto { box-shadow: inset 3px 0 0 var(--accent); }
+  .tl-auto .tl-time { color: var(--accent); font-weight: 700; }
+  .tl-ic { font-size: 11.5px; }
 
   /* 접이식 */
   .fold { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 14px; }
@@ -207,22 +210,6 @@
     <div class="card-body" style="padding:0 0 4px;">
       <div id="tlList"></div>
       <div class="add-row" id="addTlBtn" style="padding-left:14px;">＋ 시간 추가</div>
-    </div>
-  </div>
-
-  <!-- 학교·학원 시간표 -->
-  <div class="fold">
-    <div class="fold-head" onclick="this.parentElement.classList.toggle('open')">
-      <span class="fold-emoji">🏫</span>
-      <span class="fold-title">학교 · 학원 시간표</span>
-      <span class="chev">▾</span>
-    </div>
-    <div class="fold-body">
-      <div class="sub-label">🏫 학교 시간표</div>
-      <div class="mini-list" id="schoolList"></div>
-      <div class="sub-label">🎓 학원 시간표</div>
-      <div class="mini-list" id="academyList"></div>
-      <p class="auto-hint">시간표는 메인 화면의 🏫 학교 시간표 · 🎒 학원 시간표에서 입력하면 요일에 맞춰 자동으로 떠요.</p>
     </div>
   </div>
 
@@ -319,7 +306,7 @@
 
   function reloadAll(){
     renderDateInfo();
-    loadTodo(); loadTimetable(); loadSchool(); loadAcademy();
+    loadTodo(); loadTimetable();
     document.getElementById('assessmentInput').value = localStorage.getItem(assessmentKey) || '';
     loadExtra();
     document.getElementById('memoArea').value = localStorage.getItem(memoKey) || '';
@@ -429,8 +416,21 @@
     for(let t=15*60+30; t<24*60; t+=60){ blocks.push({start:t, end:Math.min(t+60,24*60), text:''}); }
     return blocks;
   }
+  function autoTlRow(label, text, icon, color){
+    const row = document.createElement('div'); row.className='tl tl-auto';
+    const time = document.createElement('div'); time.className='tl-time'; time.textContent=label;
+    const txt = document.createElement('div'); txt.className='tl-text';
+    const ic = document.createElement('span'); ic.className='tl-ic'; ic.textContent=icon+' ';
+    txt.appendChild(ic);
+    const span = document.createElement('span'); span.textContent = text;
+    if (color){ span.style.background=color.bg; span.style.color=color.fg; span.style.fontWeight='700'; span.style.padding='1px 9px'; span.style.borderRadius='999px'; }
+    txt.appendChild(span);
+    row.appendChild(time); row.appendChild(txt); tlList.appendChild(row);
+  }
   function loadTimetable(){
     tlList.innerHTML = '';
+    getSchoolEntries().forEach(r=>autoTlRow(r.label, r.text, '🏫', r.color));
+    getAcademyEntries().forEach(r=>autoTlRow(r.label, r.text, '🎓', null));
     const data = localStorage.getItem(timetableKey);
     if (data){ JSON.parse(data).forEach(r=>createRow(r.time, r.text)); }
     else { defaultTimetable().forEach(b=>createRow(`${fmt(b.start)}-${fmt(b.end)}`, b.text)); }
@@ -444,7 +444,7 @@
       if(time.textContent.trim() && !pattern.test(time.textContent.trim())){
         alert('시간 형식은 HH:MM 또는 HH:MM-HH:MM 이어야 합니다.');
         const rows = JSON.parse(localStorage.getItem(timetableKey)||'[]');
-        const idx = [...tlList.children].indexOf(row);
+        const idx = [...tlList.querySelectorAll('.tl:not(.tl-auto)')].indexOf(row);
         if(rows[idx]) time.textContent = rows[idx].time;
         return;
       }
@@ -456,7 +456,7 @@
     row.appendChild(time); row.appendChild(txt); tlList.appendChild(row);
   }
   function saveTimetable(){
-    const rows = [...tlList.querySelectorAll('.tl')].map(r=>({
+    const rows = [...tlList.querySelectorAll('.tl:not(.tl-auto)')].map(r=>({
       time: r.querySelector('.tl-time').textContent,
       text: r.querySelector('.tl-text').textContent
     }));
@@ -493,6 +493,35 @@
     const data = readJSON(key);
     if (!Array.isArray(data)) return [];
     return data.map(r=>({label:(r.time||'').trim(), text:(r.text||'').trim()})).filter(r=>r.label||r.text);
+  }
+  // 오늘 일정 타임란에 같이 띄우려고 학교·학원 항목을 데이터로 반환
+  function getSchoolEntries(){
+    const wd = new Date(selectedDate).getDay();
+    const data = readJSON('jihoon-school-timetable');
+    const rows = [];
+    if (wd >= 1 && wd <= 5 && Array.isArray(data)){
+      const col = wd - 1;
+      data.forEach((p, i)=>{ const subj=(p && p[col] ? String(p[col]) : '').trim(); if(subj) rows.push({label:(i+1)+'교시', text:subj, color:subjColor(subj)}); });
+    }
+    if (rows.length) return rows;
+    return legacyRows(schoolKey).map(r=>({label:r.label, text:r.text, color:subjColor(r.text)}));
+  }
+  function getAcademyEntries(){
+    const ch = WD_CHARS[new Date(selectedDate).getDay()];
+    const data = readJSON('jihoon-academy-schedule');
+    const rows = [];
+    if (Array.isArray(data)){
+      data.forEach(r=>{
+        const time=(r.time||'').trim(), name=(r.name||'').trim(), subject=(r.subject||'').trim();
+        if(!time && !name && !subject) return;
+        let timeOnly;
+        if(Array.isArray(r.days) && r.days.length){ if(r.days.indexOf(ch)===-1) return; timeOnly=time; }
+        else { if(time && time.indexOf(ch)===-1) return; if(!time) return; timeOnly=time.replace(/[월화수목금토일]/g,'').replace(/,/g,' ').replace(/\s+/g,' ').trim(); }
+        rows.push({label:timeOnly||time||'시간', text:[name,subject].filter(Boolean).join(' · ')});
+      });
+    }
+    if (rows.length) return rows;
+    return legacyRows(academyKey);
   }
   // 학교: jihoon-school-timetable = 교시(행) × 요일(월~금, 열) 과목
   function loadSchool(){
