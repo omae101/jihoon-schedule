@@ -1429,7 +1429,8 @@
           if (rr && !rr.error) {
             const sc = rr.scores;
             const elLowC = Object.entries(rr.cnt).sort((a, b) => a[1] - b[1])[0][0];
-            tendency = `일간 ${STEMS[rr.dp.stem]}${BRANCHES[rr.dp.branch]}(${EL_NAME[rr.dayMasterEl]}), ${rr.zodiac}띠, 오행 ${ohaengStr(rr.cnt)}(상대적으로 옅은 기운: ${EL_NAME[elLowC]}), 음양 양${rr.yy.yang}·음${rr.yy.yin}`
+            tendency = `일주 ${STEMS[rr.dp.stem]}${BRANCHES[rr.dp.branch]}(일간 ${EL_NAME[rr.dayMasterEl]}, 일지 자리 십성=${rr.seat}), ${rr.zodiac}띠, 오행 ${ohaengStr(rr.cnt)}(상대적으로 옅은 기운: ${EL_NAME[elLowC]}), 음양 양${rr.yy.yang}·음${rr.yy.yin}`
+              + (rr.shinsal && rr.shinsal.length ? `, 신살 ${rr.shinsal.map(s=>({문창:'문창귀인',학당:'학당귀인',천을:'천을귀인',도화:'도화살',역마:'역마살',화개:'화개살'}[s])).join('·')}` : '')
               + (rr.samjae && rr.samjae.in ? `, 올해 삼재(${rr.samjae.phase})` : '')
               + (rr.mbti && rr.mbti.length === 4 ? `, MBTI ${rr.mbti.toUpperCase()}` : '')
               + `, 성향점수 수리${sc.수리}·문해${sc.문해}·집중${sc.집중}·창의${sc.창의}·성실${sc.성실}(100점 만점)`
@@ -1656,6 +1657,63 @@
   // 부족(옅은) 오행별로 '채우면 좋은' 학습 방향
   const EL_FILL = {목:'독서·글쓰기로 어휘와 표현력을 채우면',화:'발표·체험·활동형 공부로 자신감과 표현을 채우면',토:'매일 같은 시간 공부하는 규칙적 습관을 채우면',금:'수·연산·규칙 학습으로 논리·정밀함을 채우면',수:'이해 중심 복습과 암기 루틴으로 사고·기억력을 채우면'};
 
+  // ===== 일주(日柱) 심화: 일지(자리)의 십성 + 신살(공부 관련) — 명리학적 해석 =====
+  const EL_GEN  = {목:'화',화:'토',토:'금',금:'수',수:'목'};   // 오행 상생(내가 생하는 것)
+  const EL_CTRL = {목:'토',화:'금',토:'수',금:'목',수:'화'};   // 오행 상극(내가 극하는 것)
+  // 일간(오행) 대비 일지(오행)의 십성 관계 → 성격의 '바탕 자리'
+  function sipseong(meEl, otherEl){
+    if(otherEl===meEl) return '비겁';
+    if(EL_GEN[meEl]===otherEl) return '식상';
+    if(EL_CTRL[meEl]===otherEl) return '재성';
+    if(EL_CTRL[otherEl]===meEl) return '관성';   // 상대가 나를 극함
+    if(EL_GEN[otherEl]===meEl) return '인성';     // 상대가 나를 생함
+    return '비겁';
+  }
+  const SEAT_TRAIT = {
+    비겁:'자기 주관과 독립심이 뚜렷해 스스로 밀고 나가는 힘이 강한',
+    식상:'표현력과 재능이 풍부해 배운 것을 밖으로 잘 펼치는',
+    재성:'현실 감각과 목표 의식이 뚜렷해 결과로 연결하는',
+    관성:'책임감과 자기 규율이 강해 정해진 틀 안에서 성실한',
+    인성:'받아들이고 파고드는 힘이 커 학습·사고에 유리한'
+  };
+  const SEAT_STUDY = {
+    비겁:'스스로 계획하고 주도하는 자기주도학습이 잘 맞아요.',
+    식상:'말·글·발표로 표현하며 배울 때(설명하듯 복습) 오래 남아요.',
+    재성:'목표와 보상을 눈에 보이게 정해두면 동기가 커져요.',
+    관성:'규칙적인 시간표와 루틴을 정해두면 힘을 발휘해요.',
+    인성:'개념·원리를 깊이 이해하는 공부에 강점이 있어요.'
+  };
+  // 신살(공부·기질 관련 위주). 귀인=일간 기준, 도화·역마·화개=일지 삼합 기준
+  const MUNCHANG = {0:5,1:6,2:8,3:9,4:8,5:9,6:11,7:0,8:2,9:3};  // 문창귀인 갑사·을오·병신·정유·무신·기유·경해·신자·임인·계묘
+  const HAKDANG  = {0:11,1:6,2:2,3:9,4:2,5:9,6:5,7:0,8:8,9:3};  // 학당귀인 갑해·을오·병인·정유·무인·기유·경사·신자·임신·계묘
+  const CHEONEUL = {0:[1,7],4:[1,7],6:[1,7],1:[0,8],5:[0,8],2:[11,9],3:[11,9],8:[3,5],9:[3,5],7:[2,6]}; // 천을귀인
+  const SAMHAP = [
+    {grp:[8,0,4], dohwa:9, yeokma:2,  hwagae:4 },  // 신자진(水): 도화酉 역마寅 화개辰
+    {grp:[5,9,1], dohwa:6, yeokma:11, hwagae:1 },  // 사유축(金): 도화午 역마亥 화개丑
+    {grp:[2,6,10],dohwa:3, yeokma:8,  hwagae:10},  // 인오술(火): 도화卯 역마申 화개戌
+    {grp:[11,3,7],dohwa:0, yeokma:5,  hwagae:7 }   // 해묘미(木): 도화子 역마巳 화개未
+  ];
+  function shinsalOf(pil){
+    const dStem=pil.dp.stem, dBranch=pil.dp.branch;
+    const branches=pil.list.map(p=>p.branch);
+    const has=b=>branches.indexOf(b)!==-1;
+    const out=[];
+    if(has(MUNCHANG[dStem])) out.push('문창');
+    if(has(HAKDANG[dStem])) out.push('학당');
+    if((CHEONEUL[dStem]||[]).some(has)) out.push('천을');
+    const g=SAMHAP.find(G=>G.grp.indexOf(dBranch)!==-1);
+    if(g){ if(has(g.dohwa))out.push('도화'); if(has(g.yeokma))out.push('역마'); if(has(g.hwagae))out.push('화개'); }
+    return out;
+  }
+  const SHINSAL_INFO = {
+    문창:{nm:'문창귀인',t:'글재주·학문운이 좋아 읽고 쓰고 표현하는 데 타고난 감각이 있어요 (국어·논술·독서 강점).'},
+    학당:{nm:'학당귀인',t:'배움의 자리를 타고나 공부 자체에 소질이 있고 이해·암기가 순조로운 기운이에요.'},
+    천을:{nm:'천을귀인',t:'귀인의 복 — 좋은 선생님·멘토·조력자를 만나 어려울 때 도움을 받는 기운이에요.'},
+    도화:{nm:'도화살',t:'사람을 끄는 매력·인기 — 발표·예체능·소통에 강해요. 다만 관심이 흩어지지 않게 집중 관리가 도움돼요.'},
+    역마:{nm:'역마살',t:'이동·활동의 기운 — 가만히보다 움직이며 배울 때 능률이 올라요 (체험·어학·활동형 공부가 잘 맞음).'},
+    화개:{nm:'화개살',t:'예술·깊이의 기운 — 혼자 파고들어 깊이 탐구하는 힘이 있어 몰입형·연구형 공부에 유리해요.'}
+  };
+
   const HS_TYPE = {
     gen_metro:   {name:'수도권 일반고', dae:'내신 관리가 수시(학생부교과·종합)의 핵심이라 전 과목을 고르게 챙기고 세특·동아리 등 비교과도 함께 쌓는 전략이 유리합니다.', tip:'시험 4주 전부터 과목별 진도를 역산해 내신 계획을 세우세요.'},
     gen_local:   {name:'지방 일반고', dae:'내신을 따기 유리한 환경이라 교과전형·지역균형선발 등 수시를 적극 노리고 농어촌 등 지역 전형도 함께 검토하면 좋습니다.', tip:'내신 강점을 살려 목표 대학의 교과 반영 비율을 미리 확인하세요.'},
@@ -1797,6 +1855,7 @@
     const curY=new Date().getFullYear();
     return {dp:pil.dp,yp:pil.yp,cnt,mbti,stats,gsig,age,level,scores,
       dayMasterEl:STEM_EL[pil.dp.stem], dn:dayNight(cnt,pil.dp.stem,mbti,chrono), hsType:hsTypeInput.value,
+      seat:sipseong(STEM_EL[pil.dp.stem],BRANCH_EL[pil.dp.branch]), shinsal:shinsalOf(pil),
       yy:yinYangCount(pil.list), zodiac:ZODIAC[pil.yp.branch], samjae:samjaeInfo(pil.yp.branch,curY)};
   }
 
@@ -1806,9 +1865,14 @@
     const t1=NM[ord[0][0]], t2=NM[ord[1][0]], low=NM[ord[ord.length-1][0]];
     const elTop=Object.entries(r.cnt).sort((a,b)=>b[1]-a[1])[0][0];
     const P=[];
-    P.push(`사주로 보면 일간이 ${STEMS[r.dp.stem]}${BRANCHES[r.dp.branch]}(${EL_NAME[r.dayMasterEl]}) 기운이라 ${EL_TRAIT[r.dayMasterEl]}이(가) 바탕이 되는 아이입니다.`);
+    P.push(`사주 일주(日柱)로 보면 ${STEMS[r.dp.stem]}${BRANCHES[r.dp.branch]}일주라, 일간 ${EL_NAME[r.dayMasterEl]}의 ${EL_TRAIT[r.dayMasterEl]}을(를) 바탕으로, 앉은 자리(일지)에 ${SEAT_TRAIT[r.seat]} 기질(${r.seat})이 더해진 아이입니다.`);
     P.push(`오행 중 ${EL_NAME[elTop]} 기운이 가장 두드러져 ${t1}과(와) ${t2}에서 강점이 보입니다.`);
     if(r.yy) P.push(yinYangText(r.yy));
+    if(r.shinsal&&r.shinsal.length){
+      const nms=r.shinsal.map(s=>SHINSAL_INFO[s].nm).join('·');
+      const lead=r.shinsal.find(s=>['문창','학당','천을'].indexOf(s)!==-1)||r.shinsal[0];
+      P.push(`타고난 신살로는 ${nms}이(가) 보여요. 특히 ${SHINSAL_INFO[lead].t}`);
+    }
     if(r.level==='elem'){
       P.push(`초등 시기에는 성적 데이터가 아직 얕아 점수보다 타고난 기질이 더 정확합니다. 강점인 ${t1}은(는) 칭찬으로 키우고, ${low}은(는) 독서·놀이처럼 부담 없이 접근하면 효과적입니다.`);
     } else if(r.level==='mid'){
@@ -1831,7 +1895,10 @@
         :(r.gsig?'':' 성적을 입력하면 수시·정시 적합도까지 더 정확히 분석해 드립니다.');
       P.push(`고등은 대입을 염두에 둔 분석이 필요합니다.${d}${gye}${ht}`);
     }
-    if(r.mbti&&r.mbti.length===4) P.push(`MBTI ${r.mbti.toUpperCase()}는 ${mbtiStyleLine(r.mbti)} ${mbtiOneLine(r.mbti)} ${mbtiStudyTip(r.mbti)}`);
+    if(r.mbti&&r.mbti.length===4){
+      P.push(`MBTI ${r.mbti.toUpperCase()}는 ${mbtiStyleLine(r.mbti)} ${mbtiOneLine(r.mbti)} ${mbtiStudyTip(r.mbti)}`);
+      P.push(`명리(일주 자리)와 MBTI를 함께 보면, 타고난 '${r.seat}' 기질과 ${r.mbti.toUpperCase()} 성향이 만나 ${SEAT_STUDY[r.seat]}`);
+    }
     P.push(`종합하면 ${t1}을(를) 무기로 삼고 ${low}은(는) 작은 목표로 나눠 채우는 것이 가장 빠른 성장 경로입니다.`);
     return P.join(' ');
   }
@@ -1843,6 +1910,7 @@
     if(r.level==='high'&&r.hsType&&HS_TYPE[r.hsType]) t.push(HS_TYPE[r.hsType].tip);
     else if(r.scores.집중<58) t.push('한 번에 25분 집중 + 5분 휴식(뽀모도로)으로 앉아있는 힘을 키워 보세요.');
     else t.push(`집중 지속력이 좋은 편이라 ${r.dn.isM?'오전':'저녁'} 시간에 어려운 과목을 몰아서 공부하면 효과적이에요.`);
+    if(r.seat&&SEAT_STUDY[r.seat]) t.push(SEAT_STUDY[r.seat]);
     if(r.cnt){ const elLow=Object.entries(r.cnt).sort((a,b)=>a[1]-b[1])[0][0]; if(EL_FILL[elLow]) t.push(`사주 오행상 ${EL_NAME[elLow]} 기운이 상대적으로 옅어요 — ${EL_FILL[elLow]} 균형이 좋아져요.`); }
     return t;
   }
@@ -1859,7 +1927,9 @@
     analysisResult.innerHTML=`
      <div class="an">
       <div class="an-top">
-        <div class="an-chip"><b>일간 (사주)</b><span class="v">${STEMS[r.dp.stem]}${BRANCHES[r.dp.branch]} · ${EL_NAME[r.dayMasterEl]}</span></div>
+        <div class="an-chip"><b>일주 (사주 핵심)</b><span class="v">${STEMS[r.dp.stem]}${BRANCHES[r.dp.branch]} · ${EL_NAME[r.dayMasterEl]}</span></div>
+        <div class="an-chip"><b>일지 자리</b><span class="v">${r.seat}</span></div>
+        <div class="an-chip"><b>신살</b><span class="v">${r.shinsal&&r.shinsal.length?r.shinsal.map(s=>SHINSAL_INFO[s].nm).join(', '):'—'}</span></div>
         <div class="an-chip"><b>오행 균형</b><span class="v">${ohaengStr(r.cnt)}</span></div>
         <div class="an-chip"><b>음양</b><span class="v">양 ${r.yy.yang} · 음 ${r.yy.yin}</span></div>
         <div class="an-chip"><b>띠</b><span class="v">${r.zodiac}띠</span></div>
@@ -1873,6 +1943,7 @@
       </div>
       <div style="font-size:13px;color:var(--text-sub);margin-top:6px;">${r.dn.desc}</div>
       <div class="an-summary">${summary.replace(/</g,'&lt;')}</div>
+      ${r.shinsal&&r.shinsal.length?`<div class="an-tip" style="background:#F3F0FF;border-color:#E0D7FF;"><b>🌟 신살 풀이 (명리)</b><br>${r.shinsal.map(s=>`· <b>${SHINSAL_INFO[s].nm}</b> — ${SHINSAL_INFO[s].t}`).join('<br>')}</div>`:''}
       ${r.samjae?`<div class="an-tip" style="background:#FFF7ED;border-color:#FDE4C4;"><b>🔮 삼재 참고</b><br>${samjaeText(r.samjae,r.zodiac)}</div>`:''}
       <div class="an-tip"><b>📝 계획 팁</b><br>${tips.map(x=>'· '+x).join('<br>')}</div>
       <div class="an-disclaimer">※ 사주는 출생시간·절기에 따라 달라질 수 있는 참고용 경향 분석이며, 성적·기질을 종합한 학습 가이드입니다. (요약 ${summary.length}자)</div>
