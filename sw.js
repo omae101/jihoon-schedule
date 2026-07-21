@@ -1,5 +1,5 @@
 // 아이담다 PWA service worker
-const CACHE = 'hanbeone-v4';
+const CACHE = 'hanbeone-v5';
 const CORE = [
   '/app.html', '/day.html', '/month.html', '/grade.html', '/index.html', '/pair.html',
   '/notifications.js', '/pwa.js', '/profiles.js', '/sync.js', '/menu.js', '/welcomeback.js', '/alarmsound.js',
@@ -22,16 +22,19 @@ self.addEventListener('activate', (e) => {
 
 // 네트워크 우선, 실패 시 캐시 (정적 앱이 자주 업데이트되므로 항상 최신 우선)
 self.addEventListener('fetch', (e) => {
-  const req = e.request;
-  if (req.method !== 'GET' || !req.url.startsWith(self.location.origin)) return;
+  const r = e.request;
+  if (r.method !== 'GET' || !r.url.startsWith(self.location.origin)) return;
+  // HTML 문서(화면 이동)는 브라우저 HTTP 캐시를 건너뛰고 항상 최신을 받게 강제 → 업데이트 밀림 방지
+  const isDoc = r.mode === 'navigate' || (r.headers.get('accept') || '').indexOf('text/html') !== -1;
+  const fetchReq = isDoc ? new Request(r.url, { cache: 'no-store' }) : r;
   e.respondWith(
-    fetch(req)
+    fetch(fetchReq)
       .then((res) => {
         const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        caches.open(CACHE).then((c) => c.put(r, copy)).catch(() => {});
         return res;
       })
-      .catch(() => caches.match(req).then((hit) => hit || caches.match('/app.html')))
+      .catch(() => caches.match(r).then((hit) => hit || caches.match('/app.html')))
   );
 });
 
